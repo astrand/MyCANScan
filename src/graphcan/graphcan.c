@@ -2,9 +2,9 @@
 /* CAN data visualizer for the '04 Toyota Prius on a Sharp SL-C700		*/
 /*  Picture data is written in the Linux Frame Buffer...			*/
 /*										*/
-/* DATE:	2004-Jun-11 13:53:14						*/
+/* DATE:	2005-Aug-19 19:12:13						*/
 /*										*/
-/* Copyright (c) 2004 Attila Vass						*/
+/* Copyright (c) 2004,2005 Attila Vass						*/
 /*										*/
 /* Permission is hereby granted, free of charge, to any person obtaining a copy */
 /* of this software and associated documentation files (the "Software"),to deal */
@@ -26,8 +26,24 @@
 /*==============================================================================*/
 /*
 
-gcc graphcan.c -o graphcan
+HOW TO COMPILE :
 
+For the Zaurus :
+
+gcc graphcan.c -o graphcan -lpthread
+
+
+For X11/Linux :
+
+gcc graphcan.c -o graphcanl -DNON_ZAURUS -L/usr/X11R6/lib -lX11 -lpthread
+
+
+MPG -> L/100km         10 mpg = 16km/3.78l  =>  1.6km/G 1.6km/3.78l => 0.42328f
+
+
+[0x30] 0x3B 0x39 0x120 0x348 0x3C8 0x3CA 0x3CB 0x3CD 0x529 0x52C 0x57F 0x5A4 0x5B6
+
+[030 : Brake]
 03B : - EM Current
 120 - Drive Mode
 348 : - ICE Throttle + ICE torque
@@ -35,7 +51,7 @@ gcc graphcan.c -o graphcan
 3C9
 3CA : - Speed
 3CB : - SOC
-3CD
+3CD : - Battery Voltage
 3CF
 520
 521
@@ -60,6 +76,45 @@ gcc graphcan.c -o graphcan
 5ED
 5F8
 
+DEFAULT :
+Working with ACR = 07202000   AMR = 004FDFEF
+0x03B 0x120 0x348 0x34F 0x3C8 0x3C9 0x3CA 0x3CB 0x3CD 0x3CF 0x520 0x521 0x526 0x527 0x528 0x529
+0x52C 0x540 0x553 0x554 0x56D 0x57F 0x591 0x5A4 0x5B2 0x5B6 0x5C8 0x5CC 0x5D4 0x5EC 0x5ED 0x5F8
+0x7E8 0x7EA 0x7EB
+
+Old Default :
+Working with ACR = 07602000   AMR = 000FDFEF
+0x03B 0x120 0x348 0x34F 0x3C8 0x3C9 0x3CA 0x3CB 0x3CD 0x3CF 0x520 0x521 0x526 0x527 0x528 0x529
+0x52C 0x540 0x553 0x554 0x56D 0x57F 0x591 0x5A4 0x5B2 0x5B6 0x5C8 0x5CC 0x5D4 0x5EC 0x5ED 0x5F8
+0x7E8 0x7EA 0x7EB
+
+Working with ACR = 06002000   AMR = 016FDFEF
+0x030 0x038 0x039 0x03A 0x03B 0x120 0x348 0x34F 0x3C8 0x3C9 0x3CA 0x3CB 0x3CD 0x3CF 0x520 0x521
+0x526 0x527 0x528 0x529 0x52C 0x540 0x553 0x554 0x56D 0x57F 0x591 0x5A4 0x5B2 0x5B6 0x5C8 0x5CC
+0x5D4 0x5EC 0x5ED 0x5F8
+
+Working with ACR = 06002000   AMR = 416FDFEF
+0x030 0x038 0x039 0x03A 0x03B 0x120 0x230 0x348 0x34F 0x3C8 0x3C9 0x3CA 0x3CB 0x3CD 0x3CF 0x520
+0x521 0x526 0x527 0x528 0x529 0x52C 0x540 0x553 0x554 0x56D 0x57F 0x591 0x5A4 0x5B2 0x5B6 0x5C8
+0x5CC 0x5D4 0x5EC 0x5ED 0x5F8
+
+Working with ACR = 29000400   AMR = D6EFB3EF
+0x020 0x022 0x023 0x025 0x030 0x038 0x039 0x03A 0x03B 0x03E 0x0B0 0x0B1 0x0B3 0x0B4 0x120 0x348
+0x34F 0x3C8 0x3C9 0x3CA 0x3CB 0x3CD 0x3CF 0x423 0x520 0x521 0x526 0x527 0x528 0x529 0x52C 0x56D
+0x57F 0x5A4 0x5B2 0x5B6 0x5C8 0x5CC 0x5EC 0x5ED 0x5F8
+
+Working with ACR = 04000800   AMR = BBEFF1EF
+0x020 0x022 0x023 0x025 0x030 0x038 0x039 0x03A 0x03B 0x03E 0x060 0x0B0 0x0B1 0x0B3 0x0B4 0x0C9
+0x120 0x244 0x348 0x34F 0x3C8 0x3C9 0x3CA 0x3CB 0x3CD 0x3CF 0x423 0x4C1 0x4C3 0x4C6 0x4C7 0x4C8
+0x4CE 0x520 0x521 0x526 0x527 0x528 0x529 0x52C 0x540 0x56D 0x57F 0x5A4 0x5B2 0x5B6 0x5C8 0x5CC
+0x5EC 0x5ED 0x5F8
+
+
+DIAG :
+Working with ACR = 7960FC00   AMR = 000F016F	( M7960FC00 m000F016F )
+ 
+0x3CB 0x7E0 0x7E2 0x7E3 0x7E8 0x7EA 0x7EB	( using 0x3CB - battery as heartbeat )
+
 */
 
 
@@ -70,6 +125,7 @@ gcc graphcan.c -o graphcan
 #include <sys/fcntl.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <time.h>
 #include <signal.h>
 #include <termios.h>
@@ -81,26 +137,83 @@ gcc graphcan.c -o graphcan
 #include <linux/fb.h>
 #include <sys/mman.h>
 
+
+
+#ifdef NON_ZAURUS
+#include <X11/Xlib.h>
+#include <X11/keysym.h>
+#include <X11/Xutil.h>
+
+Window		WorkWindow=0;
+Display		*WorkDisplay;
+int		WorkScreen,WorkDepth,WorkBitsPerRGB,WorkScanLinePad;
+unsigned long	WorkRedMask,WorkGreenMask,WorkBlueMask;
+unsigned int	WorkRedNumberOfShifts,WorkGreenNumberOfShifts,WorkBlueNumberOfShifts;
+unsigned int	WorkRedNumberOfUpShifts,WorkGreenNumberOfUpShifts,WorkBlueNumberOfUpShifts;
+Visual		*WorkVisual=NULL;
+XImage		*WorkImage=NULL;
+char		WorkWindowInitialized=0;
+GC		WorkWindowGC=0,WorkPixmapGC=0;
+Pixmap		WorkPixmap=0;
+char		NextStep=2;
+
+#endif
+
+
+/**********************************/
+/*   APPLICATION DEPENDENT DATA   */
+/**********************************/
+
+//#define	SIMULATION		1
+
+#ifndef NON_ZAURUS
+
+#ifdef SIMULATION
+
+	#define	STAT_FILE_NAME			"/home/zaurus/CAN/PriusData_sim.txt"
+	#define FUEL_FILE_NAME			"/home/zaurus/CAN/FuelData_sim.txt"
+	#define	USE_KEYBOARD		1
+
+#else
+
+	#define	STAT_FILE_NAME			"/home/zaurus/CAN/PriusData.txt"
+	#define FUEL_FILE_NAME			"/home/zaurus/CAN/FuelData.txt"
+	#define	USE_VOICE_ANNOUNCEMENT		1
+//#define	USE_KEYBOARD		1
+
+#endif
+
+#define	FORCE_PATH			"/home/zaurus/CAN"
+
+#else
+
+	#define	STAT_FILE_NAME			"./PriusData_sim.txt"
+	#define FUEL_FILE_NAME			"./FuelData_sim.txt"
+	#define	USE_KEYBOARD		1
+//	#define	USE_VOICE_ANNOUNCEMENT		1
+	#define	USE_KEYBOARD		1
+	#define	FORCE_PATH			"./"
+
+#endif
+
 //#define	COMM_DEBUG		1
 //#define	REDRAW_FONTS		1
-//#define	SIMULATION		1
 //#define	TRACE_IT		1
-//#define	SHOWEXTRAVALUES		1
-//#define	ELECTRIC_STATISTICS	1
-//#define		TRAFFIC_PROFILE		1
+//#define	TRAFFIC_PROFILE		1
+//#define	MORE_DATA		1
+
+#define	USE_TOUCHSCREEN		1
+
 
 #define	BAUD	B115200
 
 #define	MISC_DATA_REFRESH_RATE		5
 #define	FULLSCREEN_REFRESH_RATE		6	// every MISC_DATA_REFRESH_RATE refresh the whole screen...
 #define	FIXED_FONT_COLOR		1
-#define	SPDSCALER			16000.0f
-#define	SPDSCALER_MILE			10000.0f
+#define	SPDSCALER			((double)(16000.0))
+#define	SPDSCALER_MILE			((double)(10000.0))
 
-#define	STAT_FILE_NAME			"/home/zaurus/CAN/PriusData.txt"
-#define	PIC_FILE_NAME			"/home/zaurus/CAN/PriusPic.rmp"
-
-#define	VERSION_STRING	"v4.7 by Attila Vass"
+#define	VERSION_STRING	"v9.0 by Attila Vass"
 
 #define DEVICE "/dev/ttyS0"
 
@@ -115,21 +228,27 @@ gcc graphcan.c -o graphcan
 #define	BKG_G	((unsigned char)0x00)
 #define	BKG_B	((unsigned char)0x00)
 
+/*
+
+Zaurus bytes :
+
+char	:	1
+int	:	4
+long	:	4
+float	:	4
+double	:	8
+
+*/
+
+enum	{TASK_INIT=0,TASK_INFO,TASK_SCREENSAVER,TASK_RUNNING};
+
+
 char		*WorkData=NULL;
 struct ImageBufferStructure
 {
 	unsigned char	R,G,B;
 }		*ImageBuffer=NULL;
 char		ProcessGo=1,RealQuit=0,ContSignal=0,Sleeping=0;
-
-#ifdef CHKMSGTRAFFIC
-unsigned long	dd=0,d3b=0,d3c8=0,d3ca=0,d3cb=0,d348=0,d5A4=0,d52c=0;
-int		N3b=32000,X3b=-32000;
-unsigned int	N348=65000,X348=0;
-unsigned int	N348C=65000,X348C=0;
-unsigned int	N3c8=65000,X3c8=0;
-#endif
-
 int		Port=-1;
 time_t		StartTime=0;
 char		*IB=NULL;
@@ -137,66 +256,80 @@ int		IBS=0;
 int		IBCP=0;
 int		CRSignal=0;
 float		DistanceTravelled=0.0f,MeasurementKilometers=0.0f,MeasuredKMPG=0.0f,MeasuredAverageSpeed=0.0f;
+float		TripKilometers=0.0f,TripGallonValue=0.0f;
+float		TripMile=0.0f,TripGal=0.0f;
+float		MeasuredMinCurrent=0.0f,MeasuredMaxCurrent=0.0f,MeasuredMinW=0.0f,MeasuredMaxW=0.0f;
+float		CurrentSpeed=0,RefuelValue=0.0f;
+double		AccSpd=0.0f,AccRpm=0.0f;
 unsigned int	StatusFlag=0;
-float		AccSpd=0.0f,AccRpm=0.0f,HB_Level=0.0f;
 unsigned int	AccSpdCntr=0;
 unsigned int	SpeedAccumulated=0,SpeedAccumulatedCntr=0,ThrottleAccumulatedCntr=0;
+int		Cat1Temp=0,Cat2Temp=0;
 unsigned long	ThrottleAccumulated=0;
-unsigned char	NeedSynced,SyncCntr=0;
-#ifdef SHOWEXTRAVALUES
-unsigned char	ShowValues=1;
-#endif
-unsigned char	EVMode=0;		// Cause it to be normal at startup
-unsigned char	ICEPowered=1;
+unsigned char	NeedSynced=1,SyncCntr=0,RunningTask=0;
+unsigned char	EVMode=0,LEVMode=0;		// Cause it to be normal at startup
+unsigned char	ICEPowered=1,ICEPoweredCurrStage=50;
 unsigned char	FSRCntr=1;
 unsigned char	LatestRPM=0;
-unsigned char	CurrGasGauge=0x7F;	// 11.9 Gal / 45 Liter ( 11.904762 Gal )
-unsigned char	GasGauge=0x7F;
-unsigned char	GasGaugeExtraValue=99;
+unsigned char	GasGauge=0x7F;			// 11.9 Gal / 45 Liter ( 11.904762 Gal )
+unsigned char	GasGaugeExtraValue=99,FirstGasReading=1;
+unsigned char	BattMaxChargeCurrent=0,BattMaxDisChargeCurrent=0;
 unsigned char	DoorStatus=0;
-unsigned char	CurrentSpeed=0;
 unsigned char	PriusIsPowered=1;
-unsigned char	TimeSuspended=0;
 unsigned char	ValueSwitch=0;
 unsigned char	LightValue=0;
 unsigned char	InstrumentsDimmed=0;
-unsigned int	SOCValue=0;			// 22  18  6   6  8
-unsigned int	BattTempValue=0;
-unsigned int	TempValue=0;			// Temperature
+unsigned char	CollectCurrent=0,TrafficCtr=0,TrafficSubCtr=0;
+unsigned char	MinMaxCurrentDisplay=0,MinMaxkWDisplay=0;
+unsigned char	DoorOpenCnt=0,NoTrafficYet=1,FirstTimeSOC=1,FirstTimeGas=1,VoiceMode=1,ForcePath=0,SI_Measurements=0;
+unsigned char	EngBlckTmpCnt=1,EngBlckTmp=0;
+unsigned char	TempValue=0;			// Temperature
+unsigned char	CATReqCtr=0;
+
+unsigned int	SOCValue=0,SOCValueCurrStage=0,LSOCValue=0,PreGasValue=0;			// 22  18  6   6  8
+unsigned int	BattTempValue=0,BattVoltageValue=0,FuelRead=0;
+unsigned int	MaxCurrent=0,MinCurrent=0,MaxCurrentVoltage=0,MinCurrentVoltage=0;
+#ifdef MORE_DATA
+unsigned int	Info_Brakes=0,Info_Brakes_Cnt=0;
+#endif
 int		ScrSv_NumberOfTimes=1;
 int		PreviousRPMValue=0xFFFF;
-int		PreviousCurrentValue=0xFFFF;
+//int		PreviousCurrentValue=0xFFFF;
 unsigned int	TimeElapsed=0;
+unsigned long	CollCurr=0,CollVolt=0;
+unsigned int	CollCntr=0,CollTime=0;
+int		TouchedX=-1,TouchedY=-1;
+unsigned int	NofTrafficBytes=0,SpeedCurrStage=0,SpeedCurrStageCntr=0;
+float		LastRegenkW=0.0f;
+unsigned char	LastRegenTime=0,Decel=0,PrvSpd=0,StrtSpd=0,LastRegenSpdStart=0,LastRegenSpdEnd=0,ScrTouched=0;
+char		TouchedButton=-1;
+#ifdef MORE_DATA
+unsigned char	LastRegenBrake=0;
+#endif
+char		LastRegenStopReason='U';
+unsigned char	NofTrafficBytesZero=0;
+
+//float		SpeedScalerV=1100.0f;
 
 #ifdef TRAFFIC_PROFILE
 unsigned int	NofInv=0,NofNInv=0;
-unsigned int	NofTrafficBytes=0;
 #endif
 
 char		Version[4];
 char		Serial[5];
 char		Message[64];
 unsigned long	IC_MessageID;
-unsigned char	IC_MessageLength;
 unsigned char	IC_Message[8];
-#ifdef ELECTRIC_STATISTICS
-unsigned long	Cr_Consd_noICE;
-unsigned long	Cr_Consd_ICE;
-unsigned long	Cr_Regen_noICE;
-unsigned long	Cr_Regen_ICE;
-unsigned long	Consd_noICE;
-unsigned long	Consd_ICE;
-unsigned long	Regen_noICE;
-unsigned long	Regen_ICE;
-unsigned int	Cr_Consd_noICE_Cnt;
-unsigned int	Cr_Consd_ICE_Cnt;
-unsigned int	Cr_Regen_noICE_Cnt;
-unsigned int	Cr_Regen_ICE_Cnt;
+
+#ifdef USE_KEYBOARD
+struct	termios	oldT,newT;
 #endif
 
-struct	termios	oldT,newT;
-
 int fbfd = -1;
+#ifdef USE_TOUCHSCREEN
+int touch_screen_fd=-1;
+#endif
+
 struct fb_var_screeninfo vinfo;
 struct fb_fix_screeninfo finfo;
 long int screensize = 0;
@@ -240,24 +373,24 @@ char *Font_Map[FONTMAP_HEIGHT] = {
 "=@%...%@-....@@...-@%...%@-.....&@-....&@@@...%@-.......+@#.........#@-..%@-.-@%.%@-...%@-.......%@..-@-..-@-.=@$..@%.-**@%...#@@..%%....*@&......+@*.%@.%@.%@..$@%.............",
 "=@%...%@-....@@...*-=...&@-...$#@@*...$@$@@...@@+-+=...=@@&%$......$@#...=@#-#@$.%@-...%@-..$%=..%@..-@-..-@-.*-*.=@%..=@@-..+#&@..@#@#-.+@&%*....#&..=@&@&.%@..-@-.............",
 "-@%...%@-....@@........%@#....%@@#*..*##.@@..*@@@@@@-..#@@@@@+.....&@$....&@@@#..$@#..*@@*..%@-..%@..-@-..-@-....*#@=..=&@%.*@$%@..@#-&@=@#%@#...$@-..%@%##*$@%-#@..............",
-"-@%...%@-....@@.......%@@-....=-&@#..%@=.@@..*+&*.$@@.-@#=.-@@*...=@@*...%@%-&@%.*#@#%@@&........%@..-@-..-@-...*#@-.....+@=&&.%@.....*@%@*.$@-..##..=@+.=@+.+@@@$........$%=...",
-"=@%...%@-....@@......-@@-........#@=-@%..@@........&@=%@$...&@=...&@+...=@#...#@=.*&@#@@*........%@..-@-..-@-..*#@-..$+..-@+@&%#@%-%*.*@%@..-@-.=@$..-@-..@%..*#&.........%@-...",
-"=@%...%@-....@@.....-@@-...$%=...%@=#@&%%@@%=$%=...%@=%@-...%@=..*@@=...-@%...%@-....#@$....$%=..=@%-##*..-@-.*#@%--=+@+-##=%%%#@%*@&-%@=@%-##..&@*..*##-%@-..%@*...............",
+"-@%...%@-....@@.......%@@-....=-&@#..%@=.@@..*+&*.$@@.-@#=.-@@*...=@@*...%@%-&@%.*#@#%@@&........%@..-@-..-@-...*#@-.....+@=&&.%@.....*@%@*.$@-..##..=@+.=@+.+@@@$........=-=...",
+"=@%...%@-....@@......-@@-........#@=-@%..@@........&@=%@$...&@=...&@+...=@#...#@=.*&@#@@*........%@..-@-..-@-..*#@-..$+..-@+@&%#@%-%*.*@%@..-@-.=@$..-@-..@%..*#&.........-@$...",
+"=@%...%@-....@@.....-@@-...$%=...%@=#@&%%@@%=$%=...%@=%@-...%@=..*@@=...-@%...%@-....#@$....$%=..=@%-##*..-@-.*#@%--=+@+-##=%%%#@%*@&-%@=@%-##..&@*..*##-%@-..%@*.........=$+...",
 "*@#..*@@=....@@....-@@-....+@&..*@@*@@@@@@@@-+@&..*@@*$@&..*@@*..+@&....=@#..*#@*...%@&.....%@-...$#@&=...-@-.-@@@@@%.+@@&*....%@..=&@#-.$#@&=.*@+....=&@#$..-@+................",
 ".%@&$#@&.....@@...=@@#%%%%=*#@&$#@%......@@..*#@&$#@+..#@&$#@%..*@@-.....%@&$#@%...-@@=.........................................................................................",
 ".*%@@@&*.....@@...-@@@@@@@-.=&@@@-.......@@...*&@@@+...*&@@@%...+@#......*%@@@+...*#@+..........................................................................................",
 "....*.........................**................**........*.................*.............................................................#...#......................@@@...@@*..",
-"...-*...---*....--*..=--=...=---**---*..*--...*-..*-.==...-**-..=-.-*..=-*...--.=-...-*...--*...---*....--*...---=..*-*.=---===..-*-=...=-##.##*.-*==...---*..=-=---=@$$=..*@$..",
-"..=@+...@@@#*.-@&%@+.%#%@#*.%#%%=-@%%=.+@%&@-.-@..-@.%%...@--@.-@-.@-..%@+..*@@.%@$..@-.-@&%@+..@&#@=.-#&%@%..@&&@-=@%@-$&@%$%%..@-+&...&%#*#.#*-*.-@=.$@=#+.*#+$%%@+@$.....@$..",
-"..+@@...@-*@-=@-..-%=%%.*##.%%...-@...$#*..-%*-@..-@.%%...@--@*#%..@-..%@#..$@@.%@#..@-=@-..*#+.@-.&%=@-..*#+.@-.%@%%.$$.-@..%%..@-=@=.=@=#*..#-*...%#*@+.$@.+#...$@*@$.....@$..",
-".*@-@$..@+$@*+&......%%..*@=%&--*-@--*#$......-@--+@.%%...@--@%&...@-..%%@=.#%@.%%#+.@-+&....$#.@-*#++&....$@.@-.$@$@%=..-@..%%..@-.&+.+#.#*..#$###.*#@&...#+@-...#+.@$.....@$..",
-".$@*&&..@&%&*%%......%%...@-%#%%=-@%%=@-.%%%%$-@%%&@.%%...@--@@$...@-..%%+#=#-@.%%=@*@-%%....-@.@@@&*%&--..-@.@@@@-.$&@+.-@..%%..@-.$#.#$.**.-*#*....%@$...$@&...$@*.@$.....@$..",
-".#@@@@=.@-.&+$#......%%..-@*%%...-@...#+.--$@%-@..-@.%%...@--@$@*..@-..%%=#+#-@.%%.%&@-$#....+&.@-...$@&&@++#.@&@=....$@.-@..%%..@-..@$@*...-*.#*#$.=@&#*...@-...#+..@$.....@$..",
-"=@=..&%.@-*#+.#%*.%@=%%.$@%.%%...-@...-@$.*##*-@..-@.%%-%*@--@.&#..@-..%%.#@=-@.%%.*@@-*#%*.$@-.@-....#&*=@@$.@-&#.%&.%#.-@..$#*-@*..%#%...-*..#*.#.#%.#%...@-..$@*..@@@...@@$..",
-"&&...$@*@@@%*.*+@@&-.%@@#+..%@@@--@....=&@@%*.-@..-@.%%*&@%.-@.*#%.@@@%%%.+#.-@.%%..+@-.*+@@&=..@-....*+@@&%@.@-*#%*&@#*.-@...+@#-...=@=...*...$##$%#*.=@-..@-..%@@@%*$$=..*==..",
+"...-*...---*....--*..=--=...=---**---*..*--...*-..*-.==...-**-..=-.-*..=-*...--.=-...-*...--*...---*.....+%...---=..*-*.=---===..-*-=...=-##.##*.-*==...---*..=-=---=@$$=..*@$..",
+"..=@+...@@@#*.-@&%@+.%#%@#*.%#%%=-@%%=.+@%&@-.-@..-@.%%...@--@.-@-.@-..%@+..*@@.%@$..@-.-@&%@+..@&#@=....&$...@&&@-=@%@-$&@%$%%..@-+&...&%#*#.#*-*.-@=.$@=#+.*#+$%%@+@$.....@$..",
+"..+@@...@-*@-=@-..-%=%%.*##.%%...-@...$#*..-%*-@..-@.%%...@--@*#%..@-..%@#..$@@.%@#..@-=@-..*#+.@-.&%...=@*...@-.%@%%.$$.-@..%%..@-=@=.=@=#*..#-*...%#*@+.$@.+#...$@*@$.....@$..",
+".*@-@$..@+$@*+&......%%..*@=%&--*-@--*#$......-@--+@.%%...@--@%&...@-..%%@=.#%@.%%#+.@-+&....$#.@-*#+...&+....@-.$@$@%=..-@..%%..@-.&+.+#.#*..#$###.*#@&...#+@-...#+.@$.....@$..",
+".$@*&&..@&%&*%%......%%...@-%#%%=-@%%=@-.%%%%$-@%%&@.%%...@--@@$...@-..%%+#=#-@.%%=@*@-%%....-@.@@@&*..*@=....@@@@-.$&@+.-@..%%..@-.$#.#$.**.-*#*....%@$...$@&...$@*.@$.....@$..",
+".#@@@@=.@-.&+$#......%%..-@*%%...-@...#+.--$@%-@..-@.%%...@--@$@*..@-..%%=#+#-@.%%.%&@-$#....+&.@-.....+&.....@&@=....$@.-@..%%..@-..@$@*...-*.#*#$.=@&#*...@-...#+..@$.....@$..",
+"=@=..&%.@-*#+.#%*.%@=%%.$@%.%%...-@...-@$.*##*-@..-@.%%-%*@--@.&#..@-..%%.#@=-@.%%.*@@-*#%*.$@-.@-....*@-.....@-&#.%&.%#.-@..$#*-@*..%#%...-*..#*.#.#%.#%...@-..$@*..@@@...@@$..",
+"&&...$@*@@@%*.*+@@&-.%@@#+..%@@@--@....=&@@%*.-@..-@.%%*&@%.-@.*#%.@@@%%%.+#.-@.%%..+@-.*+@@&=..@-....+#......@-*#%*&@#*.-@...+@#-...=@=...*...$##$%#*.=@-..@-..%@@@%*$$=..*==..",
 ".......==...............==........=*......*-....*-.-**-....=*...........................................==......................................................................",
-".......%%...............%%.......-@=......-@....-@.%=-@....@=...........................................%%....................................-#@-.=@*...........-=...$%+.......",
-".=%%=%=%%+%$...$%+*..$%%&%..$%+**&&**+%$%=-@+%=.=*.%=-@.-%*@==%+%=$%$..%$%+...$%+*.$++%$........=%+.-%$=##$$$.=%*%=.=%-%.=%.=%*%=*%-+$..%$%%%%@%%@=++...-@-......@%...#+#..--*..",
+".......%%...............%%.......-@=......-@....-@.%=-@....@=...........................................%%............-%.=%.=%................-#@-.=@*...........-=...$%+.......",
+".=%%=%=%%+%$...$%+*..$%%&%..$%+**&&**+%$%=-@+%=.=*.%=-@.-%*@==%+%=$%$..%$%+...$%+*.$++%$........=%+.-%$=##$$$.=%*%=.=%*@=+@*+&*%=*%-+$..%$%%%%@%%@=++...-@-......@%...#+#..--*..",
 "*@%-#@-%@$$@+.%#-##.$@$$@%.#&-%#=##=#&-&@--@%+@*-@.@--@*#$.@=-@$%@#$#$.@#$@$.%#-%#*%@$$@$..####.-@&=@+@+&&=%%.-@.#+.%&*@=+@*+&.%&+#.$@.=@=--#&@$$@-@*...*-*......@%...-@--@&%@+.",
 "+&..-@-%%..$@=@*.*-*#$..%%-@$*-@+%%-@*.*@--@..@--@.@--@%%..@=-@..@-.%%.@-.%%=@*..#+%&..$#..*===*-@.=@+=.%%.%%.-@.$#.@-.&$&@-#$.*@@=.*@-%&..$@*$@@%$%........%@%.@@@@....=@-..-%=",
 "%%..*@-%%..-@-@.....@-..%%-@%%%%=%%-@...@--@..@--@.@--@#+..@=-@..@-.%%.@-.%%-@...%+%%..-@..####.-@..-&@$%%.%%.-@.*@+#..$&@-&@*.*#@*..%%@$.*@$..--.#.....*-*.=-=.-@&-....+&......",
@@ -276,31 +409,31 @@ unsigned char *Font_Map[FONTMAP_HEIGHT] = {
 "\x40\xff\xe0\x00\x00\x00\xe0\xff\x80\x00\x00\x00\x00\xff\xff\x00\x00\x00\x80\xff\xe0\x00\x00\x00\xe0\xff\x80\x00\x00\x00\x00\x00\xe8\xff\x80\x00\x00\x00\x00\xe8\xff\xff\xff\x00\x00\x00\xe0\xff\x80\x00\x00\x00\x00\x00\x00\x00\x60\xff\xf0\x00\x00\x00\x00\x00\x00\x00\x00\x00\xf0\xff\x80\x00\x00\xe0\xff\x80\x00\x80\xff\xe0\x00\xe0\xff\x80\x00\x00\x00\xe0\xff\x80\x00\x00\x00\x00\x00\x00\x00\xe0\xff\x00\x00\x80\xff\x80\x00\x00\x80\xff\x80\x00\x40\xff\xa0\x00\x00\xff\xe0\x00\x80\x20\x20\xff\xe0\x00\x00\x00\xf0\xff\xff\x00\x00\xe0\xe0\x00\x00\x00\x00\x20\xff\xe8\x00\x00\x00\x00\x00\x00\x60\xff\x20\x00\xe0\xff\x00\xe0\xff\x00\xe0\xff\x00\x00\xa0\xff\xe0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
 "\x40\xff\xe0\x00\x00\x00\xe0\xff\x80\x00\x00\x00\x00\xff\xff\x00\x00\x00\x20\x80\x40\x00\x00\x00\xe8\xff\x80\x00\x00\x00\xa0\xf0\xff\xff\x20\x00\x00\x00\xa0\xff\xa0\xff\xff\x00\x00\x00\xff\xff\x60\x80\x60\x40\x00\x00\x00\x40\xff\xff\xe8\xe0\xa0\x00\x00\x00\x00\x00\x00\xa0\xff\xf0\x00\x00\x00\x40\xff\xf0\x80\xf0\xff\xa0\x00\xe0\xff\x80\x00\x00\x00\xe0\xff\x80\x00\x00\xa0\xe0\x40\x00\x00\xe0\xff\x00\x00\x80\xff\x80\x00\x00\x80\xff\x80\x00\x20\x80\x20\x00\x40\xff\xe0\x00\x00\x40\xff\xff\x80\x00\x00\x60\xf0\xe8\xff\x00\x00\xff\xf0\xff\xf0\x80\x00\x60\xff\xe8\xe0\x20\x00\x00\x00\x00\xf0\xe8\x00\x00\x40\xff\xe8\xff\xe8\x00\xe0\xff\x00\x00\x80\xff\x80\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
 "\x80\xff\xe0\x00\x00\x00\xe0\xff\x80\x00\x00\x00\x00\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\xe0\xff\xf0\x00\x00\x00\x00\xe0\xff\xff\xf0\x20\x00\x00\x20\xf0\xf0\x00\xff\xff\x00\x00\x20\xff\xff\xff\xff\xff\xff\x80\x00\x00\xf0\xff\xff\xff\xff\xff\x60\x00\x00\x00\x00\x00\xe8\xff\xa0\x00\x00\x00\x00\xe8\xff\xff\xff\xf0\x00\x00\xa0\xff\xf0\x00\x00\x20\xff\xff\x20\x00\x00\xe0\xff\x80\x00\x00\xe0\xff\x00\x00\x80\xff\x80\x00\x00\x80\xff\x80\x00\x00\x00\x00\x20\xf0\xff\x40\x00\x00\x40\xe8\xff\xe0\x00\x20\xff\xa0\xe0\xff\x00\x00\xff\xf0\x80\xe8\xff\x40\xff\xf0\xe0\xff\xf0\x00\x00\x00\xa0\xff\x80\x00\x00\xe0\xff\xe0\xf0\xf0\x20\xa0\xff\xe0\x80\xf0\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
-"\x80\xff\xe0\x00\x00\x00\xe0\xff\x80\x00\x00\x00\x00\xff\xff\x00\x00\x00\x00\x00\x00\x00\xe0\xff\xff\x80\x00\x00\x00\x00\x40\x80\xe8\xff\xf0\x00\x00\xe0\xff\x40\x00\xff\xff\x00\x00\x20\x60\xe8\x20\x00\xa0\xff\xff\x00\x80\xff\xf0\x40\x00\x80\xff\xff\x20\x00\x00\x00\x40\xff\xff\x20\x00\x00\x00\xe0\xff\xe0\x80\xe8\xff\xe0\x00\x20\xf0\xff\xf0\xe0\xff\xff\xe8\x00\x00\x00\x00\x00\x00\x00\x00\xe0\xff\x00\x00\x80\xff\x80\x00\x00\x80\xff\x80\x00\x00\x00\x20\xf0\xff\x80\x00\x00\x00\x00\x00\x60\xff\x40\xe8\xe8\x00\xe0\xff\x00\x00\x00\x00\x00\x20\xff\xe0\xff\x20\x00\xa0\xff\x80\x00\x00\xf0\xf0\x00\x00\x40\xff\x60\x00\x40\xff\x60\x00\x60\xff\xff\xff\xa0\x00\x00\x00\x00\x00\x00\x00\x00\xa0\xe0\x40\x00\x00\x00",
-"\x40\xff\xe0\x00\x00\x00\xe0\xff\x80\x00\x00\x00\x00\xff\xff\x00\x00\x00\x00\x00\x00\x80\xff\xff\x80\x00\x00\x00\x00\x00\x00\x00\x00\xf0\xff\x40\x80\xff\xe0\x00\x00\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\xe8\xff\x40\xe0\xff\xa0\x00\x00\x00\xe8\xff\x40\x00\x00\x00\xe8\xff\x60\x00\x00\x00\x40\xff\xf0\x00\x00\x00\xf0\xff\x40\x00\x20\xe8\xff\xf0\xff\xff\x20\x00\x00\x00\x00\x00\x00\x00\x00\xe0\xff\x00\x00\x80\xff\x80\x00\x00\x80\xff\x80\x00\x00\x20\xf0\xff\x80\x00\x00\xa0\x60\x00\x00\x80\xff\x60\xff\xe8\xe0\xf0\xff\xe0\x80\xe0\x20\x00\x20\xff\xe0\xff\x00\x00\x80\xff\x80\x00\x40\xff\xa0\x00\x00\x80\xff\x80\x00\x00\xff\xe0\x00\x00\x20\xf0\xe8\x00\x00\x00\x00\x00\x00\x00\x00\x00\xe0\xff\x80\x00\x00\x00",
-"\x40\xff\xe0\x00\x00\x00\xe0\xff\x80\x00\x00\x00\x00\xff\xff\x00\x00\x00\x00\x00\x80\xff\xff\x80\x00\x00\x00\xa0\xe0\x40\x00\x00\x00\xe0\xff\x40\xf0\xff\xe8\xe0\xe0\xff\xff\xe0\x40\xa0\xe0\x40\x00\x00\x00\xe0\xff\x40\xe0\xff\x80\x00\x00\x00\xe0\xff\x40\x00\x00\x20\xff\xff\x40\x00\x00\x00\x80\xff\xe0\x00\x00\x00\xe0\xff\x80\x00\x00\x00\x00\xf0\xff\xa0\x00\x00\x00\x00\xa0\xe0\x40\x00\x00\x40\xff\xe0\x80\xf0\xf0\x20\x00\x00\x80\xff\x80\x00\x20\xf0\xff\xe0\x80\x80\x40\x60\xff\x60\x80\xf0\xf0\x40\xe0\xe0\xe0\xf0\xff\xe0\x20\xff\xe8\x80\xe0\xff\x40\xff\xe0\x80\xf0\xf0\x00\x00\xe8\xff\x20\x00\x00\x20\xf0\xf0\x80\xe0\xff\x80\x00\x00\xe0\xff\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+"\x80\xff\xe0\x00\x00\x00\xe0\xff\x80\x00\x00\x00\x00\xff\xff\x00\x00\x00\x00\x00\x00\x00\xe0\xff\xff\x80\x00\x00\x00\x00\x40\x80\xe8\xff\xf0\x00\x00\xe0\xff\x40\x00\xff\xff\x00\x00\x20\x60\xe8\x20\x00\xa0\xff\xff\x00\x80\xff\xf0\x40\x00\x80\xff\xff\x20\x00\x00\x00\x40\xff\xff\x20\x00\x00\x00\xe0\xff\xe0\x80\xe8\xff\xe0\x00\x20\xf0\xff\xf0\xe0\xff\xff\xe8\x00\x00\x00\x00\x00\x00\x00\x00\xe0\xff\x00\x00\x80\xff\x80\x00\x00\x80\xff\x80\x00\x00\x00\x20\xf0\xff\x80\x00\x00\x00\x00\x00\x60\xff\x40\xe8\xe8\x00\xe0\xff\x00\x00\x00\x00\x00\x20\xff\xe0\xff\x20\x00\xa0\xff\x80\x00\x00\xf0\xf0\x00\x00\x40\xff\x60\x00\x40\xff\x60\x00\x60\xff\xff\xff\xa0\x00\x00\x00\x00\x00\x00\x00\x00\x40\x80\x40\x00\x00\x00",
+"\x40\xff\xe0\x00\x00\x00\xe0\xff\x80\x00\x00\x00\x00\xff\xff\x00\x00\x00\x00\x00\x00\x80\xff\xff\x80\x00\x00\x00\x00\x00\x00\x00\x00\xf0\xff\x40\x80\xff\xe0\x00\x00\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\xe8\xff\x40\xe0\xff\xa0\x00\x00\x00\xe8\xff\x40\x00\x00\x00\xe8\xff\x60\x00\x00\x00\x40\xff\xf0\x00\x00\x00\xf0\xff\x40\x00\x20\xe8\xff\xf0\xff\xff\x20\x00\x00\x00\x00\x00\x00\x00\x00\xe0\xff\x00\x00\x80\xff\x80\x00\x00\x80\xff\x80\x00\x00\x20\xf0\xff\x80\x00\x00\xa0\x60\x00\x00\x80\xff\x60\xff\xe8\xe0\xf0\xff\xe0\x80\xe0\x20\x00\x20\xff\xe0\xff\x00\x00\x80\xff\x80\x00\x40\xff\xa0\x00\x00\x80\xff\x80\x00\x00\xff\xe0\x00\x00\x20\xf0\xe8\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\xff\xa0\x00\x00\x00",
+"\x40\xff\xe0\x00\x00\x00\xe0\xff\x80\x00\x00\x00\x00\xff\xff\x00\x00\x00\x00\x00\x80\xff\xff\x80\x00\x00\x00\xa0\xe0\x40\x00\x00\x00\xe0\xff\x40\xf0\xff\xe8\xe0\xe0\xff\xff\xe0\x40\xa0\xe0\x40\x00\x00\x00\xe0\xff\x40\xe0\xff\x80\x00\x00\x00\xe0\xff\x40\x00\x00\x20\xff\xff\x40\x00\x00\x00\x80\xff\xe0\x00\x00\x00\xe0\xff\x80\x00\x00\x00\x00\xf0\xff\xa0\x00\x00\x00\x00\xa0\xe0\x40\x00\x00\x40\xff\xe0\x80\xf0\xf0\x20\x00\x00\x80\xff\x80\x00\x20\xf0\xff\xe0\x80\x80\x40\x60\xff\x60\x80\xf0\xf0\x40\xe0\xe0\xe0\xf0\xff\xe0\x20\xff\xe8\x80\xe0\xff\x40\xff\xe0\x80\xf0\xf0\x00\x00\xe8\xff\x20\x00\x00\x20\xf0\xf0\x80\xe0\xff\x80\x00\x00\xe0\xff\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00\x40\xa0\x60\x00\x00\x00",
 "\x20\xff\xf0\x00\x00\x20\xff\xff\x40\x00\x00\x00\x00\xff\xff\x00\x00\x00\x00\x80\xff\xff\x80\x00\x00\x00\x00\x60\xff\xe8\x00\x00\x20\xff\xff\x20\xff\xff\xff\xff\xff\xff\xff\xff\x80\x60\xff\xe8\x00\x00\x20\xff\xff\x20\xa0\xff\xe8\x00\x00\x20\xff\xff\x20\x00\x00\x60\xff\xe8\x00\x00\x00\x00\x40\xff\xf0\x00\x00\x20\xf0\xff\x20\x00\x00\x00\xe0\xff\xe8\x00\x00\x00\x00\x00\xe0\xff\x80\x00\x00\x00\xa0\xf0\xff\xe8\x40\x00\x00\x00\x80\xff\x80\x00\x80\xff\xff\xff\xff\xff\xe0\x00\x60\xff\xff\xe8\x20\x00\x00\x00\x00\xe0\xff\x00\x00\x40\xe8\xff\xf0\x80\x00\xa0\xf0\xff\xe8\x40\x00\x20\xff\x60\x00\x00\x00\x00\x40\xe8\xff\xf0\xa0\x00\x00\x80\xff\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
 "\x00\xe0\xff\xe8\xa0\xf0\xff\xe8\x00\x00\x00\x00\x00\xff\xff\x00\x00\x00\x40\xff\xff\xf0\xe0\xe0\xe0\xe0\x40\x20\xf0\xff\xe8\xa0\xf0\xff\xe0\x00\x00\x00\x00\x00\x00\xff\xff\x00\x00\x20\xf0\xff\xe8\xa0\xf0\xff\x60\x00\x00\xf0\xff\xe8\xa0\xf0\xff\xe0\x00\x00\x20\xff\xff\x80\x00\x00\x00\x00\x00\xe0\xff\xe8\xa0\xf0\xff\xe0\x00\x00\x00\x80\xff\xff\x40\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
 "\x00\x20\xe0\xff\xff\xff\xe8\x20\x00\x00\x00\x00\x00\xff\xff\x00\x00\x00\x80\xff\xff\xff\xff\xff\xff\xff\x80\x00\x40\xe8\xff\xff\xff\x80\x00\x00\x00\x00\x00\x00\x00\xff\xff\x00\x00\x00\x20\xe8\xff\xff\xff\x60\x00\x00\x00\x20\xe8\xff\xff\xff\xe0\x00\x00\x00\x60\xff\xf0\x00\x00\x00\x00\x00\x00\x20\xe0\xff\xff\xff\x60\x00\x00\x00\x20\xf0\xff\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
 "\x00\x00\x00\x00\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x20\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x20\x20\x00\x00\x00\x00\x00\x00\x00\x00\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xf0\x00\x00\x00\xf0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xff\xff\x00\x00\x00\xff\xff\x20\x00\x00",
-"\x00\x00\x00\x80\x20\x00\x00\x00\x80\x80\x80\x20\x00\x00\x00\x00\x80\x80\x20\x00\x00\x40\x80\x80\x40\x00\x00\x00\x40\x80\x80\x80\x20\x20\x80\x80\x80\x20\x00\x00\x20\x80\x80\x00\x00\x00\x20\x80\x00\x00\x20\x80\x00\x40\x40\x00\x00\x00\x80\x20\x20\x80\x00\x00\x40\x80\x00\x80\x20\x00\x00\x40\x80\x20\x00\x00\x00\x80\x80\x00\x40\x80\x00\x00\x00\x80\x20\x00\x00\x00\x80\x80\x20\x00\x00\x00\x80\x80\x80\x20\x00\x00\x00\x00\x80\x80\x20\x00\x00\x00\x80\x80\x80\x40\x00\x00\x20\x80\x20\x00\x40\x80\x80\x80\x40\x40\x40\x00\x00\x80\x20\x80\x40\x00\x00\x00\x40\x80\xf0\xf0\x00\xf0\xf0\x20\x00\x80\x20\x40\x40\x00\x00\x00\x80\x80\x80\x20\x00\x00\x40\x80\x40\x80\x80\x80\x40\xff\xa0\xa0\x40\x00\x00\x20\xff\xa0\x00\x00",
-"\x00\x00\x40\xff\x60\x00\x00\x00\xff\xff\xff\xf0\x20\x00\x80\xff\xe8\xe0\xff\x60\x00\xe0\xf0\xe0\xff\xf0\x20\x00\xe0\xf0\xe0\xe0\x40\x80\xff\xe0\xe0\x40\x00\x60\xff\xe0\xe8\xff\x80\x00\x80\xff\x00\x00\x80\xff\x00\xe0\xe0\x00\x00\x00\xff\x80\x80\xff\x00\x80\xff\x80\x00\xff\x80\x00\x00\xe0\xff\x60\x00\x00\x20\xff\xff\x00\xe0\xff\xa0\x00\x00\xff\x80\x00\x80\xff\xe8\xe0\xff\x60\x00\x00\xff\xe8\xf0\xff\x40\x00\x80\xf0\xe8\xe0\xff\xe0\x00\x00\xff\xe8\xe8\xff\x80\x40\xff\xe0\xff\x80\xa0\xe8\xff\xe0\xa0\xe0\xe0\x00\x00\xff\x80\x60\xe8\x00\x00\x00\xe8\xe0\xf0\x20\xf0\x00\xf0\x20\x80\x20\x00\x80\xff\x40\x00\xa0\xff\x40\xf0\x60\x00\x20\xf0\x60\xa0\xe0\xe0\xff\x60\xff\xa0\x00\x00\x00\x00\x00\xff\xa0\x00\x00",
-"\x00\x00\x60\xff\xff\x00\x00\x00\xff\x80\x20\xff\x80\x40\xff\x80\x00\x00\x80\xe0\x40\xe0\xe0\x00\x20\xf0\xf0\x00\xe0\xe0\x00\x00\x00\x80\xff\x00\x00\x00\xa0\xf0\x20\x00\x00\x80\xe0\x20\x80\xff\x00\x00\x80\xff\x00\xe0\xe0\x00\x00\x00\xff\x80\x80\xff\x20\xf0\xe0\x00\x00\xff\x80\x00\x00\xe0\xff\xf0\x00\x00\xa0\xff\xff\x00\xe0\xff\xf0\x00\x00\xff\x80\x40\xff\x80\x00\x00\x20\xf0\x60\x00\xff\x80\x00\xe8\xe0\x40\xff\x80\x00\x00\x20\xf0\x60\x00\xff\x80\x00\xe0\xff\xe0\xe0\x00\xa0\xa0\x00\x80\xff\x00\x00\xe0\xe0\x00\x00\xff\x80\x40\xff\x40\x00\x40\xff\x40\xf0\x20\x00\x00\xf0\x80\x20\x00\x00\x00\xe0\xf0\x20\xff\x60\x00\xa0\xff\x00\x60\xf0\x00\x00\x00\xa0\xff\x20\xff\xa0\x00\x00\x00\x00\x00\xff\xa0\x00\x00",
-"\x00\x20\xff\x80\xff\xa0\x00\x00\xff\x60\xa0\xff\x20\x60\xe8\x00\x00\x00\x00\x00\x00\xe0\xe0\x00\x00\x20\xff\x40\xe0\xe8\x80\x80\x20\x80\xff\x80\x80\x20\xf0\xa0\x00\x00\x00\x00\x00\x00\x80\xff\x80\x80\x60\xff\x00\xe0\xe0\x00\x00\x00\xff\x80\x80\xff\xe0\xe8\x00\x00\x00\xff\x80\x00\x00\xe0\xe0\xff\x40\x00\xf0\xe0\xff\x00\xe0\xe0\xf0\x60\x00\xff\x80\x60\xe8\x00\x00\x00\x00\xa0\xf0\x00\xff\x80\x20\xf0\x60\x60\xe8\x00\x00\x00\x00\xa0\xff\x00\xff\x80\x00\xa0\xff\xa0\xff\xe0\x40\x00\x00\x80\xff\x00\x00\xe0\xe0\x00\x00\xff\x80\x00\xe8\x60\x00\x60\xf0\x00\xf0\x20\x00\x00\xf0\xa0\xf0\xf0\xf0\x00\x20\xf0\xff\xe8\x00\x00\x00\xf0\x60\xff\x80\x00\x00\x00\xf0\x60\x00\xff\xa0\x00\x00\x00\x00\x00\xff\xa0\x00\x00",
-"\x00\xa0\xff\x20\xe8\xe8\x00\x00\xff\xe8\xe0\xe8\x20\xe0\xe0\x00\x00\x00\x00\x00\x00\xe0\xe0\x00\x00\x00\xff\x80\xe0\xf0\xe0\xe0\x40\x80\xff\xe0\xe0\x40\xff\x80\x00\xe0\xe0\xe0\xe0\xa0\x80\xff\xe0\xe0\xe8\xff\x00\xe0\xe0\x00\x00\x00\xff\x80\x80\xff\xff\xa0\x00\x00\x00\xff\x80\x00\x00\xe0\xe0\x60\xf0\x40\xf0\x80\xff\x00\xe0\xe0\x40\xff\x20\xff\x80\xe0\xe0\x00\x00\x00\x00\x80\xff\x00\xff\xff\xff\xe8\x20\xe0\xe8\x80\x80\x00\x00\x80\xff\x00\xff\xff\xff\xff\x80\x00\xa0\xe8\xff\x60\x00\x80\xff\x00\x00\xe0\xe0\x00\x00\xff\x80\x00\xa0\xf0\x00\xf0\xa0\x00\x20\x20\x00\x80\x20\xf0\x20\x00\x00\x00\x00\xe0\xff\xa0\x00\x00\x00\xa0\xff\xe8\x00\x00\x00\xa0\xff\x20\x00\xff\xa0\x00\x00\x00\x00\x00\xff\xa0\x00\x00",
-"\x00\xf0\xff\xff\xff\xff\x40\x00\xff\x80\x00\xe8\x60\xa0\xf0\x00\x00\x00\x00\x00\x00\xe0\xe0\x00\x00\x80\xff\x20\xe0\xe0\x00\x00\x00\x80\xff\x00\x00\x00\xf0\x60\x00\x80\x80\xa0\xff\xe0\x80\xff\x00\x00\x80\xff\x00\xe0\xe0\x00\x00\x00\xff\x80\x80\xff\xa0\xff\x20\x00\x00\xff\x80\x00\x00\xe0\xe0\x40\xf0\x60\xf0\x80\xff\x00\xe0\xe0\x00\xe0\xe8\xff\x80\xa0\xf0\x00\x00\x00\x00\x60\xe8\x00\xff\x80\x00\x00\x00\xa0\xff\xe8\xe8\xff\x60\x60\xf0\x00\xff\xe8\xff\x40\x00\x00\x00\x00\xa0\xff\x00\x80\xff\x00\x00\xe0\xe0\x00\x00\xff\x80\x00\x00\xff\xa0\xff\x20\x00\x00\x00\x80\x20\x00\xf0\x20\xf0\xa0\x00\x40\xff\xe8\xf0\x20\x00\x00\x00\xff\x80\x00\x00\x00\xf0\x60\x00\x00\xff\xa0\x00\x00\x00\x00\x00\xff\xa0\x00\x00",
-"\x40\xff\x40\x00\x00\xe8\xe0\x00\xff\x80\x20\xf0\x60\x00\xf0\xe0\x20\x00\xe0\xff\x40\xe0\xe0\x00\xa0\xff\xe0\x00\xe0\xe0\x00\x00\x00\x80\xff\x00\x00\x00\x80\xff\xa0\x00\x20\xf0\xf0\x20\x80\xff\x00\x00\x80\xff\x00\xe0\xe0\x80\xe0\x20\xff\x80\x80\xff\x00\xe8\xf0\x00\x00\xff\x80\x00\x00\xe0\xe0\x00\xf0\xff\x40\x80\xff\x00\xe0\xe0\x00\x20\xff\xff\x80\x20\xf0\xe0\x20\x00\xa0\xff\x80\x00\xff\x80\x00\x00\x00\x00\xf0\xe8\x20\x40\xff\xff\xa0\x00\xff\x80\xe8\xf0\x00\xe0\xe8\x00\xe0\xf0\x00\x80\xff\x00\x00\xa0\xf0\x20\x80\xff\x20\x00\x00\xe0\xf0\xe0\x00\x00\x00\x80\x20\x00\x00\xf0\x20\x00\xf0\x00\xf0\xe0\x00\xf0\xe0\x00\x00\x00\xff\x80\x00\x00\xa0\xff\x20\x00\x00\xff\xff\xff\x00\x00\x00\xff\xff\xa0\x00\x00",
-"\xe8\xe8\x00\x00\x00\xa0\xff\x20\xff\xff\xff\xe0\x20\x00\x20\x60\xff\xff\xe8\x80\x00\xe0\xff\xff\xf0\x60\x00\x00\xe0\xff\xff\xff\x80\x80\xff\x00\x00\x00\x00\x40\xe8\xff\xff\xe0\x20\x00\x80\xff\x00\x00\x80\xff\x00\xe0\xe0\x20\xe8\xff\xe0\x00\x80\xff\x00\x20\xf0\xe0\x00\xff\xff\xff\xe0\xe0\xe0\x00\x60\xf0\x00\x80\xff\x00\xe0\xe0\x00\x00\x60\xff\x80\x00\x20\x60\xff\xff\xe8\x40\x00\x00\xff\x80\x00\x00\x00\x00\x20\x60\xff\xff\xe8\xe0\xff\x00\xff\x80\x20\xf0\xe0\x20\xe8\xff\xf0\x20\x00\x80\xff\x00\x00\x00\x60\xff\xf0\x80\x00\x00\x00\x40\xff\x40\x00\x00\x00\x20\x00\x00\x00\xa0\xf0\xf0\xa0\xe0\xf0\x20\x00\x40\xff\x80\x00\x00\xff\x80\x00\x00\xe0\xff\xff\xff\xe0\x20\xa0\xa0\x40\x00\x00\x20\x40\x40\x00\x00",
+"\x00\x00\x00\x80\x20\x00\x00\x00\x80\x80\x80\x20\x00\x00\x00\x00\x80\x80\x20\x00\x00\x40\x80\x80\x40\x00\x00\x00\x40\x80\x80\x80\x20\x20\x80\x80\x80\x20\x00\x00\x20\x80\x80\x00\x00\x00\x20\x80\x00\x00\x20\x80\x00\x40\x40\x00\x00\x00\x80\x20\x20\x80\x00\x00\x40\x80\x00\x80\x20\x00\x00\x40\x80\x20\x00\x00\x00\x80\x80\x00\x40\x80\x00\x00\x00\x80\x20\x00\x00\x00\x80\x80\x20\x00\x00\x00\x80\x80\x80\x20\x00\x00\x00\x00\x00\x60\xe0\x00\x00\x00\x80\x80\x80\x40\x00\x00\x20\x80\x20\x00\x40\x80\x80\x80\x40\x40\x40\x00\x00\x80\x20\x80\x40\x00\x00\x00\x40\x80\xf0\xf0\x00\xf0\xf0\x20\x00\x80\x20\x40\x40\x00\x00\x00\x80\x80\x80\x20\x00\x00\x40\x80\x40\x80\x80\x80\x40\xff\xa0\xa0\x40\x00\x00\x20\xff\xa0\x00\x00",
+"\x00\x00\x40\xff\x60\x00\x00\x00\xff\xff\xff\xf0\x20\x00\x80\xff\xe8\xe0\xff\x60\x00\xe0\xf0\xe0\xff\xf0\x20\x00\xe0\xf0\xe0\xe0\x40\x80\xff\xe0\xe0\x40\x00\x60\xff\xe0\xe8\xff\x80\x00\x80\xff\x00\x00\x80\xff\x00\xe0\xe0\x00\x00\x00\xff\x80\x80\xff\x00\x80\xff\x80\x00\xff\x80\x00\x00\xe0\xff\x60\x00\x00\x20\xff\xff\x00\xe0\xff\xa0\x00\x00\xff\x80\x00\x80\xff\xe8\xe0\xff\x60\x00\x00\xff\xe8\xf0\xff\x40\x00\x00\x00\x00\xe8\xa0\x00\x00\x00\xff\xe8\xe8\xff\x80\x40\xff\xe0\xff\x80\xa0\xe8\xff\xe0\xa0\xe0\xe0\x00\x00\xff\x80\x60\xe8\x00\x00\x00\xe8\xe0\xf0\x20\xf0\x00\xf0\x20\x80\x20\x00\x80\xff\x40\x00\xa0\xff\x40\xf0\x60\x00\x20\xf0\x60\xa0\xe0\xe0\xff\x60\xff\xa0\x00\x00\x00\x00\x00\xff\xa0\x00\x00",
+"\x00\x00\x60\xff\xff\x00\x00\x00\xff\x80\x20\xff\x80\x40\xff\x80\x00\x00\x80\xe0\x40\xe0\xe0\x00\x20\xf0\xf0\x00\xe0\xe0\x00\x00\x00\x80\xff\x00\x00\x00\xa0\xf0\x20\x00\x00\x80\xe0\x20\x80\xff\x00\x00\x80\xff\x00\xe0\xe0\x00\x00\x00\xff\x80\x80\xff\x20\xf0\xe0\x00\x00\xff\x80\x00\x00\xe0\xff\xf0\x00\x00\xa0\xff\xff\x00\xe0\xff\xf0\x00\x00\xff\x80\x40\xff\x80\x00\x00\x20\xf0\x60\x00\xff\x80\x00\xe8\xe0\x00\x00\x00\x40\xff\x20\x00\x00\x00\xff\x80\x00\xe0\xff\xe0\xe0\x00\xa0\xa0\x00\x80\xff\x00\x00\xe0\xe0\x00\x00\xff\x80\x40\xff\x40\x00\x40\xff\x40\xf0\x20\x00\x00\xf0\x80\x20\x00\x00\x00\xe0\xf0\x20\xff\x60\x00\xa0\xff\x00\x60\xf0\x00\x00\x00\xa0\xff\x20\xff\xa0\x00\x00\x00\x00\x00\xff\xa0\x00\x00",
+"\x00\x20\xff\x80\xff\xa0\x00\x00\xff\x60\xa0\xff\x20\x60\xe8\x00\x00\x00\x00\x00\x00\xe0\xe0\x00\x00\x20\xff\x40\xe0\xe8\x80\x80\x20\x80\xff\x80\x80\x20\xf0\xa0\x00\x00\x00\x00\x00\x00\x80\xff\x80\x80\x60\xff\x00\xe0\xe0\x00\x00\x00\xff\x80\x80\xff\xe0\xe8\x00\x00\x00\xff\x80\x00\x00\xe0\xe0\xff\x40\x00\xf0\xe0\xff\x00\xe0\xe0\xf0\x60\x00\xff\x80\x60\xe8\x00\x00\x00\x00\xa0\xf0\x00\xff\x80\x20\xf0\x60\x00\x00\x00\xe8\x60\x00\x00\x00\x00\xff\x80\x00\xa0\xff\xa0\xff\xe0\x40\x00\x00\x80\xff\x00\x00\xe0\xe0\x00\x00\xff\x80\x00\xe8\x60\x00\x60\xf0\x00\xf0\x20\x00\x00\xf0\xa0\xf0\xf0\xf0\x00\x20\xf0\xff\xe8\x00\x00\x00\xf0\x60\xff\x80\x00\x00\x00\xf0\x60\x00\xff\xa0\x00\x00\x00\x00\x00\xff\xa0\x00\x00",
+"\x00\xa0\xff\x20\xe8\xe8\x00\x00\xff\xe8\xe0\xe8\x20\xe0\xe0\x00\x00\x00\x00\x00\x00\xe0\xe0\x00\x00\x00\xff\x80\xe0\xf0\xe0\xe0\x40\x80\xff\xe0\xe0\x40\xff\x80\x00\xe0\xe0\xe0\xe0\xa0\x80\xff\xe0\xe0\xe8\xff\x00\xe0\xe0\x00\x00\x00\xff\x80\x80\xff\xff\xa0\x00\x00\x00\xff\x80\x00\x00\xe0\xe0\x60\xf0\x40\xf0\x80\xff\x00\xe0\xe0\x40\xff\x20\xff\x80\xe0\xe0\x00\x00\x00\x00\x80\xff\x00\xff\xff\xff\xe8\x20\x00\x00\x20\xff\x40\x00\x00\x00\x00\xff\xff\xff\xff\x80\x00\xa0\xe8\xff\x60\x00\x80\xff\x00\x00\xe0\xe0\x00\x00\xff\x80\x00\xa0\xf0\x00\xf0\xa0\x00\x20\x20\x00\x80\x20\xf0\x20\x00\x00\x00\x00\xe0\xff\xa0\x00\x00\x00\xa0\xff\xe8\x00\x00\x00\xa0\xff\x20\x00\xff\xa0\x00\x00\x00\x00\x00\xff\xa0\x00\x00",
+"\x00\xf0\xff\xff\xff\xff\x40\x00\xff\x80\x00\xe8\x60\xa0\xf0\x00\x00\x00\x00\x00\x00\xe0\xe0\x00\x00\x80\xff\x20\xe0\xe0\x00\x00\x00\x80\xff\x00\x00\x00\xf0\x60\x00\x80\x80\xa0\xff\xe0\x80\xff\x00\x00\x80\xff\x00\xe0\xe0\x00\x00\x00\xff\x80\x80\xff\xa0\xff\x20\x00\x00\xff\x80\x00\x00\xe0\xe0\x40\xf0\x60\xf0\x80\xff\x00\xe0\xe0\x00\xe0\xe8\xff\x80\xa0\xf0\x00\x00\x00\x00\x60\xe8\x00\xff\x80\x00\x00\x00\x00\x00\x60\xe8\x00\x00\x00\x00\x00\xff\xe8\xff\x40\x00\x00\x00\x00\xa0\xff\x00\x80\xff\x00\x00\xe0\xe0\x00\x00\xff\x80\x00\x00\xff\xa0\xff\x20\x00\x00\x00\x80\x20\x00\xf0\x20\xf0\xa0\x00\x40\xff\xe8\xf0\x20\x00\x00\x00\xff\x80\x00\x00\x00\xf0\x60\x00\x00\xff\xa0\x00\x00\x00\x00\x00\xff\xa0\x00\x00",
+"\x40\xff\x40\x00\x00\xe8\xe0\x00\xff\x80\x20\xf0\x60\x00\xf0\xe0\x20\x00\xe0\xff\x40\xe0\xe0\x00\xa0\xff\xe0\x00\xe0\xe0\x00\x00\x00\x80\xff\x00\x00\x00\x80\xff\xa0\x00\x20\xf0\xf0\x20\x80\xff\x00\x00\x80\xff\x00\xe0\xe0\x80\xe0\x20\xff\x80\x80\xff\x00\xe8\xf0\x00\x00\xff\x80\x00\x00\xe0\xe0\x00\xf0\xff\x40\x80\xff\x00\xe0\xe0\x00\x20\xff\xff\x80\x20\xf0\xe0\x20\x00\xa0\xff\x80\x00\xff\x80\x00\x00\x00\x00\x20\xff\x80\x00\x00\x00\x00\x00\xff\x80\xe8\xf0\x00\xe0\xe8\x00\xe0\xf0\x00\x80\xff\x00\x00\xa0\xf0\x20\x80\xff\x20\x00\x00\xe0\xf0\xe0\x00\x00\x00\x80\x20\x00\x00\xf0\x20\x00\xf0\x00\xf0\xe0\x00\xf0\xe0\x00\x00\x00\xff\x80\x00\x00\xa0\xff\x20\x00\x00\xff\xff\xff\x00\x00\x00\xff\xff\xa0\x00\x00",
+"\xe8\xe8\x00\x00\x00\xa0\xff\x20\xff\xff\xff\xe0\x20\x00\x20\x60\xff\xff\xe8\x80\x00\xe0\xff\xff\xf0\x60\x00\x00\xe0\xff\xff\xff\x80\x80\xff\x00\x00\x00\x00\x40\xe8\xff\xff\xe0\x20\x00\x80\xff\x00\x00\x80\xff\x00\xe0\xe0\x20\xe8\xff\xe0\x00\x80\xff\x00\x20\xf0\xe0\x00\xff\xff\xff\xe0\xe0\xe0\x00\x60\xf0\x00\x80\xff\x00\xe0\xe0\x00\x00\x60\xff\x80\x00\x20\x60\xff\xff\xe8\x40\x00\x00\xff\x80\x00\x00\x00\x00\x60\xf0\x00\x00\x00\x00\x00\x00\xff\x80\x20\xf0\xe0\x20\xe8\xff\xf0\x20\x00\x80\xff\x00\x00\x00\x60\xff\xf0\x80\x00\x00\x00\x40\xff\x40\x00\x00\x00\x20\x00\x00\x00\xa0\xf0\xf0\xa0\xe0\xf0\x20\x00\x40\xff\x80\x00\x00\xff\x80\x00\x00\xe0\xff\xff\xff\xe0\x20\xa0\xa0\x40\x00\x00\x20\x40\x40\x00\x00",
 "\x00\x00\x00\x00\x00\x00\x00\x40\x40\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x40\x40\x00\x00\x00\x00\x00\x00\x00\x00\x40\x20\x00\x00\x00\x00\x00\x00\x20\x80\x00\x00\x00\x00\x20\x80\x00\x80\x20\x20\x80\x00\x00\x00\x00\x40\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x40\x40\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
-"\x00\x00\x00\x00\x00\x00\x00\xe0\xe0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xe0\xe0\x00\x00\x00\x00\x00\x00\x00\x80\xff\x40\x00\x00\x00\x00\x00\x00\x80\xff\x00\x00\x00\x00\x80\xff\x00\xe0\x40\x80\xff\x00\x00\x00\x00\xff\x40\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xe0\xe0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\xf0\xff\x80\x00\x40\xff\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x40\x00\x00\x00\xa0\xe0\x60\x00\x00\x00\x00\x00\x00\x00",
-"\x00\x40\xe0\xe0\x40\xe0\x40\xe0\xe0\x60\xe0\xa0\x00\x00\x00\xa0\xe0\x60\x20\x00\x00\xa0\xe0\xe0\xe8\xe0\x00\x00\xa0\xe0\x60\x20\x20\xe8\xe8\x20\x20\x60\xe0\xa0\xe0\x40\x80\xff\x60\xe0\x40\x00\x40\x20\x00\xe0\x40\x80\xff\x00\x80\xe0\x20\xff\x40\x40\xe0\x60\xe0\x40\xa0\xe0\xa0\x00\x00\xe0\xa0\xe0\x60\x00\x00\x00\xa0\xe0\x60\x20\x00\xa0\x60\x60\xe0\xa0\x00\x00\x00\x00\x00\x00\x00\x00\x40\xe0\x60\x00\x80\xe0\xa0\x40\xf0\xf0\xa0\xa0\xa0\x00\x40\xe0\x20\xe0\x40\x00\x40\xe0\x80\xe0\x00\x40\xe0\x00\x40\xe0\x20\xe0\x40\x20\xe0\x80\x60\xa0\x00\x00\xe0\xa0\xe0\xe0\xe0\xe0\xff\xe0\xe0\xff\x40\x60\x60\x00\x00\x00\x80\xff\x80\x00\x00\x00\x00\x00\x00\xff\xe0\x00\x00\x00\xf0\x60\xf0\x00\x00\x80\x80\x20\x00\x00",
+"\x00\x00\x00\x00\x00\x00\x00\xe0\xe0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xe0\xe0\x00\x00\x00\x00\x00\x00\x00\x80\xff\x40\x00\x00\x00\x00\x00\x00\x80\xff\x00\x00\x00\x00\x80\xff\x00\xe0\x40\x80\xff\x00\x00\x00\x00\xff\x40\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xe0\xe0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\xe0\x00\x40\xe0\x00\x40\xe0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\xf0\xff\x80\x00\x40\xff\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x40\x00\x00\x00\xa0\xe0\x60\x00\x00\x00\x00\x00\x00\x00",
+"\x00\x40\xe0\xe0\x40\xe0\x40\xe0\xe0\x60\xe0\xa0\x00\x00\x00\xa0\xe0\x60\x20\x00\x00\xa0\xe0\xe0\xe8\xe0\x00\x00\xa0\xe0\x60\x20\x20\xe8\xe8\x20\x20\x60\xe0\xa0\xe0\x40\x80\xff\x60\xe0\x40\x00\x40\x20\x00\xe0\x40\x80\xff\x00\x80\xe0\x20\xff\x40\x40\xe0\x60\xe0\x40\xa0\xe0\xa0\x00\x00\xe0\xa0\xe0\x60\x00\x00\x00\xa0\xe0\x60\x20\x00\xa0\x60\x60\xe0\xa0\x00\x00\x00\x00\x00\x00\x00\x00\x40\xe0\x60\x00\x80\xe0\xa0\x40\xf0\xf0\xa0\xa0\xa0\x00\x40\xe0\x20\xe0\x40\x00\x40\xe0\x20\xff\x40\x60\xff\x20\x60\xe8\x20\xe0\x40\x20\xe0\x80\x60\xa0\x00\x00\xe0\xa0\xe0\xe0\xe0\xe0\xff\xe0\xe0\xff\x40\x60\x60\x00\x00\x00\x80\xff\x80\x00\x00\x00\x00\x00\x00\xff\xe0\x00\x00\x00\xf0\x60\xf0\x00\x00\x80\x80\x20\x00\x00",
 "\x20\xff\xe0\x80\xf0\xff\x80\xe0\xff\xa0\xa0\xff\x60\x00\xe0\xf0\x80\xf0\xf0\x00\xa0\xff\xa0\xa0\xff\xe0\x00\xf0\xe8\x80\xe0\xf0\x40\xf0\xf0\x40\xf0\xe8\x80\xe8\xff\x80\x80\xff\xe0\x60\xff\x20\x80\xff\x00\xff\x80\x80\xff\x20\xf0\xa0\x00\xff\x40\x80\xff\xa0\xe0\xff\xf0\xa0\xf0\xa0\x00\xff\xf0\xa0\xff\xa0\x00\xe0\xf0\x80\xe0\xf0\x20\xe0\xff\xa0\xa0\xff\xa0\x00\x00\xf0\xf0\xf0\xf0\x00\x80\xff\xe8\x40\xff\x60\xff\x60\xe8\xe8\x40\xe0\xe0\x00\x80\xff\x00\xf0\x60\x00\xe0\xe8\x20\xff\x40\x60\xff\x20\x60\xe8\x00\xe0\xe8\x60\xf0\x00\xa0\xff\x00\x40\xff\x40\x80\x80\xf0\xe8\xff\xa0\xa0\xff\x80\xff\x20\x00\x00\x00\x20\x80\x20\x00\x00\x00\x00\x00\x00\xff\xe0\x00\x00\x00\x80\xff\x80\x80\xff\xe8\xe0\xff\x60\x00",
 "\x60\xe8\x00\x00\x80\xff\x80\xe0\xe0\x00\x00\xa0\xff\x40\xff\x20\x00\x20\x80\x20\xf0\xa0\x00\x00\xe0\xe0\x80\xff\xa0\x20\x80\xff\x60\xe0\xe0\x80\xff\x20\x00\x20\xff\x80\x80\xff\x00\x00\xff\x80\x80\xff\x00\xff\x80\x80\xff\xe0\xe0\x00\x00\xff\x40\x80\xff\x00\x00\xff\x80\x00\xe0\xe0\x00\xff\x80\x00\xe0\xe0\x40\xff\x20\x00\x00\xf0\x60\xe0\xe8\x00\x00\xa0\xf0\x00\x00\x20\x40\x40\x40\x20\x80\xff\x00\x40\xff\x60\x40\x00\xe0\xe0\x00\xe0\xe0\x00\x80\xff\x00\xa0\xf0\x00\xff\x80\x00\xe8\xa0\xe8\xff\x80\xf0\xa0\x00\x20\xff\xff\x40\x00\x20\xff\x80\xe0\xe8\x00\x00\xa0\xff\x20\xa0\xff\xff\xe0\xa0\xe0\x00\x00\x00\x00\x00\x00\x00\x00\xe0\xff\xe0\x00\xff\xff\xff\xff\x00\x00\x00\x00\x40\xff\x80\x00\x00\x80\xe0\x40",
 "\xe0\xe0\x00\x00\x20\xff\x80\xe0\xe0\x00\x00\x80\xff\x80\xff\x00\x00\x00\x00\x00\xff\x80\x00\x00\xe0\xe0\x80\xff\xe0\xe0\xe0\xe0\x40\xe0\xe0\x80\xff\x00\x00\x00\xff\x80\x80\xff\x00\x00\xff\x80\x80\xff\x00\xff\x80\x80\xff\xf0\x60\x00\x00\xff\x40\x80\xff\x00\x00\xff\x80\x00\xe0\xe0\x00\xff\x80\x00\xe0\xe0\x80\xff\x00\x00\x00\xe0\x60\xe0\xe0\x00\x00\x80\xff\x00\x00\xf0\xf0\xf0\xf0\x00\x80\xff\x00\x00\x80\xe8\xff\xa0\xe0\xe0\x00\xe0\xe0\x00\x80\xff\x00\x20\xff\x60\xf0\x00\x00\xa0\xe8\xff\x80\xe8\xff\x20\x00\x20\xf0\xff\x20\x00\x00\xe0\xe0\xff\xa0\x00\x20\xff\xa0\x00\x00\x80\x80\x00\xf0\x00\x00\x00\x00\x00\x20\x80\x20\x00\x40\x80\x40\x00\x80\xff\xe8\x80\x00\x00\x00\x00\x60\xe8\x00\x00\x00\x00\x00\x00",
 "\xa0\xff\x40\x00\xe0\xff\x80\xe0\xf0\x20\x20\xe8\xe0\x20\xf0\x60\x00\x80\xe0\x20\xe8\xf0\x20\x20\xf0\xe0\x00\xf0\x60\x00\x20\x40\x20\xe0\xe0\x20\xff\xa0\x00\x80\xff\x80\x80\xff\x00\x00\xff\x80\x80\xff\x00\xff\x80\x80\xff\x40\xff\x80\x00\xff\x40\x80\xff\x00\x00\xff\x80\x00\xe0\xe0\x00\xff\x80\x00\xe0\xe0\x20\xf0\x60\x00\x80\xff\x20\xe0\xf0\x20\x20\xe8\xe8\x00\x00\x20\x40\x40\x40\x20\x80\xff\x00\x40\xe0\x00\xe8\xe0\xe0\xe0\x00\x60\xe8\x00\x60\xff\x00\x00\xe0\xff\x60\x00\x00\x20\xff\xe0\x20\xff\xe0\x00\x00\xe0\xf0\xe0\xe8\x00\x00\x80\xff\xf0\x00\x00\xe8\xe8\x00\x00\x00\x00\x00\x40\xe8\x80\xf0\xff\x80\x00\x80\xff\x80\x00\x00\x00\x00\x00\x00\xff\xe0\x00\x00\x00\x00\x00\xe0\xe0\x00\x00\x00\x00\x00\x00",
 "\x00\x60\xff\xff\x60\xff\x80\xe0\xf0\xf0\xff\xe8\x20\x00\x40\xe8\xff\xf0\x80\x00\x20\xe8\xff\xf0\xe8\xe0\x00\x20\xe8\xff\xf0\xa0\x00\xe0\xe0\x00\x80\xf0\xff\xe0\xff\x80\x80\xff\x00\x00\xff\x80\x80\xff\x00\xff\x80\x80\xff\x00\x60\xff\x20\xff\x40\x80\xff\x00\x00\xff\x80\x00\xe0\xe0\x00\xff\x80\x00\xe0\xe0\x00\x40\xe8\xff\xf0\x80\x00\xe0\xf0\xff\xff\xe8\x20\x00\x00\x00\x00\x00\x00\x00\x80\xff\x00\x20\xe8\xff\xe8\x20\xe0\xe0\x00\x20\xe8\xff\xe8\xff\x00\x00\x80\xff\x20\x00\x00\x00\xe8\x80\x00\xe8\x80\x00\x80\xff\x40\x20\xff\x60\x00\x00\xff\x60\x00\x00\xff\xff\xff\xff\x00\x00\x00\xe8\x40\xff\xe0\xe0\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xe0\xa0\x00\x00\x00\x00\x00\xa0\xf0\x00\x00\x00\x00\x00\x00",
 "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x20\xe0\x80\x80\xff\x20\x00\x00\x00\x00\x00\x00\x00\x00\x40\xff\x40\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xe0\xe0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\xff\x20\x00\x00\x00\x00\x00\x00\x00\x00\x20\xf0\x00\xff\xa0\xa0\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xf0\xe0\x20\x00\xe0\xff\x40",
-"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\xf0\xf0\x80\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xe0\xe0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xe8\xe0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\xa0\x00\x80\xff\xf0\x80\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x20\x60\xff\xff\xe8\x80\x00",
+"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\xf0\xf0\x80\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xe0\xe0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xe8\xe0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\xa0\x00\x80\xff\xf0\x80\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x20\x60\xff\xff\xe8\x80\x00"
 };
 
 #endif
@@ -324,6 +457,7 @@ int	height;
 {'8',72,0,9,13},
 {'9',81,0,9,13},
 {':',91,0,5,13},
+{'`',-1,-1,-1,-1},
 {'`',-1,-1,-1,-1}
 };
 
@@ -349,27 +483,30 @@ int	height;
 {'9',156,1,7,10},
 {'A',  0,13,8,8},
 {'%',142,21,9,10},
+{'=', 89,21,7,7},
+{'.',170,0,4,10},
+{'M', 71,13,8,8},
+{'P', 95,13,6,8},
+{'G', 38,13,8,8},
+{'^',164,22,12,9},
+{'V',131,13,7,8},
 {'B',  8,13,5,8},
 {'C', 13,13,8,8},
 {'D', 21,13,7,8},
 {'E', 28,13,5,8},
 {'F', 33,13,5,8},
-{'G', 38,13,8,8},
 {'H', 46,13,6,8},
 {'I', 52,13,3,8},
 {'J', 55,13,5,8},
 {'K', 60,13,6,8},
 {'L', 66,13,5,8},
-{'M', 71,13,8,8},
 {'N', 79,13,8,8},
 {'O', 87,13,8,8},
-{'P', 95,13,6,8},
-{'Q',101,13,8,8},
+{'/',102,13,5,8},
 {'R',109,13,6,8},
 {'S',115,13,5,8},
 {'T',120,13,5,8},
 {'U',125,13,6,8},
-{'V',131,13,7,8},
 {'W',138,12,9,9},
 {'X',147,13,7,8},
 {'Y',154,13,6,8},
@@ -390,7 +527,6 @@ int	height;
 {'n',70,21,6,10},
 {'o',76,21,7,10},
 {'p',83,21,6,10},
-{'q',89,21,7,7},
 {'r',96,21,3,10},
 {'s',99,21,5,10},
 {'t',104,21,3,10},
@@ -401,10 +537,8 @@ int	height;
 {'y',132,21,6,10},
 {'z',138,21,4,10},
 {':',151,21,5,10},
-{'.',169,0,4,10},
 {'-',155,21,4,10},
 {'+',159,21,5,10},
-{'^',164,22,12,9},
 {']',169,12,5,10},
 {'[',165,12,5,10},
 {'`',-1,-1,-1,-1}
@@ -1989,7 +2123,7 @@ UpdateGG			G
 UpdateSpeedComputations		H
 SetUpMySignals			I
 UpdateTemp			J
-MineData			K
+UpdateCatTemp			K
 Poll				L
 CreateMainWindow		M
 GetMyStringLength		N
@@ -2004,8 +2138,8 @@ UpdateDriveMode			V
 WriteToPort			W
 IntReXSigCatch			X
 SetUpPicture			Y
-AnalyseFrame			Z
 FastPoll			<>
+AnalyseHighCANMessages		-+
 */
 
 #define	XOFFS	0
@@ -2014,21 +2148,227 @@ FastPoll			<>
 #define	BBPX	16
 #define	BBPXSH	2
 
-void AnalyseFrame(int Position);
+unsigned char	MaxCurrentValues[50][9];	// for every 2 km/h value record max generated current in Amps, also 40/45/50/55/60/65/70/75/80%
+
+typedef struct ButtonStructure
+{
+	unsigned int	X;
+	unsigned int	Y;
+	unsigned char	W;
+	unsigned char	H;
+	char		Title[32];
+	unsigned char	UserData;
+}ButtonStructure;
+
 void CopyDisplayBufferToScreen(int x, int y, int w, int h);
 void PutMyString(char *Text,int x, int y, int usebignums, int zoom);
-void IntReXSigCatch(int sig);
+int GetMyStringLength(char *Text, int usebignums, int zoom);
+void IntReXSigCatch(int);
+void PutExtraInfo(void);
+void UpdateGG(void);
+void ClearDisplayBuffer(void);
+unsigned char MineChar(int);
+void UpdateCatTemp(void);
+unsigned int MineUInt(int Position);
+
+#define	NUM_BUTTONS	16			// 320:5   430:125   540:245   540:365   ->  300:30   400:140  500:260  500:370
+#define	BU_XST		320
+#define	BU_YST		30
+#define	BU_GP		10
+#define	BU_W		100
+#define	BU_H		100
+
+ButtonStructure Buttons[NUM_BUTTONS];
+char		*KP="1234567890.C";
+char		ValueChars[8];
+
+void DefineButtons(void)
+{
+int	a,x,y;
+
+	a=0;
+	for(y=0;y<4;y++)
+	{
+		for(x=0;x<3;x++)
+		{
+			Buttons[a].X=BU_XST+(x*BU_W)+(x*BU_GP);
+			Buttons[a].Y=BU_YST+(y*BU_H)+(y*BU_GP);
+			Buttons[a].W=BU_W;
+			Buttons[a].H=BU_H;
+			sprintf(Buttons[a].Title,"%c",KP[a]);
+			Buttons[a].UserData=a;
+			++a;
+		}
+	}
+
+	Buttons[a].X=20;
+	Buttons[a].Y=BU_YST+20;
+	Buttons[a].W=200;
+	Buttons[a].H=60;
+	sprintf(Buttons[a].Title,"REFUEL");
+	Buttons[a].UserData=a;
+	++a;
+	
+	Buttons[a].X=20;
+	Buttons[a].Y=380;
+	Buttons[a].W=200;
+	Buttons[a].H=80;
+	sprintf(Buttons[a].Title,"RETURN");
+	Buttons[a].UserData=a;
+	++a;
+
+	Buttons[a].X=20;
+	Buttons[a].Y=170;
+	Buttons[a].W=200;
+	Buttons[a].H=60;
+	sprintf(Buttons[a].Title,"FULL TANK");
+	Buttons[a].UserData=a;
+	++a;
+
+	Buttons[a].X=20;
+	Buttons[a].Y=290;
+	Buttons[a].W=200;
+	Buttons[a].H=70;
+	sprintf(Buttons[a].Title,"Voice: %s",((VoiceMode)?("Yes"):("No")));
+	Buttons[a].UserData=a;
+	++a;
+}
+
+void DrawRectangle(int x,int y,int w,int h,int fill)
+{
+int	a,b,c;
+
+	if(fill==0)
+	{
+		for(b=y;b<(y+h);b++)
+		{
+			c=b*WIDTH+x;			// Left line
+			ImageBuffer[c].R=240;
+			ImageBuffer[c].G=240;
+			ImageBuffer[c].B=255;
+			c=b*WIDTH+x+1;			// Left line
+			ImageBuffer[c].R=220;
+			ImageBuffer[c].G=220;
+			ImageBuffer[c].B=245;
+			c=b*WIDTH+x+w-2;		// Right Line
+			ImageBuffer[c].R=200;
+			ImageBuffer[c].G=200;
+			ImageBuffer[c].B=230;
+			c=b*WIDTH+x+w-1;			// Right Line
+			ImageBuffer[c].R=180;
+			ImageBuffer[c].G=180;
+			ImageBuffer[c].B=220;
+		}
+		for(b=x;b<(x+w-1);b++)
+		{
+			c=y*WIDTH+b;			// Top line
+			ImageBuffer[c].R=240;
+			ImageBuffer[c].G=240;
+			ImageBuffer[c].B=255;
+			c=(y+1)*WIDTH+b;		// Top line
+			ImageBuffer[c].R=220;
+			ImageBuffer[c].G=220;
+			ImageBuffer[c].B=245;
+			c=(y+h)*WIDTH+b;		// Bottom line
+			ImageBuffer[c].R=200;
+			ImageBuffer[c].G=200;
+			ImageBuffer[c].B=230;
+			c=(y+h+1)*WIDTH+b;		// Bottom line
+			ImageBuffer[c].R=180;
+			ImageBuffer[c].G=180;
+			ImageBuffer[c].B=220;
+		}
+	}
+	else
+	{
+		for(b=y;b<(y+h);b++)
+		{
+			c=b*WIDTH+x;
+			for(a=x;a<(x+w);a++)
+			{
+				ImageBuffer[c].R=240;
+				ImageBuffer[c].G=240;
+				ImageBuffer[c].B=255;
+				++c;
+			}
+		}
+	}
+}
+
+void DrawInfoScreen(void)
+{
+int	a,c,d,x,y,f;
+
+	ClearDisplayBuffer();
+
+	for(a=0;a<NUM_BUTTONS;a++)
+	{
+		if(TouchedButton==a) f=1; else f=0;
+		DrawRectangle(Buttons[a].X,Buttons[a].Y,Buttons[a].W,Buttons[a].H,f);
+		sprintf(Message,"%s",Buttons[a].Title);
+		c=GetMyStringLength(Message,1,3);
+		d=38;
+		x=Buttons[a].X+(Buttons[a].W>>1)-(c>>1);
+		y=Buttons[a].Y+(Buttons[a].H>>1)-(d>>1);
+		PutMyString(Message,x,y,1,3);
+	}
+
+	if(SI_Measurements)
+		sprintf(Message,"Ltr: %s",ValueChars);
+	else
+		sprintf(Message,"Gal: %s",ValueChars);
+	PutMyString(Message,20,120,1,3);
+
+	if(SI_Measurements)
+		sprintf(Message,"km-tank: %3.1f",TripKilometers);
+	else
+		sprintf(Message,"mil-tank: %3.1f",(TripKilometers*0.625f));
+	PutMyString(Message,30,240,1,2);
+
+	CopyDisplayBufferToScreen(0,0,WIDTH,HEIGHT);
+}
+
+void EvaluateTouch(void)	// -20:-20 for touch-to-screen translation
+{
+int	a;
+
+//printf("\n%d:%d",TouchedX,TouchedY);fflush(stdout);
+
+	if((TouchedX+=20)>640) TouchedX=640;
+	if((TouchedY+=10)>480) TouchedY=480;
+	for(a=0;a<NUM_BUTTONS;a++)
+	{
+		if((TouchedX>=Buttons[a].X)&&(TouchedX<=(Buttons[a].X+Buttons[a].W))&&(TouchedY>=Buttons[a].Y)&&(TouchedY<=(Buttons[a].Y+Buttons[a].H)))
+		{
+			TouchedButton=a;
+			return;
+		}
+	}
+}
 
 int ResetValues(void)
 {
+	RunningTask=TASK_INIT;
+	TouchedX=-1;
+	TouchedY=-1;
+	ScrTouched=0;
+	RefuelValue=0.0f;
+	TouchedButton=-1;
+	TripKilometers=0.0f;
+	TripGallonValue=0.0f;
+	TripMile=0.0f;
+	TripGal=0.0f;
 	DistanceTravelled=0.0f;
 	MeasurementKilometers=0.0f;
 	MeasuredKMPG=0.0f;
 	MeasuredAverageSpeed=0.0f;
+	MeasuredMinCurrent=0.0f;
+	MeasuredMaxCurrent=0.0f;
+	MeasuredMinW=0.0f;
+	MeasuredMaxW=0.0f;
 	StatusFlag=0;
 	AccSpd=0.0f;
 	AccRpm=0.0f;
-	HB_Level=0.0f;
 	AccSpdCntr=0;
 	SpeedAccumulated=0;
 	SpeedAccumulatedCntr=0;
@@ -2036,36 +2376,67 @@ int ResetValues(void)
 	ThrottleAccumulated=0;
 	SyncCntr=0;
 	EVMode=0;
+	LEVMode=0;
 	ICEPowered=1;
+	ICEPoweredCurrStage=50;
 	PriusIsPowered=1;
 	FSRCntr=1;
 	LatestRPM=0;
+	FirstGasReading=1;
 //	GasGauge=0x7F;
-//	CurrGasGauge=0x7F;
+	MaxCurrent=0;
+	MinCurrent=0;
+	MinMaxCurrentDisplay=0;
+	MinMaxkWDisplay=0;
 	DoorStatus=0;
 	SOCValue=0;
+	LSOCValue=0;
+	SOCValueCurrStage=0;
+	PreGasValue=0;
 	BattTempValue=0;
+	BattVoltageValue=0;
+	FuelRead=0;
+	BattMaxChargeCurrent=0;
+	BattMaxDisChargeCurrent=0;
 	TempValue=0;
+	EngBlckTmpCnt=1;
+	EngBlckTmp=0;
+	Cat1Temp=30;
+	Cat2Temp=30;
+	CATReqCtr=0;
 	NeedSynced=1;
 	ScrSv_NumberOfTimes=1;
 	PreviousRPMValue=0xFFFF;
-	PreviousCurrentValue=0xFFFF;
+//	PreviousCurrentValue=0xFFFF;
 	ValueSwitch=0;
-
-#ifdef ELECTRIC_STATISTICS
-	Cr_Consd_noICE=0;
-	Cr_Consd_ICE=0;
-	Cr_Regen_noICE=0;
-	Cr_Regen_ICE=0;
-	Consd_noICE=0;
-	Consd_ICE=0;
-	Regen_noICE=0;
-	Regen_ICE=0;
-	Cr_Consd_noICE_Cnt=0;
-	Cr_Consd_ICE_Cnt=0;
-	Cr_Regen_noICE_Cnt=0;
-	Cr_Regen_ICE_Cnt=0;
+	LightValue=0;
+	InstrumentsDimmed=0;
+	CollCurr=0;
+	CollVolt=0;
+	CollCntr=0;
+	CollectCurrent=0;
+	TrafficCtr=0;
+	TrafficSubCtr=0;
+	Decel=0;
+	PrvSpd=0;
+	SpeedCurrStage=0;
+	SpeedCurrStageCntr=0;
+	StrtSpd=0;
+	LastRegenSpdStart=0;
+	LastRegenSpdEnd=0;
+	LastRegenkW=0.0f;
+	LastRegenTime=0;
+	LastRegenStopReason='U';
+	NofTrafficBytesZero=0;
+#ifdef MORE_DATA
+	LastRegenBrake=0;
+	Info_Brakes=0;
+	Info_Brakes_Cnt=0;
 #endif
+	DoorOpenCnt=0;
+	FirstTimeSOC=1;
+	FirstTimeGas=1;
+	NoTrafficYet=1;
 }
 
 int Poll(void)
@@ -2141,7 +2512,7 @@ printf("Transmission Success");fflush(stdout);
 						CRSignal=1;
 					break;
 					case 't' :	// 11 bit frame ( 3 byte ID )
-						IC_MessageID=0;IC_MessageLength=0;
+						IC_MessageID=0;
 						for(c=1;c<4;c++)
 						{
 							IC_MessageID<<=4;
@@ -2152,26 +2523,20 @@ printf("Transmission Success");fflush(stdout);
 						}
 						if((IB[4]>='0')&&(IB[4]<='8'))
 						{
-							IC_MessageLength=(IB[4]-'0');
-#ifdef COMM_DEBUG
-printf("A");fflush(stdout);
-#endif
-							AnalyseFrame(5);
-#ifdef COMM_DEBUG
-printf("a");fflush(stdout);
-#endif
+//							MessageLength=(IB[4]-'0');
+//							AnalyseFrame(5);
 						}
 						else
 						{
-							IC_MessageLength=-1;
 #ifdef COMM_DEBUG
 							printf("\n###ERROR : Message length is %d:'%c'",IB[4],IB[4]);fflush(stdout);
 #endif
 						}
 						CRSignal=1;
 					break;
+#if 0
 					case 'T' :	// 29 bit frame ( 8 byte ID )
-						IC_MessageID=0;IC_MessageLength=0;
+						IC_MessageID=0;
 						for(c=1;c<8;c++)
 						{
 							IC_MessageID<<=4;
@@ -2183,18 +2548,18 @@ printf("a");fflush(stdout);
 
 						if((IB[8]>='0')&&(IB[8]<='8'))
 						{
-							IC_MessageLength=(IB[8]-'0');
-							AnalyseFrame(9);
+//							MessageLength=(IB[8]-'0');
+//							AnalyseFrame(9);
 						}
 						else
 						{
-							IC_MessageLength=-1;
 #ifdef COMM_DEBUG
 							printf("\n###ERROR : Message length is %d:'%c'",IB[8],IB[8]);fflush(stdout);
 #endif
 						}
 						CRSignal=1;
 					break;
+#endif
 					case 13 :
 						CRSignal=1;
 					break;
@@ -2247,42 +2612,162 @@ TrBu[TrBuPtr]='l';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 return(ret);
 }
 
-
-
-int ReadRawMopedFile(void)
+void RunTaskInfoMain(void)
 {
-FILE		*fp;
-register int	a,b,c;
+struct timespec	rqst,resp;
+unsigned char	Rc,Gc;
+char		Val;
+int		a,b,c,ppos;
 
-	if((fp=fopen(PIC_FILE_NAME,"r"))==NULL)
+	for(a=0;a<8;a++) ValueChars[a]=0;
+	ppos=0;
+	DrawInfoScreen();
+	while(RunningTask==TASK_INFO)
 	{
-		return(0);
-	}
-	fseek(fp,5L,SEEK_SET);
-	for(b=0;b<HEIGHT;b++)
-	{
-		c=b*WIDTH;
-		for(a=0;a<WIDTH;a++)
+		while(TouchedX==-1)
 		{
-			ImageBuffer[c].R=(unsigned char)fgetc(fp);
-			ImageBuffer[c].G=(unsigned char)fgetc(fp);
-			ImageBuffer[c].B=(unsigned char)fgetc(fp);
-			++c;
+			rqst.tv_sec=0;
+			rqst.tv_nsec = 200000000;
+			nanosleep(&rqst,&resp);
+			if(ScrTouched)
+			{
+				switch(ScrTouched)
+				{
+					case 1 :
+						Rc=255;Gc=0;
+						ScrTouched=7;
+					break;
+					case 2 :
+						Rc=255;Gc=255;
+						ScrTouched=7;
+					break;
+					case 3 :
+						Rc=0;Gc=255;
+						ScrTouched=7;
+					break;
+					case 7 :
+						Rc=0;Gc=0;
+						ScrTouched=0;
+					break;
+				}
+				for(b=0;b<20;b++)
+				{
+					c=b*WIDTH;
+					for(a=0;a<20;a++)
+					{
+						ImageBuffer[c].R=Rc;
+						ImageBuffer[c].G=Gc;
+						ImageBuffer[c].B=0;
+						++c;
+					}
+				}
+				CopyDisplayBufferToScreen(0,0,20,20);
+			}
+//printf(",");fflush(stdout);
 		}
+		EvaluateTouch();
+		DrawInfoScreen();
+		Val=0;
+		switch(TouchedButton)
+		{
+			case  0 :
+			case  1 :
+			case  2 :
+			case  3 :
+			case  4 :
+			case  5 :
+			case  6 :
+			case  7 :
+			case  8 :
+			case  9 :
+			case 10 :
+				ValueChars[ppos]=KP[TouchedButton];		// 1234567890.C
+				if(++ppos>7) ppos=7;
+			break;
+			case 11 :				// C
+				if(ppos) --ppos;
+				ValueChars[ppos]=0;
+			break;
+			case 12 :		// Refuel
+				ClearDisplayBuffer();
+				if((sscanf(ValueChars,"%f",&RefuelValue))!=1)
+				{
+					RefuelValue=0.0f;
+					if(SI_Measurements)
+						sprintf(Message,"Ltr: %s",ValueChars);
+					else
+						sprintf(Message,"Gal: %s",ValueChars);
+					PutMyString(Message,20,140,1,3);
+					sprintf(Message,"Invalid Number conversion!");
+					PutMyString(Message,20,220,1,3);
+				}
+				else
+				{
+					if(SI_Measurements)
+					{
+						sprintf(Message,"Refueled set with %2.3f Ltr.",RefuelValue);
+						RefuelValue*=3.78f;
+					}
+					else
+					{
+						sprintf(Message,"Refueled set with %2.3f Gal.",RefuelValue);
+					}
+					c=GetMyStringLength(Message,1,3);
+					PutMyString(Message,(320-(c>>1)),280,1,3);
+				}
+				CopyDisplayBufferToScreen(0,0,WIDTH,HEIGHT);
+				sleep(3);
+			break;
+			case 13 :		// Exit
+				RunningTask=TASK_INIT;
+				ClearDisplayBuffer();
+				sprintf(Message,"Exit Task Menu.");
+				c=GetMyStringLength(Message,1,3);
+				PutMyString(Message,(320-(c>>1)),180,1,3);
+				if(RefuelValue>0.1f)
+				{
+					if(SI_Measurements)
+						sprintf(Message,"Refueled set with %2.3f Ltr.",(RefuelValue*3.78f));
+					else
+						sprintf(Message,"Refueled set with %2.3f Gal.",RefuelValue);
+					c=GetMyStringLength(Message,1,3);
+					PutMyString(Message,(320-(c>>1)),280,1,3);
+				}
+				if(TripKilometers<0.1f)
+				{
+					sprintf(Message,"Full tank set.");
+					c=GetMyStringLength(Message,1,3);
+					PutMyString(Message,(320-(c>>1)),340,1,3);
+				}
+				CopyDisplayBufferToScreen(0,0,WIDTH,HEIGHT);
+				sleep(2);
+				return;
+			break;
+			case 14 :			// Full Tank
+				TripKilometers=0.0f;
+				TripGallonValue=0.0f;
+			break;
+			case 15 :			// Voice: Yes/No
+				if(++VoiceMode>1) VoiceMode=0;
+				sprintf(Buttons[15].Title,"Voice: %s",((VoiceMode)?("Yes"):("No")));
+			break;
+		}
+		TouchedX=-1;TouchedButton=-1;
+		DrawInfoScreen();
 	}
-	fclose(fp);
 }
 
 void SS_Stats(void)
 {
 int	a,b,c;
-float	MPG,ThrottleV,SpeedV;
+float	MPG,ThrottleV,SpeedV,TKM,TGAL;
 
+	if(AccSpdCntr<1) return;
 
-	for(b=0;b<80;b++)
+	for(b=0;b<HEIGHT;b++)
 	{
 		c=b*WIDTH;
-		for(a=0;a<(WIDTH-6);a++)
+		for(a=0;a<WIDTH;a++)
 		{
 			ImageBuffer[c].R=0;
 			ImageBuffer[c].G=0;
@@ -2291,71 +2776,180 @@ float	MPG,ThrottleV,SpeedV;
 		}
 	}
 
-	if(AccRpm!=0.0f)
+	if(AccRpm>0.0f)
 		MPG=(float)(((AccSpd*SPDSCALER_MILE)/AccRpm));
 	else
 		MPG=0.0f;
-
-	sprintf(Message,"%2.1f MPG",MPG);			// Accumulated MPG on this trip
-	c=GetMyStringLength(Message,0,2);
-	PutMyString(Message,(WIDTH-8-c),42,0,2);
-	b=c;
-
 	if(MPG>0.0f)
-		ThrottleV=((((AccSpd*(float)TimeElapsed)/(float)AccSpdCntr)/5760.0f)/MPG);	// This many gallons were used on this trip
+	{
+		if(AccSpdCntr>0)
+			ThrottleV=((AccSpd*(float)TimeElapsed)/((float)AccSpdCntr*5760.0f*MPG));	// This many gallons were used on this trip
+		else
+			ThrottleV=0.0;
+	}
 	else
 		ThrottleV=0.0f;
-	sprintf(Message,"%1.3f Gal",ThrottleV);
-	c=GetMyStringLength(Message,0,2);
-	PutMyString(Message,(WIDTH-b-c-26),42,0,2);
 
-	sprintf(Message,"- TRIP -",ThrottleV);
-	c=GetMyStringLength(Message,0,2);
-	PutMyString(Message,(WIDTH-b-c-46),18,0,2);
+	if(AccSpdCntr>0)
+		DistanceTravelled=((AccSpd*(float)TimeElapsed)/((float)AccSpdCntr*3600.0f));		// Since we computed /s updates -> /h
+	else
+		DistanceTravelled=0;
+	if(SI_Measurements)
+		sprintf(Message,"Dist= %1.1f      Cons.= %2.1f km/l",(DistanceTravelled),(MPG*0.42328f));
+	else
+		sprintf(Message,"Dist= %1.1f miles     MPG= %2.1f W",(DistanceTravelled*0.625f),MPG);
+	c=GetMyStringLength(Message,1,3);
+	PutMyString(Message,(320-(c>>1)),255,1,3);
 
-	ThrottleV=((MeasuredKMPG*0.625f*MeasurementKilometers)+(MPG*DistanceTravelled))/(MeasurementKilometers+DistanceTravelled);
-	sprintf(Message,"All : %d Mq%2.1f W",(int)(((MeasurementKilometers+DistanceTravelled)*0.625f)+0.5f),ThrottleV);
-	c=GetMyStringLength(Message,0,2);	// 321 is the center
-	PutMyString(Message,30,30,0,2);
+	if(SI_Measurements)
+		sprintf(Message,"Fuel Consumption= %1.3f Ltr",(ThrottleV*3.78f));
+	else
+		sprintf(Message,"Fuel Consumption= %1.3f Gal",ThrottleV);
+	c=GetMyStringLength(Message,1,3);
+	PutMyString(Message,(320-(c>>1)),310,1,3);
+
+	TGAL=TripGallonValue;
+	if(AccRpm>0.0f)
+	{
+		if(AccSpd>0.0f)
+			MPG=(float)(((AccSpd*SPDSCALER_MILE)/AccRpm));
+		else
+		{
+			if(AccSpdCntr>0)
+				MPG=(float)(((AccSpdCntr*SPDSCALER_MILE)/AccRpm));
+			else
+				MPG=(float)(((SPDSCALER_MILE)/AccRpm));
+		}
+		if(AccSpdCntr>0)
+			TGAL+=(float)(((AccSpd*(float)TimeElapsed)/((float)AccSpdCntr*MPG)));	// must be divided by 5760 for real number later ( preserving accuracy )
+	}
+	TKM=TripKilometers+DistanceTravelled;
+
+	if(SI_Measurements)
+		sprintf(Message,"Last Refill = %1.2f l : %1.1f km",((TGAL*3.78)/5760.0f),TKM);
+	else
+		sprintf(Message,"Last Refill = %1.2f gal : %1.1f m",(TGAL/5760.0f),(TKM*0.625f));
+	c=GetMyStringLength(Message,1,3);
+	PutMyString(Message,(320-(c>>1)),370,1,3);
+
+	sprintf(Message,"- TRIP -");
+	c=GetMyStringLength(Message,0,4);
+	PutMyString(Message,(320-(c>>1)),150,0,4);
 
 	ThrottleV=((float)AccSpd/(float)AccSpdCntr)*0.625f;		// Average Trip Speed
-	sprintf(Message,"%2.1f MPH",ThrottleV);
-	c=GetMyStringLength(Message,0,2);
-	PutMyString(Message,(WIDTH-10-c),18,0,2);
-
 	a=(int)((float)TimeElapsed/60.0f);		// minute
 	b=TimeElapsed-(a*60);				// seconds
 	if(a>=60)
 	{
 		c=(int)((float)a/60.0f);	// hour
 		a-=(c*60);
-		sprintf(Message,"%1d:%02d:%02d",c,a,b);
+		if(SI_Measurements)
+			sprintf(Message,"Time= %1d:%02d:%02d  A.Spd= %2.1f km/h",c,a,b,(ThrottleV*1.6f));
+		else
+			sprintf(Message,"Time= %1d:%02d:%02d   A.Spd= %2.1f MPH",c,a,b,ThrottleV);
 	}
 	else
-		sprintf(Message,"%02d:%02d",a,b);
-	PutMyString(Message,286,18,0,2);
+	{
+		if(SI_Measurements)
+			sprintf(Message,"Time= %02d:%02d  Avg.Spd= %2.1f km/h",a,b,(ThrottleV*1.6f));
+		else
+			sprintf(Message,"Time= %02d:%02d   Avg.Spd= %2.1f MPH",a,b,ThrottleV);
+	}
+	c=GetMyStringLength(Message,1,3);
+	PutMyString(Message,(320-(c>>1)),200,1,3);
 
-	MPG=(AccSpd*(float)TimeElapsed)/(float)AccSpdCntr;
-	DistanceTravelled=MPG/3600.0f;		// Since we computed /s updates -> /h
+// Accumulative
 
-	sprintf(Message,"%1.1f Miles",(DistanceTravelled*0.625f));
-	PutMyString(Message,286,42,0,2);
+	ThrottleV=((MeasuredKMPG*0.625f*MeasurementKilometers)+(MPG*DistanceTravelled))/(MeasurementKilometers+DistanceTravelled);
+	if(SI_Measurements)
+		sprintf(Message,"%d km = %2.1f km/l",(int)((MeasurementKilometers+DistanceTravelled)+0.5f),(ThrottleV*0.42328f));
+	else
+		sprintf(Message,"%d Miles = %2.1f W",(int)(((MeasurementKilometers+DistanceTravelled)*0.625f)+0.5f),ThrottleV);
+	c=GetMyStringLength(Message,0,3);
+	PutMyString(Message,(320-(c>>1)),4,0,3);
 
-	CopyDisplayBufferToScreen(0,0,(WIDTH-6),80);
+	sprintf(Message,"Chrg=%3.1fA  DisC=%3.1fA",MeasuredMinCurrent,MeasuredMaxCurrent);
+	c=GetMyStringLength(Message,0,3);
+	PutMyString(Message,(320-(c>>1)),45,0,3);
 
+	sprintf(Message,"Chrg=%3.1fkw  DisC=%3.1fkw",MeasuredMinW,MeasuredMaxW);
+	c=GetMyStringLength(Message,0,3);
+	PutMyString(Message,(320-(c>>1)),86,0,3);
 }
+
+#define	FL_IOCTL_STEP_CONTRAST	100
+void AdjustBackLight(void)
+{
+int	bl=6;
+int	fd;
+
+#ifdef NON_ZAURUS
+	return;
+#endif
+	if(InstrumentsDimmed) bl=1;
+
+	if((fd=open("/dev/fl",O_WRONLY))<=0)
+	{
+		printf("\nError opening '/dev/fl'...");fflush(stdout);
+		return;
+	}
+	ioctl(fd,FL_IOCTL_STEP_CONTRAST,bl);
+	close(fd);
+}
+
+#define	COPY_COMMAND	"su -c 'cp PriusData.txt FuelData.txt /mnt/card;umount /mnt/card'"
+int CopyDataToMemoryCard(void)
+{
+struct stat	st;
+
+	if(!stat("/mnt/card",&st))
+	{
+		if(st.st_ino==1)		// card mounted
+		{
+			system(COPY_COMMAND);
+			return(1);
+		}
+	}
+return(0);
+}
+
 
 void ScreenSaver(void)
 {
-int	a,b,c,tx,ty;
+//int	a,b,tx,ty;
+int	c;
 
 	if(--ScrSv_NumberOfTimes<1)
 	{
-		ReadRawMopedFile();
+//		ReadRawMopedFile();
 		SS_Stats();
 		ScrSv_NumberOfTimes=300;
+		c=GetMyStringLength(VERSION_STRING,0,2);
+		PutMyString(VERSION_STRING,((WIDTH>>1)-c),450,0,2);
+		CopyDisplayBufferToScreen(0,0,WIDTH,HEIGHT);
 	}
+	if(TouchedX!=-1)
+	{
+		if((TouchedX==17)&&(TouchedY==17))
+		{
+			ClearDisplayBuffer();
+			if((CopyDataToMemoryCard())==1)
+				sprintf(Message,"Save to card SUCCESS.");
+			else
+				sprintf(Message,"Save to card FAILED.");
+			PutMyString(Message,10,100,1,3);
+			PutMyString(Message,20,200,1,3);
+			PutMyString(Message,30,300,1,3);
+			PutMyString(Message,40,400,1,3);
+			ScrSv_NumberOfTimes=2;
+			TouchedX=-1;
+			TouchedY=-1;
+		}
+		CopyDisplayBufferToScreen(0,0,WIDTH,HEIGHT);
+	}
+	sleep(1);
 
+#if 0
 	tx=(int)(((float)(rand()&0xFFF0)*16)/(float)0xFFFF);	// 0-15
 	ty=(int)(((float)(rand()&0xFFF0)*10)/(float)0xFFFF)+2;	// 0-11
 	if((tx*=40)>600) tx=600;				// to further slow down processing...
@@ -2372,14 +2966,18 @@ int	a,b,c,tx,ty;
 			++c;
 		}
 	}
+
 	CopyDisplayBufferToScreen(0,0,WIDTH,HEIGHT);
+
+#endif
+
 }
 
 void LoadStat(void)
 {
 FILE	*fp=NULL;
-float	MPG,AMPG;
-int	a,b,c,Go=3;
+float	MPG;
+int	a,b,c,Go=3,v1,v2,v3,v4,v5,v6,v7,v8,v9;
 
 	while(Go>0)
 	{
@@ -2428,10 +3026,44 @@ int	a,b,c,Go=3;
 			fscanf(fp,"Accumulated KMPG = %f\n",&MeasuredKMPG);
 			fscanf(fp,"Accumulated MeanKMH = %f\n",&MeasuredAverageSpeed);
 			fscanf(fp,"MeasuredKm = %f\n",&MeasurementKilometers);
-			fscanf(fp,"LastFuelValue = %d",&a);
+			fscanf(fp,"LastFuelValue = %d\n",&a);
+			GasGauge=(unsigned char)a;
+			if((fscanf(fp,"Max Charge Current = %f A\n",&MeasuredMinCurrent))!=1) MeasuredMinCurrent=0.0f;
+			if((fscanf(fp,"Max Charge Power = %f kW\n",&MeasuredMinW))!=1) MeasuredMinW=0.0f;
+			if((fscanf(fp,"Max Discharge Current = %f A\n",&MeasuredMaxCurrent))!=1) MeasuredMaxCurrent=0.0f;
+			if((fscanf(fp,"Max Discharge Power = %f kW\n",&MeasuredMaxW))!=1) MeasuredMaxW=0.0f;
+
+			for(b=0;b<50;b++)
+			{
+				if((fscanf(fp,"%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n",&v1,&v2,&v3,&v4,&v5,&v6,&v7,&v8,&v9))==9)
+				{
+					MaxCurrentValues[b][0]=(unsigned char)v1;
+					MaxCurrentValues[b][1]=(unsigned char)v2;
+					MaxCurrentValues[b][2]=(unsigned char)v3;
+					MaxCurrentValues[b][3]=(unsigned char)v4;
+					MaxCurrentValues[b][4]=(unsigned char)v5;
+					MaxCurrentValues[b][5]=(unsigned char)v6;
+					MaxCurrentValues[b][6]=(unsigned char)v7;
+					MaxCurrentValues[b][7]=(unsigned char)v8;
+					MaxCurrentValues[b][8]=(unsigned char)v9;
+				}
+				else
+					b=50;
+			}
+
+			if((fscanf(fp,"Trip Kilometers = %f\n",&MPG))==1) TripKilometers=MPG;
+			if((fscanf(fp,"Trip Gallon Usage Indicator = %f\n",&MPG))==1) TripGallonValue=MPG;
+			fscanf(fp,"Trip Gallon Usage = %f\n",&MPG);
+			if((fscanf(fp,"Voice Announcements = %d\n",&a))==1)
+			{
+				VoiceMode=(unsigned char)a;
+			}
+			if((fscanf(fp,"SI Measurements = %d\n",&a))==1)
+			{
+				SI_Measurements=(unsigned char)a;
+			}
+
 			fclose(fp);
-			CurrGasGauge=(unsigned char)a;
-			GasGauge=CurrGasGauge;
 			if((MeasurementKilometers>9999999.0f)||(MeasurementKilometers<0.0f)||
 			   (MeasuredKMPG<0.0f)||(MeasuredKMPG>999.0f)||
 			   (MeasuredAverageSpeed<0.0f)||(MeasuredAverageSpeed>300.0f))
@@ -2506,7 +3138,7 @@ int		a,b,c;
 	PutMyString(Message,((WIDTH-10-c)>>1),9,0,3);
 	CopyDisplayBufferToScreen(0,0,(WIDTH-10),46);
 
-	if(DistanceTravelled<0.1f)
+	if((DistanceTravelled<0.001f)&&(AccRpm<0.001f))
 	{
 		for(b=0;b<46;b++)
 		{
@@ -2523,14 +3155,14 @@ int		a,b,c;
 		c=GetMyStringLength(Message,1,2);
 		PutMyString(Message,((WIDTH-10-c)>>1),9,0,2);
 		CopyDisplayBufferToScreen(0,0,(WIDTH-10),46);
-		sleep(3);
+		sleep(1);
 		return;
 	}
 
-	if((MeasurementKilometers>9999999.0f)||(MeasurementKilometers<0.0f)||
-	   (DistanceTravelled>99999.0f)||(DistanceTravelled<0.0f)||
-	   (MeasuredKMPG<0.0f)||(MeasuredKMPG>999.0f)||
-	   (MeasuredAverageSpeed<0.0f)||(MeasuredAverageSpeed>300.0f))
+	if((MeasurementKilometers>999999.0f)||(MeasurementKilometers<0.0f)||
+	   (DistanceTravelled>9999.0f)||(DistanceTravelled<0.0f)||
+	   (MeasuredKMPG<0.0f)||(MeasuredKMPG>99999.0f)||
+	   (MeasuredAverageSpeed<0.0f)||(MeasuredAverageSpeed>180.0f))
 	{
 		for(b=0;b<46;b++)
 		{
@@ -2569,31 +3201,96 @@ int		a,b,c;
 		c=GetMyStringLength(Message,1,3);
 		PutMyString(Message,((WIDTH-10-c)>>1),9,0,3);
 		CopyDisplayBufferToScreen(0,0,(WIDTH-10),46);
-		sleep(2);
+		sleep(3);
 		return;
 	}
 
 
 	fprintf(fp,"Measured Miles = %1.2f\n",((MeasurementKilometers+DistanceTravelled)*0.625f));
 
-	if(AccRpm!=0.0f) MPG=(float)(((AccSpd*SPDSCALER_MILE)/AccRpm)); else MPG=0.0f;
-	AMPG=((MeasuredKMPG*0.625f*MeasurementKilometers)+(MPG*DistanceTravelled))/(MeasurementKilometers+DistanceTravelled);
+	if(AccRpm>0.0f) MPG=(float)(((AccSpd*SPDSCALER_MILE)/AccRpm)); else MPG=0.0f;
+	if((MeasurementKilometers+DistanceTravelled)>0.0f)
+		AMPG=((MeasuredKMPG*0.625f*MeasurementKilometers)+(MPG*DistanceTravelled))/(MeasurementKilometers+DistanceTravelled);
+	else
+		AMPG=0.0f;
 	fprintf(fp,"Accumulated MPG = %2.1f\n",AMPG);
 
-	AMPG=((MeasuredAverageSpeed*MeasurementKilometers)+((AccSpd/AccSpdCntr)*DistanceTravelled))/(MeasurementKilometers+DistanceTravelled);
+	if((MeasurementKilometers+DistanceTravelled)>0.0f)
+		AMPG=((MeasuredAverageSpeed*MeasurementKilometers)+((AccSpd/AccSpdCntr)*DistanceTravelled))/(MeasurementKilometers+DistanceTravelled);
+	else
+		AMPG=0.0f;
 	fprintf(fp,"Accumulated Mean MPH = %1.1f\n",(AMPG*0.625f));
 
-	if(AccRpm!=0.0f) MPG=(float)(((AccSpd*SPDSCALER)/AccRpm)); else MPG=0.0f;
-	AMPG=((MeasuredKMPG*MeasurementKilometers)+(MPG*DistanceTravelled))/(MeasurementKilometers+DistanceTravelled);
+	if(AccRpm>0.0f) MPG=(float)(((AccSpd*SPDSCALER)/AccRpm)); else MPG=0.0f;
+	if((MeasurementKilometers+DistanceTravelled)>0.0f)
+		AMPG=((MeasuredKMPG*MeasurementKilometers)+(MPG*DistanceTravelled))/(MeasurementKilometers+DistanceTravelled);
+	else
+		AMPG=0.0f;
 	fprintf(fp,"Accumulated KMPG = %1.6f\n",AMPG);
 
-	AMPG=((MeasuredAverageSpeed*MeasurementKilometers)+((AccSpd/AccSpdCntr)*DistanceTravelled))/(MeasurementKilometers+DistanceTravelled);
+	if((MeasurementKilometers+DistanceTravelled)>0.0f)
+		AMPG=((MeasuredAverageSpeed*MeasurementKilometers)+((AccSpd/AccSpdCntr)*DistanceTravelled))/(MeasurementKilometers+DistanceTravelled);
+	else
+		AMPG=0.0f;
 	fprintf(fp,"Accumulated MeanKMH = %1.6f\n",AMPG);
 
-	MeasurementKilometers+=DistanceTravelled;
-	fprintf(fp,"MeasuredKm = %1.6f\n",MeasurementKilometers);
+	fprintf(fp,"MeasuredKm = %1.6f\n",(MeasurementKilometers+DistanceTravelled));
 
-	fprintf(fp,"LastFuelValue = %d",(int)GasGauge);
+	fprintf(fp,"LastFuelValue = %d\n",(int)GasGauge);
+
+	if(((float)MinCurrent*0.1f)>500.0f)	// Error!
+	{
+
+printf("\nERROR in MinCurrent !");
+printf("\nMinCurrent = %d ( %f )",MinCurrent,((float)MinCurrent*0.1f));
+printf("\nMinCurrentVoltage = %d ( %f )",MinCurrentVoltage,((float)MinCurrentVoltage*0.001f));fflush(stdout);
+
+	}
+	else
+	{
+		if(MeasuredMinCurrent<((float)MinCurrent*0.1f))
+		{
+			MeasuredMinCurrent=((float)MinCurrent*0.1f);
+			MeasuredMinW=MeasuredMinCurrent*(float)MinCurrentVoltage*0.001f;
+		}
+	}
+
+	if(MeasuredMaxCurrent<((float)MaxCurrent*0.1f))
+	{
+		MeasuredMaxCurrent=((float)MaxCurrent*0.1f);
+		MeasuredMaxW=MeasuredMaxCurrent*(float)MaxCurrentVoltage*0.001f;
+	}
+
+	fprintf(fp,"Max Charge Current = %3.1f A\n",MeasuredMinCurrent);
+	fprintf(fp,"Max Charge Power = %2.2f kW\n",MeasuredMinW);
+	fprintf(fp,"Max Discharge Current = %3.1f A\n",MeasuredMaxCurrent);
+	fprintf(fp,"Max Discharge Power = %2.2f kW\n",MeasuredMaxW);
+	for(b=0;b<50;b++)
+	{
+		fprintf(fp,"%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n",MaxCurrentValues[b][0],MaxCurrentValues[b][1],MaxCurrentValues[b][2],MaxCurrentValues[b][3],MaxCurrentValues[b][4],MaxCurrentValues[b][5],MaxCurrentValues[b][6],MaxCurrentValues[b][7],MaxCurrentValues[b][8]);
+	}
+
+	AMPG=TripGallonValue;
+	if(AccRpm>0.0f)
+	{
+		if(AccSpd>0.0f)
+			MPG=(float)(((AccSpd*SPDSCALER_MILE)/AccRpm));
+		else
+		{
+			if(AccSpdCntr>0)
+				MPG=(float)(((AccSpdCntr*SPDSCALER_MILE)/AccRpm));
+			else
+				MPG=(float)(((SPDSCALER_MILE)/AccRpm));
+		}
+		if((AccSpdCntr>0)&&(MPG>0.0f))
+			AMPG+=(float)(((AccSpd*(float)TimeElapsed)/((float)AccSpdCntr*MPG)));	// must be divided by 5760 for real number later ( preserving accuracy )
+	}
+
+	fprintf(fp,"Trip Kilometers = %3.6f\n",(TripKilometers+DistanceTravelled));
+	fprintf(fp,"Trip Gallon Usage Indicator = %3.6f\n",AMPG);
+	fprintf(fp,"Trip Gallon Usage = %2.2f\n",(AMPG/5760.0f));
+	fprintf(fp,"Voice Announcements = %d\n",VoiceMode);
+	fprintf(fp,"SI Measurements = %d\n",SI_Measurements);
 	fprintf(fp,"\n");
 
 	fflush(fp);
@@ -2618,24 +3315,44 @@ int		a,b,c;
 
 int WriteToPort(char* ZTV)
 {
-register a=0,b=0,str=0;
+register int	nofbytes,written,startpoz,looping;
+int		reva=0;
 
 #ifdef TRACE_IT
 TrBu[TrBuPtr]='W';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 #endif
-	while(*(ZTV+a)!='\0') ++a;
-	b=write(Port,ZTV,a);
-//	tcflush(Port,TCOFLUSH);
 
-#ifdef COMM_DEBUG
-printf("wrote %d.",b);fflush(stdout);
+#ifdef SIMULATION
+	return;
 #endif
+
+	if(Port==-1) return;
+
+	nofbytes=0;
+	startpoz=0;
+	while(*(ZTV+nofbytes)!='\0') ++nofbytes;
+
+	looping=256;	// Give up after 256 tries...
+	while(looping)
+	{
+		written=write(Port,&ZTV[startpoz],nofbytes);
+		if(written!=nofbytes)		// did NOT write'em all
+		{
+			startpoz+=written;
+			nofbytes-=written;
+			if((--looping)==0) reva=1;		// error
+		}
+		else
+			looping=0;
+	}
+
+//	tcflush(Port,TCOFLUSH);
 
 #ifdef TRACE_IT
 TrBu[TrBuPtr]='w';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 #endif
 
-return(b);
+return(reva);
 }
 
 int SetUpCAN(void)
@@ -2662,11 +3379,19 @@ TrBu[TrBuPtr]='a';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 	Serial[0]='\0';Serial[4]='\0';
 	IBCP=0;
 
+#ifdef SIMULATION
+	Port=0;
+	return(1);
+#endif
+
+
+//printf("\nCalling OACPort");fflush(stdout);
 	if(OpenAndConfigurePort())
 	{
 #ifdef TRACE_IT
 TrBu[TrBuPtr]='a';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 #endif
+printf(" -> Zero");fflush(stdout);
 		return(0);
 	}
 
@@ -2674,12 +3399,12 @@ TrBu[TrBuPtr]='a';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 //printf("\n... Clearing buffer");fflush(stdout);
 
 	sprintf(Message,"\015\015\015");
-	WriteToPort(Message);
+	if(WriteToPort(Message)) {printf("\nError writing to port : Clearing Buffer");fflush(stdout);}
 
 //printf("\n... Sending Version Request");fflush(stdout);
 
 	sprintf(Message,"V\015");	// get version
-	WriteToPort(Message);
+	if(WriteToPort(Message)) {printf("\nError writing to port : Get Version");fflush(stdout);}
 
 	to=1000000;
 	while(to)
@@ -2698,7 +3423,7 @@ TrBu[TrBuPtr]='a';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 //printf("\n... Sending Serial Request");fflush(stdout);
 
 	sprintf(Message,"N\015");	// get Serial
-	WriteToPort(Message);
+	if(WriteToPort(Message)) {printf("\nError writing to port : Get Serial");fflush(stdout);}
 
 	to=1000000;
 	while(to)
@@ -2714,7 +3439,7 @@ TrBu[TrBuPtr]='a';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 
 	CRSignal=0;
 	sprintf(Message,"S6\015");	// CAN with 500Kbps S0-10 S1-20 S2-50 S3-100 S4-125 S5-250 S7-800  S8-1M
-	WriteToPort(Message);
+	if(WriteToPort(Message)) {printf("\nError writing to port : Setting CAN speed");fflush(stdout);}
 
 	to=1000000;
 	while(to)
@@ -2731,9 +3456,16 @@ TrBu[TrBuPtr]='a';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 
 	CRSignal=0;
 
-	sprintf(Message,"M07602000\015");	// Special Prius profiled
+#ifdef MORE_DATA
+	sprintf(Message,"M29000400\015");	// Wide Special Prius profiled
+#else
+	sprintf(Message,"M07202000\015");	// Special Prius profiled
+//	sprintf(Message,"M07602000\015");	// Old Default Special Prius profiled
+//	sprintf(Message,"M06002000\015");	// Special Prius profiled
 
-	WriteToPort(Message);
+#endif
+
+	if(WriteToPort(Message)) {printf("\nError writing to port : M register");fflush(stdout);}
 	to=1000000;
 	while(to)
 	{
@@ -2745,9 +3477,15 @@ TrBu[TrBuPtr]='a';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 	}
 	CRSignal=0;
 
-	sprintf(Message,"m000FDFEF\015");	// Special Prius profiled
+#ifdef MORE_DATA
+	sprintf(Message,"mD6EFB3EF\015");	// Wide Special Prius profiled
+#else
+	sprintf(Message,"m004FDFEF\015");	// Special Prius profiled
+//	sprintf(Message,"m000FDFEF\015");	// Old Default Special Prius profiled
+//	sprintf(Message,"m416FDFEF\015");	// Special Prius profiled
+#endif
 
-	WriteToPort(Message);
+	if(WriteToPort(Message)) {printf("\nError writing to port : m register");fflush(stdout);}
 	to=1000000;
 	while(to)
 	{
@@ -2761,7 +3499,7 @@ TrBu[TrBuPtr]='a';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 #if 0
 	CRSignal=0;
 	sprintf(Message,"X1\015");	// Turn on out poll
-	WriteToPort(Message);
+	if(WriteToPort(Message)) {printf("\nError writing to port : Turn on poll");fflush(stdout);}
 	to=1000000;
 	while(to)
 	{
@@ -2776,7 +3514,7 @@ TrBu[TrBuPtr]='a';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 
 	CRSignal=0;
 	sprintf(Message,"Z0\015");	// Turn off timestamp
-	WriteToPort(Message);
+	if(WriteToPort(Message)) {printf("\nError writing to port : Turn off timestamp");fflush(stdout);}
 	to=1000000;
 	while(to)
 	{
@@ -2794,7 +3532,7 @@ TrBu[TrBuPtr]='a';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 
 	CRSignal=0;
 	sprintf(Message,"O\015");	// Open the CAN channel
-	WriteToPort(Message);
+	if(WriteToPort(Message)) {printf("\nError writing to port : Open CAN channel");fflush(stdout);}
 	to=1000000;
 	while(to)
 	{
@@ -2874,46 +3612,28 @@ int	a;
 
 void CleanUp(int vis)
 {
-#ifdef CHKMSGTRAFFIC
-unsigned int	timdi=0;
-#endif
 int		a;
 
 #ifdef TRACE_IT
 TrBu[TrBuPtr]='C';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
-
 DumpTraceBuffer();
-
-#endif
-
-#ifdef CHKMSGTRAFFIC
-
-	if(vis)
-	{
-		timdi=(unsigned int)difftime(time(NULL),StartTime);
-		printf("\nAll on %d sec : Def=%d  3B=%d  3C8=%d  3CA=%d  3CB=%d  348=%d  5A4=%d 52C=%d",timdi,dd,d3b,d3c8,d3ca,d3cb,d348,d5A4,d52c);fflush(stdout);
-		printf("\nPerS: Def=%1.1f  3B=%1.1f  3C8=%1.1f  3CA=%1.1f  3CB=%1.1f  348=%1.1f  5A4=%1.1f",((float)dd/(float)timdi),((float)d3b/(float)timdi),((float)d3c8/(float)timdi),((float)d3ca/(float)timdi),((float)d3cb/(float)timdi),((float)d348/(float)timdi),((float)d5A4/(float)timdi));fflush(stdout);
-		printf("\nN3B = %d  X3B = %d",N3b,X3b);
-		printf("\nN348 = %d  X348 = %d",N348,X348);
-		printf("\nN348C = %d  X348C = %d",N348C,X348C);
-		printf("\nN3c8 = %d  X3c8 = %d",N3c8,X3c8);
-	}
-// All on 80 sec : Def=9175  39=4601  3B=4794  3C8=567  3CA=365  3CB=367  348=903  5A4=7
-// PerS: Def=114.8  39=57.5  3B=59.9  3C8=7.1  3CA=4.6  3CB=4.6  348=11.3  5A4=0.1
-// In EV stopped PerS: Def=122.8  39=65.8 3B=66.5  3C8=7.8  3CA=4.9  3CB=5.0  348=13.0  5A4=0.2
-
 #endif
 
 #ifdef TRACE_IT
 TrBu[TrBuPtr]='1';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 #endif
+
+#ifndef SIMULATION
 	if(Port>=0)
 	{
 		sprintf(Message,"C\015");	// Close the CAN channel
-		WriteToPort(Message);
+		if(WriteToPort(Message)) {printf("\nError writing to port : Close CAN channel");fflush(stdout);}
 		close(Port);
 		Port=-1;
 	}
+#endif
+
+
 #ifdef TRACE_IT
 TrBu[TrBuPtr]='2';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 #endif
@@ -2938,33 +3658,239 @@ TrBu[TrBuPtr]='6';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 		close(fbfd);
 		fbfd=-1;
 	}
+
+#ifdef USE_TOUCHSCREEN
+	if(touch_screen_fd>=0) close(touch_screen_fd);
+#endif
+
 #ifdef TRACE_IT
 TrBu[TrBuPtr]='7';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 #endif
+
+#ifdef USE_KEYBOARD
 	ioctl(0,TCSETS,&oldT);
+#endif
+
 #ifdef TRACE_IT
 TrBu[TrBuPtr]='8';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 #endif
-	if(vis)
-	{
-//		printf("\n Scaler was %1.2f",SPDSCALER);
-#ifdef ELECTRIC_STATISTICS
-		printf("\nConsdCurr = %08x : %08x",Cr_Consd_noICE,Cr_Consd_ICE);
-		printf("\nRegenCurr = %08x : %08x",Cr_Regen_noICE,Cr_Regen_ICE);
-		if(Cr_Consd_noICE!=0)
-		{
-			printf("\nNo RPM regen = %1.2f",((float)Cr_Regen_noICE*100.0f/(float)Cr_Consd_noICE));
-			printf("\nRPM regen    = %1.2f",((float)Cr_Regen_ICE*100.0f/(float)Cr_Consd_ICE));
-			printf("\nAll regen = %1.2f",((float)(Cr_Regen_noICE+Cr_Regen_ICE)*100.0f/(float)(Cr_Consd_noICE+Cr_Consd_ICE)));
-		}
-		printf("\n\n");fflush(stdout);
-#endif
-	}
+
 #ifdef TRACE_IT
 TrBu[TrBuPtr]='c';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 DumpTraceBuffer();
 #endif
 }
+
+
+void SendCATRequests(void)
+{
+	if(CATReqCtr==1)
+	{
+		sprintf(Message,"t7E0802213C0000000000\015");	// CAT 1
+		CATReqCtr=0;
+	}
+	else
+	{
+		sprintf(Message,"t7E0802213E0000000000\015");	// CAT 2
+		CATReqCtr=1;
+	}
+	WriteToPort(Message);
+}
+
+
+#ifdef USE_VOICE_ANNOUNCEMENT
+
+enum {			V_EVACT=0,  V_EVCANC,	 V_BATTERYAT,     V_PERCENT,    V_GREETINGS,    V_DOOROPEN,    V_THETIMEIS,    V_1,    V_2,    V_3,    V_4,    V_5,    V_6,    V_7,    V_8,    V_9,   V_10,     V_11,    V_12,    V_13,    V_14,    V_15,    V_16,    V_17,    V_18,    V_19,    V_20,    V_30,    V_40,    V_50,    V_60,    V_70,    V_80,    V_90,    V_100,   V_0,    V_OCLOCK,    V_FUELAVAIL,        V_MILES,   V_LAST, V_FLUSH};
+char * VoiceFiles[]= {	"EVAct.mp3","EVCanc.mp3","BatteryAt.mp3","Percent.mp3","Greetings.mp3","DoorOpen.mp3","TheTimeIs.mp3","1.mp3","2.mp3","3.mp3","4.mp3","5.mp3","6.mp3","7.mp3","8.mp3","9.mp3","10.mp3","11.mp3","12.mp3","13.mp3","14.mp3","15.mp3","16.mp3","17.mp3","18.mp3","19.mp3","20.mp3","30.mp3","40.mp3","50.mp3","60.mp3","70.mp3","80.mp3","90.mp3","100.mp3","0.mp3","OClock.mp3","FuelAvailable.mp3","Miles.mp3"};
+#define	    V_BATLAST	(V_BAT80+1)
+
+#define		CODE_BUFFER_SIZE	16
+
+pthread_t	SubTh;
+int		VoiceCode[CODE_BUFFER_SIZE];
+int		ReadPtr=0,WritePtr=0;
+unsigned char	PrevH=13,PrevM=61,ThreadLive=0;
+
+void *Thread_Start_Routine(void *tmp)
+{
+char	TmpBuf[511];
+char	Go=1;
+int	a;
+
+	ThreadLive=1;
+	while(Go)
+	{
+		a=0;
+
+		while((VoiceCode[ReadPtr]!=V_FLUSH)&&(VoiceCode[ReadPtr]!=-1))
+		{
+//printf("\nTH : Code=%d  RPtr=%d  WPtr=%d",VoiceCode[ReadPtr],ReadPtr,WritePtr);fflush(stdout);
+			if(a==0)
+			{
+				if(ForcePath)
+					sprintf(TmpBuf,"%s/mp -Q %s/%s%c",FORCE_PATH,FORCE_PATH,VoiceFiles[VoiceCode[ReadPtr]],0);
+				else
+					sprintf(TmpBuf,"mp -Q %s%c",VoiceFiles[VoiceCode[ReadPtr]],0);
+			}
+			else
+			{
+				if(ForcePath)
+					sprintf(&TmpBuf[a]," %s/%s%c",FORCE_PATH,VoiceFiles[VoiceCode[ReadPtr]],0);
+				else
+					sprintf(&TmpBuf[a]," %s%c",VoiceFiles[VoiceCode[ReadPtr]],0);
+			}
+			while(TmpBuf[a]!=0) ++a;
+			if(++ReadPtr>(CODE_BUFFER_SIZE-1)) ReadPtr=0;
+		}
+		if(a>0)
+		{
+//printf("\nPLAY : %d : '%s'",a,TmpBuf);fflush(stdout);
+			system(TmpBuf);
+		}
+		if(VoiceCode[ReadPtr]==V_FLUSH)
+		{
+			if(++ReadPtr>(CODE_BUFFER_SIZE-1)) ReadPtr=0;
+		}
+
+		if(VoiceCode[ReadPtr]==-1)
+		{
+			Go=0;			// Terminator
+//			printf("\nTH : END RPtr=%d  WPtr=%d",ReadPtr,WritePtr);fflush(stdout);
+		}
+	}
+	ThreadLive=0;
+	pthread_exit(NULL);
+}
+
+void InitVoice(void)
+{
+int	a;
+
+	for(a=0;a<CODE_BUFFER_SIZE;a++) VoiceCode[a]=-1;
+	PrevH=13;PrevM=61;
+}
+
+void CallVoice(int VCode,int Flush)
+{
+int	a;
+
+	if(VoiceMode==0) return;
+	if(VCode>=V_LAST) return;
+
+//printf("\nCV : Code=%d  WPtr=%d RPtr=%d Flush=%d ThrLiv=%d",VCode,WritePtr,ReadPtr,Flush,ThreadLive);fflush(stdout);
+
+	VoiceCode[WritePtr]=VCode;
+	if(++WritePtr>(CODE_BUFFER_SIZE-1)) WritePtr=0;
+	VoiceCode[WritePtr]=-1;
+	if(Flush) 
+	{
+		VoiceCode[WritePtr]=V_FLUSH;
+		if(++WritePtr>(CODE_BUFFER_SIZE-1)) WritePtr=0;
+		VoiceCode[WritePtr]=-1;
+		if(ThreadLive==0) pthread_create(&SubTh,NULL, Thread_Start_Routine, NULL);
+	}
+}
+
+void SayTime(void)
+{
+int	a,pm;
+time_t		t0;
+struct tm	*ct;
+
+	t0=time(0);
+	ct=localtime(&t0);
+	PrevH=(unsigned char)(ct->tm_hour);
+	PrevM=(unsigned char)(ct->tm_min);
+	CallVoice(V_THETIMEIS,0);
+	if(ct->tm_hour>=12) pm=1;
+	if(ct->tm_hour==0) ct->tm_hour=12;
+	if(ct->tm_hour>12) ct->tm_hour-=12;
+	if(ct->tm_hour<=10)
+		CallVoice(V_1+ct->tm_hour-1,0);
+	else
+		CallVoice(V_11+ct->tm_hour-11,0);
+	if((a=ct->tm_min)==0)
+		CallVoice(V_OCLOCK,1);
+	else
+	{
+		a/=10;
+		if(a>0)
+		{
+			if(a==1)
+			{
+				ct->tm_min-=10;
+				CallVoice(V_10+ct->tm_min,1);
+			}
+			else
+			{
+				ct->tm_min-=(a*10);
+				if(ct->tm_min>0)
+				{
+					CallVoice(V_20+a-2,0);
+					CallVoice(V_1+ct->tm_min-1,1);
+				}
+				else
+					CallVoice(V_20+a-2,1);
+			}
+		}
+		else
+		{
+			CallVoice(V_0,0);
+			CallVoice(V_1+ct->tm_min-1,1);
+		}
+	}
+}
+
+void CheckTime(void)
+{
+time_t		t0;
+struct tm	*ct;
+
+	t0=time(0);
+	ct=localtime(&t0);
+	if(((unsigned char)(ct->tm_hour)==PrevH)&&((unsigned char)(ct->tm_min)==PrevM)) return;
+	PrevM=(unsigned char)(ct->tm_min);
+	if(PrevM%10) return;
+	SayTime();
+}
+
+#endif
+
+
+void UpdateFuelFile(void)
+{
+FILE		*fp=NULL;
+float		MPG,AMPG;
+int		a,b,c;
+
+	if((fp=fopen(FUEL_FILE_NAME,"a"))==NULL) return;
+
+	AMPG=TripGallonValue;
+	if(AccRpm!=0.0f)
+	{
+		if(AccSpd>0.0f)
+			MPG=(float)(((AccSpd*SPDSCALER_MILE)/AccRpm));
+		else
+		{
+			if(AccSpdCntr>0)
+				MPG=(float)(((AccSpdCntr*SPDSCALER_MILE)/AccRpm));
+			else
+				MPG=(float)(((SPDSCALER_MILE)/AccRpm));
+		}
+		AMPG+=(float)(((AccSpd*(float)TimeElapsed)/((float)AccSpdCntr*MPG)));	// must be divided by 5760 for real number later ( preserving accuracy )
+	}
+
+	if(RefuelValue>0.0f)
+		fprintf(fp,"%d\t%1.4f\t%d\t%3.2f\t%3.2f\t%2.3f\n",GasGauge,(AMPG/5760.0f),FirstGasReading,((TripKilometers+DistanceTravelled)*0.625f),((MeasurementKilometers+DistanceTravelled)*0.625f),RefuelValue);
+	else
+		fprintf(fp,"%d\t%1.4f\t%d\t%3.2f\t%3.2f\n",GasGauge,(AMPG/5760.0f),FirstGasReading,((TripKilometers+DistanceTravelled)*0.625f),((MeasurementKilometers+DistanceTravelled)*0.625f));
+
+	RefuelValue=0.0f;
+	fflush(fp);
+	fclose(fp);
+}
+
+
 
 
 #define	RED_LUMA	1	// 2		// 0.212671f
@@ -3019,6 +3945,9 @@ printf("\ntx+w>640 for %d:%d fsx=%d fsy=%d wi=%d he=%d zoom=%d",tx,ty,fsx,fsy,fw
 			for(sz2=0;sz2<zoom;sz2++)
 			{
 				WBPtr=(tx+((cc-sc)*zoom)+(WBpy+sz2)*WIDTH);
+#ifdef TRACE_IT
+if(((tx+((cc-sc)*zoom))>639)||(WBpy+sz2)>479) {printf("\nError in PutFont : %d:%d",(tx+((cc-sc)*zoom)),(WBpy+sz2));fflush(stdout);}
+#endif
 				for(sz1=0;sz1<zoom;sz1++)
 				{
 					if(WBPtr>=0)
@@ -3069,6 +3998,8 @@ int	a=0,b,px=x,notfound;
 TrBu[TrBuPtr]='S';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 #endif
 
+//printf("\nPutString : '%s' to %dx%d ( %d %d)",Text,x,y,usebignums,zoom);fflush(stdout);
+
 	while(Text[a]!='\0')
 	{
 		notfound=1;
@@ -3078,7 +4009,10 @@ TrBu[TrBuPtr]='S';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 			while((bignumbers[b].letter!=Text[a])&&(bignumbers[b].x>=0)) ++b;
 			if(bignumbers[b].x>=0)
 			{
-				TransferFont(bignumbers[b].x,bignumbers[b].y,px,y-2,bignumbers[b].width,bignumbers[b].height,zoom);
+				if(zoom==3)
+					TransferFont(bignumbers[b].x,bignumbers[b].y,px,y-2,bignumbers[b].width,bignumbers[b].height,zoom);
+				else
+					TransferFont(bignumbers[b].x,bignumbers[b].y,px,y+1,bignumbers[b].width,bignumbers[b].height,zoom);
 				px+=bignumbers[b].width*zoom;
 				notfound=0;
 			}
@@ -3149,8 +4083,235 @@ TrBu[TrBuPtr]='n';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 return(px);
 }
 
+#ifdef NON_ZAURUS
+
+int GetHighestVisualPixmapCombination(void)
+{
+int			NumRet,a,b,NumVis,maxdpt,maxpix,selected,wd,wid;
+XPixmapFormatValues	*MyPFVInfo,*WorkWithThisPFV;
+XVisualInfo		*MyVisInfo,*WorkWithThisVisInfo,WorkWinfo;
+
+// First Let's see, what visuals does the system support...
+
+	NumRet=0;maxdpt=-1;
+	MyVisInfo=XGetVisualInfo(WorkDisplay,VisualNoMask,NULL,&NumVis);
+	if((NumVis<1)||(MyVisInfo==NULL))
+	{
+		printf("\nXGetVisualInfo returned NO availability.");fflush(stdout);
+		return(-3);
+	}
+
+	if((MyPFVInfo=XListPixmapFormats(WorkDisplay,&NumRet))!=NULL)
+	{
+		WorkWithThisPFV=MyPFVInfo;
+		for(a=0;a<NumRet;a++)
+		{
+			WorkWithThisVisInfo=MyVisInfo;
+			for(b=0;b<NumVis;b++)
+			{
+				if((WorkWithThisVisInfo->depth==WorkWithThisPFV->depth)&&(WorkWithThisVisInfo->screen==WorkScreen))
+				{
+					printf(" -> MATCH!");fflush(stdout);
+					maxdpt=WorkWithThisPFV->depth;
+					WorkScanLinePad=WorkWithThisPFV->scanline_pad;
+					WorkVisual=WorkWithThisVisInfo->visual;
+					wid=WorkWithThisVisInfo->visualid;
+					WorkDepth=WorkWithThisVisInfo->depth;
+					WorkRedMask=WorkWithThisVisInfo->red_mask;
+					WorkGreenMask=WorkWithThisVisInfo->green_mask;
+					WorkBlueMask=WorkWithThisVisInfo->blue_mask;
+					b=NumVis;
+				}
+			}
+			++WorkWithThisPFV;
+		}
+	}
+	else
+	{
+		printf("\nXListPixmapFormats returned NULL.");fflush(stdout);
+		return(-1);
+	}
+	if(selected==-1)
+	{
+		printf("\nDid not find suitable depth from XListPixmapFormats.");fflush(stdout);
+		return(-2);
+	}
+	XFree(MyPFVInfo);
+	XFree(MyVisInfo);
+
+	selected=(unsigned int)WorkRedMask;
+	a=0;while(((selected&1)==0)&&(a<32)) {++a;selected>>=1;}
+	WorkRedNumberOfUpShifts=a;
+	a=0;while(((selected&1)==1)&&(a<32)) {++a;selected=selected>>1;}
+	WorkRedNumberOfShifts=8-a;
+	selected=(unsigned int)WorkGreenMask;
+	a=0;while(((selected&1)==0)&&(a<32)) {++a;selected>>=1;}
+	WorkGreenNumberOfUpShifts=a;
+	a=0;while(((selected&1)==1)&&(a<32)) {++a;selected=selected>>1;}
+	WorkGreenNumberOfShifts=8-a;
+	selected=(unsigned int)WorkBlueMask;
+	a=0;while(((selected&1)==0)&&(a<32)) {++a;selected>>=1;}
+	WorkBlueNumberOfUpShifts=a;
+	a=0;while(((selected&1)==1)&&(a<32)) {++a;selected=selected>>1;}
+	WorkBlueNumberOfShifts=8-a;
+	
+//	wd=WorkDepth;
+	if((wd=WorkDepth)==24) wd=32;
+	if((WorkData=(char*)malloc((wd>>3)*WIDTH*HEIGHT))==NULL)
+	{
+		printf("\nCan not allocate %d bytes for WorkData.",((WorkDepth>>3)*WIDTH*HEIGHT));fflush(stdout);
+		return(-4);
+	}
+
+	if((ImageBuffer=(struct ImageBufferStructure *)malloc(sizeof(struct ImageBufferStructure)*WIDTH*HEIGHT))==NULL)
+	{
+		printf("\nCan not allocate %d bytes for ImageBuffer.",(3*WIDTH*HEIGHT));fflush(stdout);
+		return(-4);
+	}
+
+printf("\nXCreateImage");fflush(stdout);
+
+	if((WorkImage=XCreateImage(WorkDisplay,WorkVisual,WorkDepth,ZPixmap,0,WorkData,WIDTH,HEIGHT,BitmapPad(WorkDisplay),0))==NULL)
+//	if((WorkImage=XCreateImage(WorkDisplay,WorkVisual,WorkDepth,ZPixmap,0,WorkData,WIDTH,HEIGHT,BitmapPad(WorkDisplay),0))==NULL)
+	{
+		printf("\nXCreateImage returned NULL.");fflush(stdout);
+		return(-5);
+	}
+
+printf("->Ok.\nXInitImage");fflush(stdout);
+
+	if(XInitImage(WorkImage)==0)
+	{
+		printf("\nError with XInitImage");fflush(stdout);
+		return(-6);
+	}
+
+	WorkBitsPerRGB=WorkImage->bits_per_pixel;
+
+printf("->Ok. (%d)",WorkBitsPerRGB);fflush(stdout);
+
+return(0);
+}
+
+void XMainLoop(void)
+{
+XEvent		report;
+XGCValues	mygcvalues;
+register int	a,b,w,h,noc;
+unsigned char	buffer[20];
+int		bufsize=20;
+KeySym		keysym;
+XComposeStatus	compose;
+unsigned char	*bp;
+
+	while((XEventsQueued(WorkDisplay,QueuedAfterFlush))!=0)
+	{
+		XNextEvent(WorkDisplay,&report);
+		switch(report.type)
+		{
+		case	Expose:
+			if((report.xexpose.count==0))
+			{
+				if(!WorkWindowInitialized)
+				{
+					mygcvalues.function=GXcopy;
+					mygcvalues.graphics_exposures=1;
+					WorkWindowGC=XCreateGC(WorkDisplay,WorkWindow,GCFunction|GCGraphicsExposures,&mygcvalues);
+					WorkPixmap=XCreatePixmap(WorkDisplay,WorkWindow,WIDTH,HEIGHT,WorkDepth);
+					WorkPixmapGC=XCreateGC(WorkDisplay,WorkPixmap,GCFunction|GCGraphicsExposures,&mygcvalues);
+					XClearWindow(WorkDisplay,WorkWindow);
+					WorkWindowInitialized=1;
+					XMoveWindow(WorkDisplay,WorkWindow,0,0);
+				}
+
+//PutMyString("Alma Helloho ilinoise Alaska",30,260,0,2);
+
+				CopyDisplayBufferToScreen(0,0,WIDTH,HEIGHT);
+			}
+		break;
+		default:
+			break;
+		}
+	}	/* while */
+}
+
+char		TmpBuffer[64];
+char		*TmpChrPtrBuffer[2];
+
 int CreateMainWindow(void)
 {
+XSizeHints 	*s_h;
+XTextProperty	winname,iconame;
+int		xpos;
+
+	if((WorkDisplay=XOpenDisplay(NULL))==NULL)
+	{
+		if((WorkDisplay=XOpenDisplay(":0"))==NULL)
+		{
+			if((WorkDisplay=XOpenDisplay(":0.0"))==NULL)
+			{
+				printf("\nError opening display...");fflush(stdout);
+				return(-1);
+			}
+		}
+	}
+	WorkScreen = DefaultScreen(WorkDisplay);
+
+	if(GetHighestVisualPixmapCombination()<0)
+	{
+		printf("\nError for getting Visual Information...");fflush(stdout);
+		XCloseDisplay(WorkDisplay);
+		return(-1);
+	}
+
+printf("\nXCreateWindow");fflush(stdout);
+
+	if((WorkWindow=XCreateWindow(WorkDisplay,RootWindow(WorkDisplay,WorkScreen),0,0,WIDTH,HEIGHT,2,WorkDepth,InputOutput,WorkVisual,0,NULL))==0)
+	{
+		printf("\nError Creatig Window...");fflush(stdout);
+		XCloseDisplay(WorkDisplay);
+		return(-1);
+	}
+
+printf("->Ok.");fflush(stdout);
+
+	TmpChrPtrBuffer[0]=&TmpBuffer[0];TmpChrPtrBuffer[1]=NULL;
+	sprintf(TmpBuffer,"GraphCan - Linux");
+	if(XStringListToTextProperty(TmpChrPtrBuffer,1,&winname))
+	{
+		sprintf(TmpBuffer,"Graphcan");
+		if(XStringListToTextProperty(TmpChrPtrBuffer,1,&iconame))
+		{
+			if(!(s_h=XAllocSizeHints()))
+				XSetWMProperties(WorkDisplay,WorkWindow,&winname,&iconame,NULL,0,NULL,NULL,NULL);
+			else
+			{
+				s_h->flags=PPosition|PSize|PMinSize|PMaxSize;
+				s_h->min_width=WIDTH;
+				s_h->max_width=WIDTH;
+				s_h->width=WIDTH;
+				s_h->min_height=HEIGHT;
+				s_h->max_height=HEIGHT;
+				s_h->height=HEIGHT;
+				XSetWMProperties(WorkDisplay,WorkWindow,&winname,&iconame,NULL,0,s_h,NULL,NULL);
+				XResizeWindow(WorkDisplay,WorkWindow,WIDTH,HEIGHT);
+			}
+		}
+	}
+	XMoveWindow(WorkDisplay,WorkWindow,0,0);
+	XSelectInput(WorkDisplay,WorkWindow,ExposureMask);
+	XMapWindow(WorkDisplay,WorkWindow);
+
+	XMainLoop();
+
+return(0);
+}
+
+#else
+
+int CreateMainWindow(void)
+{
+int	c;
 
 #ifdef TRACE_IT
 TrBu[TrBuPtr]='M';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
@@ -3241,10 +4402,38 @@ TrBu[TrBuPtr]='m';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 #ifdef TRACE_IT
 TrBu[TrBuPtr]='m';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 #endif
+
+// NOW SET UP TOUCHSCREEN		45:45  560:45  45:445   560:445
+
+#ifdef USE_TOUCHSCREEN
+	if((touch_screen_fd=open("/dev/sharp_ts",O_RDONLY|O_NONBLOCK))==-1)		// |O_NONBLOCK
+	{
+		printf("Can not open Touchscreen Device...\n\n");fflush(stdout);
+		return(-1);
+	}
+
+//printf("Touchscreen = %d",touch_screen_fd);fflush(stdout);
+	c=0;
+	if(fcntl(touch_screen_fd,F_SETOWN,getpid())>=0)
+	{
+#if 0
+		if(fcntl(touch_screen_fd,F_SETFL,O_NONBLOCK)<0)
+		{
+			printf("\nError with O_NONBLOCK SIGIO for TouchScreen...");fflush(stdout);
+		}
+#endif
+		if(fcntl(touch_screen_fd,F_SETFL,FASYNC)<0)
+		{
+			printf("\nError with FASYNC SIGIO for TouchScreen...");fflush(stdout);
+		}
+	}
+
+#endif
+
 return(0);
 }
 
-
+#endif
 
 
 void MarkDoors(unsigned char Door)
@@ -3417,10 +4606,6 @@ TrBu[TrBuPtr]='T';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 		}
 	}
 
-#if 1
-	c=GetMyStringLength(VERSION_STRING,0,1);
-	PutMyString(VERSION_STRING,(WIDTH-c-10),(HEIGHT-11),0,1);
-#endif
 #ifdef TRACE_IT
 TrBu[TrBuPtr]='t';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 #endif
@@ -3469,6 +4654,7 @@ return;
 	signal(SIGTTIN,IntReXSigCatch);
 	signal(SIGIO,IntReXSigCatch);
 	signal(SIGALRM,IntReXSigCatch);
+
 #ifdef TRACE_IT
 TrBu[TrBuPtr]='i';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 #endif
@@ -3542,42 +4728,18 @@ TrBu[TrBuPtr]='o';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 return(0);
 }
 
-void MineData(int Position)
-{
-register int	a=Position,c;
-	
-#ifdef TRACE_IT
-TrBu[TrBuPtr]='K';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
-#endif
-	for(c=0;c<IC_MessageLength;c++)
-	{
-		IC_Message[c]=0;
-		if(IB[a]>='A')
-			IC_Message[c]=(IB[a]-'A')+10;
-		else
-			IC_Message[c]=(IB[a]-'0');
-		IC_Message[c]<<=4;
-		++a;
-		if(IB[a]>='A')
-			IC_Message[c]+=(IB[a]-'A')+10;
-		else
-			IC_Message[c]+=(IB[a]-'0');
-		++a;
-	}
-#ifdef TRACE_IT
-TrBu[TrBuPtr]='k';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
-#endif
-}
-
 void ProcessSigIo()
 {
 struct timeval	to;
 fd_set		fdset;
-int		c;
+int		c,x,y;
+char		BUFF[8];
 
 #ifdef TRACE_IT
 TrBu[TrBuPtr]='P';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 #endif
+
+#ifdef USE_KEYBOARD
 	FD_ZERO(&fdset);
 	FD_SET(0,&fdset);
 	to.tv_sec=0;
@@ -3589,18 +4751,13 @@ TrBu[TrBuPtr]='P';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 			c=getchar();
 			switch(c)
 			{
-				case 27 :
-					if(TimeSuspended)
-						TimeSuspended=0;
-					else
-						TimeSuspended=1;
-				break;
 				case 0xa:	// ReStart
 					if(Sleeping)
 					{
 						ProcessGo=0;
 						ContSignal=1;
 						Sleeping=0;
+						PriusIsPowered=1;
 					}
 					else
 					{
@@ -3610,7 +4767,7 @@ TrBu[TrBuPtr]='P';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 						if(Port>=0)
 						{
 							sprintf(Message,"C\015");	// Close the CAN channel
-							WriteToPort(Message);
+							if(WriteToPort(Message)) {printf("\nError writing to port : Close CAN Channel");fflush(stdout);}
 							close(Port);
 							Port=-1;
 						}
@@ -3620,203 +4777,108 @@ TrBu[TrBuPtr]='P';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 				case 'q' :
 					ProcessGo=0;
 					RealQuit=1;
-				break;			
+				break;
 
-#if 0
+				case 's' :
+					if(++SI_Measurements>1) SI_Measurements=0;
+				break;
+
 				case 'p' :
-					SPDSCALER*=1.5f;
-printf("\nSpeedScaler = %1.2f",SPDSCALER);fflush(stdout);
+					PriusIsPowered=0;
+					Sleeping=0;
+					CurrentSpeed=0;
 				break;
-				case 'o' :
-					SPDSCALER/=1.5f;
-printf("\nSpeedScaler = %1.2f",SPDSCALER);fflush(stdout);
+
+				case 0x7F : // BS
+					if(++VoiceMode>1) VoiceMode=0;
 				break;
-				case 'l' :
-					SPDSCALER*=1.05f;
-printf("\nSpeedScaler = %1.2f",SPDSCALER);fflush(stdout);
-				break;
-				case 'k' :
-					SPDSCALER/=1.05f;
-printf("\nSpeedScaler = %1.2f",SPDSCALER);fflush(stdout);
-				break;
-#endif
-#ifdef SHOWEXTRAVALUES
-				case 'v' :
-					if(++ShowValues>3) ShowValues=0;
-				break;
-#endif
+
 				case ' ' :
 					NeedSynced=1;
 					FSRCntr=1;
 				break;
+
 			}
 		}
 	}
+#endif
+
+return;
+
+
+#ifdef USE_TOUCHSCREEN
+	FD_ZERO(&fdset);
+	FD_SET(touch_screen_fd,&fdset);
+	to.tv_sec=1;
+	to.tv_usec=0;
+	if(!ScrTouched) ScrTouched=1;
+	if((c=select((touch_screen_fd+1),&fdset,NULL,NULL,&to)))
+	{
+		if(!ScrTouched) ScrTouched=2;
+		if(FD_ISSET(touch_screen_fd,&fdset))
+		{
+			if((c=read(touch_screen_fd,BUFF,8))==8)
+			{
+				ScrTouched=3;
+//				CopyDisplayBufferToScreen(0,0,WIDTH,HEIGHT);
+
+				x=((int)(BUFF[5]*256)+(int)(BUFF[4]));
+				y=(480-((int)(BUFF[3]*256)+(int)(BUFF[2])));	// 45:45  560:45  45:445   560:445
+				TouchedX=x;
+				TouchedY=y;
+
+				if(RunningTask!=TASK_INFO)
+				{
+					if((x-=45)<0) x=0;
+					if((x>>=7)>3) x=3;			// Map to 4 quadrants	// x= 0 ~ 3
+					if((y>100)&&(y<400))
+					{
+						switch(x)
+						{
+							case 0 :
+								if(++VoiceMode>1) VoiceMode=0;
+							break;
+							case 1 :
+							case 2 :
+								switch(RunningTask)
+								{
+									case TASK_INIT :
+										RunningTask=TASK_INFO;
+									break;
+									case TASK_SCREENSAVER :		// Signal to save to memcard
+										TouchedX=17;
+										TouchedY=17;
+									break;
+									case TASK_RUNNING :
+										if(++SI_Measurements>1) SI_Measurements=0;
+									break;
+								}
+							break;
+							case 3 :
+								if(RunningTask<TASK_RUNNING)
+								{
+									ProcessGo=0;
+									RealQuit=1;
+								}
+								else
+								{
+									PriusIsPowered=0;
+									Sleeping=0;
+									CurrentSpeed=0;
+								}
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
+#endif
+
 #ifdef TRACE_IT
 TrBu[TrBuPtr]='p';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 #endif
 
-}
-
-void UpdateSpeedComputations(void)
-{
-register int	a,b,c;
-float		MPG,ThrottleV,SpeedV;
-
-#ifdef TRACE_IT
-TrBu[TrBuPtr]='H';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
-#endif
-
-	if(ContSignal) return;	// time has no meaning...
-
-	if(TimeSuspended==0) TimeElapsed=(unsigned int)difftime(time(NULL),StartTime);
-
-
-//printf("\nTH : %x",V);fflush(stdout);
-
-	if(ThrottleAccumulatedCntr==0)
-		ThrottleV=0.0f;
-	else
-		ThrottleV=(float)((float)ThrottleAccumulated/(float)ThrottleAccumulatedCntr);
-
-	if(SpeedAccumulatedCntr==0)
-		SpeedV=0.0f;
-	else
-		SpeedV=(float)((float)SpeedAccumulated/(float)SpeedAccumulatedCntr);
-
-	CurrentSpeed=(unsigned char)SpeedV;
-	ThrottleAccumulatedCntr=0;
-	ThrottleAccumulated=0;
-	SpeedAccumulatedCntr=0;
-	SpeedAccumulated=0;
-
-#define	XOFS	105
-#ifdef ELECTRIC_STATISTICS
-	for(b=0;b<46;b++)
-	{
-		c=XOFS+b*WIDTH;
-		for(a=XOFS;a<(WIDTH-10);a++)
-		{
-			ImageBuffer[c].R=0;
-			ImageBuffer[c].G=0;
-			ImageBuffer[c].B=0;
-			++c;
-		}
-	}
-#else
-	for(b=0;b<46;b++)
-	{
-		c=b*WIDTH;
-		for(a=0;a<(WIDTH-6);a++)
-		{
-			ImageBuffer[c].R=0;
-			ImageBuffer[c].G=0;
-			ImageBuffer[c].B=0;
-			++c;
-		}
-	}
-#endif
-
-#ifdef SHOWEXTRAVALUES
-	if(ShowValues==1)
-#endif
-	{
-		sprintf(Message,"%1.1f MPH",(SpeedV*0.625f));
-		c=GetMyStringLength(Message,1,3);
-		PutMyString(Message,((XOFS+206)-c),9,1,3);
-		if(ThrottleV!=0)
-		{
-			MPG=(float)((SpeedV*SPDSCALER_MILE)/ThrottleV);
-			if(MPG>99.9f) MPG=99.9f;
-			AccRpm+=ThrottleV;
-			sprintf(Message,"%2.1f MPG",MPG);		// Current MPG
-			c=GetMyStringLength(Message,1,3);
-			PutMyString(Message,(XOFS+406-c),9,1,3);
-		}
-
-		if(AccRpm!=0.0f)
-			MPG=(float)(((AccSpd*SPDSCALER_MILE)/AccRpm));
-		else
-			MPG=0.0f;
-
-		if(++ValueSwitch>1) ValueSwitch=0;
-		switch(ValueSwitch)
-		{
-			case 0 :
-				sprintf(Message,"%2.1f MPG",MPG);			// Accumulated MPG on this trip
-			break;
-			case 1 :
-				if(MPG>0.0f)
-					ThrottleV=((((AccSpd*(float)TimeElapsed)/(float)AccSpdCntr)/5760.0f)/MPG);	// This many gallons were used on this trip
-				else
-					ThrottleV=0.0f;
-				sprintf(Message,"%1.3f Gal",ThrottleV);
-			break;
-		}
-		c=GetMyStringLength(Message,0,2);
-		PutMyString(Message,(WIDTH-8-c),26,0,2);
-
-		for(b=456;b<480;b++)
-		{
-			c=231+b*WIDTH;
-			for(a=0;a<180;a++)
-			{
-				ImageBuffer[c].R=0;
-				ImageBuffer[c].G=0;
-				ImageBuffer[c].B=0;
-				++c;
-			}
-		}
-
-		ThrottleV=((MeasuredKMPG*0.625f*MeasurementKilometers)+(MPG*DistanceTravelled))/(MeasurementKilometers+DistanceTravelled);
-		sprintf(Message,"%d Mq%2.1f W",(int)(((MeasurementKilometers+DistanceTravelled)*0.625f)+0.5f),ThrottleV);
-		c=GetMyStringLength(Message,0,2);	// 321 is the center
-		PutMyString(Message,(321-(c>>1)),457,0,2);			// All MPG and Miles
-
-		ThrottleV=((float)AccSpd/(float)AccSpdCntr)*0.625f;		// Average Trip Speed
-		sprintf(Message,"%2.1f MPH",ThrottleV);
-		c=GetMyStringLength(Message,0,2);
-		PutMyString(Message,(WIDTH-10-c),2,0,2);
-
-		if(TimeSuspended)
-			sprintf(Message,"Susp");
-		else
-		{
-			a=(int)((float)TimeElapsed/60.0f);		// minute
-			b=TimeElapsed-(a*60);				// seconds
-			if(a>=60)
-			{
-				c=(int)((float)a/60.0f);	// hour
-				a-=(c*60);
-				sprintf(Message,"%1d:%02d:%02d",c,a,b);
-			}
-			else
-				sprintf(Message,"%02d:%02d",a,b);
-		}
-		if((c=GetMyStringLength(Message,0,2))>118) c=118;
-		PutMyString(Message,(118-c),2,0,2);
-
-		if(TimeSuspended==0)
-		{
-			AccSpd+=SpeedV;
-			++AccSpdCntr;
-		}
-		MPG=(AccSpd*(float)TimeElapsed)/(float)AccSpdCntr;
-		DistanceTravelled=MPG/3600.0f;		// Since we computed /s updates -> /h
-
-		sprintf(Message,"%1.1f Miles",(DistanceTravelled*0.625f));
-		if((c=GetMyStringLength(Message,0,2))>118) c=118;
-		PutMyString(Message,(118-c),26,0,2);
-
-		CopyDisplayBufferToScreen(0,0,(WIDTH-6),46);
-		CopyDisplayBufferToScreen(231,456,180,21);
-
-		if(ProcessGo>1) ProcessGo=0;		// To guarantee accurate distance readings...
-
-	}
-#ifdef TRACE_IT
-TrBu[TrBuPtr]='h';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
-#endif
 }
 
 void IntReXSigCatch(int sig)
@@ -3845,6 +4907,7 @@ TrBu[TrBuPtr]='X';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 			ProcessGo=0;		// When Power was restored...
 			ContSignal=1;
 			Sleeping=0;
+			PriusIsPowered=1;
 		break;
 		case SIGSTOP	:
 		case SIGTTIN	:
@@ -3857,6 +4920,7 @@ TrBu[TrBuPtr]='X';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 		case SIGINT	: 
 		case SIGHUP	: 
 		case SIGTERM	:
+			printf("\nMisc Signal Cought, exiting (%d)",sig);fflush(stdout);
 			CleanUp(0);
 #ifdef TRACE_IT
 TrBu[TrBuPtr]='x';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
@@ -3869,38 +4933,423 @@ TrBu[TrBuPtr]='x';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 
 }
 
-void CopyDisplayBufferToScreen(int x, int y, int w, int h)
+#define	BAR_WIDTH	180
+#define	BAR_SPACING	17
+#define	CURRENT_XS	BAR_SPACING
+#define	SOC_XS		((BAR_WIDTH+CURRENT_XS)+(BAR_SPACING<<1))		// ( 180 + 17 ) + 34 = 231
+#define	RPM_XS		((BAR_WIDTH+SOC_XS)+(BAR_SPACING<<1))	// 180 + 231 + 34  = 445
+#define	RPM_YS		260		 // 220 180
+#define	RPM_XE		(BAR_WIDTH+RPM_XS)
+#define	RPM_YE		(HEIGHT-30)
+#define	TEMP_YE		200		// 160
+
+#define	I_BKG_R	((unsigned char)0x10)
+#define	I_BKG_G	((unsigned char)0x20)
+#define	I_BKG_B	((unsigned char)0x30)
+
+#ifdef TRAFFIC_PROFILE
+#define	SOC_YS	((HEIGHT>>1)+10)
+#else
+#define	SOC_YS	(HEIGHT>>1)		// 240
+#endif
+#define	SOC_XE	(BAR_WIDTH+SOC_XS)
+#define	SOC_YE	(HEIGHT-30)
+#define	SOC_UPPER_LIMIT	140
+#define	SOC_LOWER_LIMIT	90
+
+#define	GG_XS	SOC_XS
+#define	GG_YS	50
+#define	GG_XE	SOC_XE
+#define	GG_YE	((HEIGHT>>1)-20)	// 220
+#define	GG_UPPER_LIMIT	40
+
+void AnalyseHighCANMessages(int mid,int Position)
 {
-register unsigned short	int*TmpWrk=(unsigned short*)WorkData;
-register unsigned char	*TmpChrWrk=(unsigned char*)WorkData;
-register int		a,b,c,d,wx=x,wy=y,wh=h,ww=w;
+register unsigned char	CV,CV1,CV2;
+register unsigned int	B;
 
 #ifdef TRACE_IT
-TrBu[TrBuPtr]='D';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
+TrBu[TrBuPtr]='-';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 #endif
 
-	if(InstrumentsDimmed)
+	CV=MineChar(Position+0);
+	if(CV!=0x04) return;
+	CV=MineChar(Position+2);
+	if(CV!=0x61) return;
+	CV=MineChar(Position+4);
+	if((CV==0x3C)||(CV==0x3E))	//  CAT1 || CAT2
 	{
-		for(b=wy;b<wh;b++)
+		B=MineUInt(Position+6);
+		B=(unsigned int)((float)B/10.0f);
+		if(CV==0x3C)
+			Cat1Temp=(int)B-40;
+		else
+			Cat2Temp=(int)B-40;
+		UpdateCatTemp();
+	}
+#ifdef TRACE_IT
+TrBu[TrBuPtr]='+';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
+TrBu[TrBuPtr]='1';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
+#endif
+}
+
+void UpdateSpeedComputations(void)
+{
+register int	a,b,c;
+float		MPG,ThrottleV,SpeedV;
+
+#ifdef TRACE_IT
+TrBu[TrBuPtr]='H';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
+#endif
+
+	if(ContSignal) return;	// time has no meaning...
+
+	TimeElapsed=(unsigned int)difftime(time(NULL),StartTime);
+
+//printf("\nTH : %x",V);fflush(stdout);
+
+	if(ThrottleAccumulatedCntr==0)
+		ThrottleV=0.0f;
+	else
+		ThrottleV=(float)((float)ThrottleAccumulated/(float)ThrottleAccumulatedCntr);
+
+	if(SpeedAccumulatedCntr==0)
+		SpeedV=0.0f;
+	else
+		SpeedV=(float)((float)SpeedAccumulated*1.0075f/(float)SpeedAccumulatedCntr);
+
+	CurrentSpeed=SpeedV;
+	ThrottleAccumulatedCntr=0;
+	ThrottleAccumulated=0;
+	SpeedAccumulatedCntr=0;
+	SpeedAccumulated=0;
+
+#define	XOFS	105
+	for(b=0;b<46;b++)
+	{
+		c=b*WIDTH;
+		for(a=0;a<(WIDTH-6);a++)
 		{
-			c=wx+b*WIDTH;
-			for(a=wx;a<ww;a++)
+			ImageBuffer[c].R=0;
+			ImageBuffer[c].G=0;
+			ImageBuffer[c].B=0;
+			++c;
+		}
+	}
+
+	if(SI_Measurements)
+		sprintf(Message,"%1.0f km/h",SpeedV);
+	else
+		sprintf(Message,"%1.1f MPH",(SpeedV*0.625f));
+	c=GetMyStringLength(Message,1,3);
+	PutMyString(Message,((XOFS+208)-c),9,1,3);
+
+	if(ThrottleV!=0)
+	{
+
+//		MPG=(float)((SpeedV*0.625f*SpeedScalerV)/(float)FuelRead);
+		MPG=(float)((SpeedV*(float)SPDSCALER_MILE)/ThrottleV);
+		if(MPG<99.99f) 
+		{
+			if(SI_Measurements)
+				sprintf(Message,"%2.1f km/l",(MPG*0.42328f));		// Current km/l
+			else
+				sprintf(Message,"%2.1f MPG",MPG);		// Current MPG
+			c=GetMyStringLength(Message,1,3);
+			PutMyString(Message,(XOFS+406-c),9,1,3);
+		}
+		else
+		{
+			if(MPG>99999.9f) MPG=99999.9f;
+			if(SI_Measurements)
+				sprintf(Message,"%2.1f km/l",(MPG*0.42328f));
+			else
+				sprintf(Message,"%2.1f MPG",MPG);
+			c=GetMyStringLength(Message,1,2);
+			PutMyString(Message,(XOFS+400-c),17,1,2);
+		}
+		AccRpm+=(double)ThrottleV;
+	}
+
+	sprintf(Message,"%3.1f Kbps",((float)NofTrafficBytes/128.0f));	// byte*8/1024
+	c=GetMyStringLength(Message,0,2);
+	ClearDisplayBufferArea(RPM_XS,456,BAR_WIDTH,25);
+	PutMyString(Message,(((RPM_XS+(BAR_WIDTH>>1))-(c>>1))-20),457,0,2);
+	CopyDisplayBufferToScreen(RPM_XS,456,BAR_WIDTH,25);
+	NofTrafficBytes=0;
+
+#ifdef MORE_DATA
+	sprintf(Message,"%d",Info_Brakes);
+	c=GetMyStringLength(Message,0,2);
+	ClearDisplayBufferArea(RPM_XS,TEMP_YE+1,BAR_WIDTH,18);
+	PutMyString(Message,((RPM_XS+(BAR_WIDTH>>1))-(c>>1)),(TEMP_YE+2),0,2);
+	CopyDisplayBufferToScreen(RPM_XS,TEMP_YE,BAR_WIDTH,20);
+#endif
+
+	if(Decel)
+	{
+		for(b=10;b<34;b++)
+		{
+			c=b*WIDTH+XOFS+18;
+			for(a=0;a<10;a++)
 			{
-				TmpWrk[c]=(((unsigned short)(ImageBuffer[c].R&0xE0)<<6)|((unsigned short)(ImageBuffer[c].G&0xF0)<<1)|((unsigned short)(ImageBuffer[c].B&0xE0)>>5));
+				ImageBuffer[c].R=0;
+				ImageBuffer[c].G=255;
+				ImageBuffer[c].B=0;
 				++c;
 			}
 		}
 	}
 	else
 	{
-		for(b=wy;b<wh;b++)
+		for(b=10;b<34;b++)
 		{
-			c=wx+b*WIDTH;
-			for(a=wx;a<ww;a++)
+			c=b*WIDTH+XOFS+18;
+			for(a=0;a<10;a++)
 			{
-				TmpWrk[c]=(((unsigned short)(ImageBuffer[c].R&0xF8)<<8)|((unsigned short)(ImageBuffer[c].G&0xFC)<<3)|((unsigned short)(ImageBuffer[c].B&0xF8)>>3));
+				ImageBuffer[c].R=255;
+				ImageBuffer[c].G=0;
+				ImageBuffer[c].B=0;
 				++c;
 			}
+		}
+	}
+
+
+	if(AccRpm>0.0f)
+		MPG=(float)(((AccSpd*SPDSCALER_MILE)/AccRpm));
+	else
+		MPG=0.0f;
+
+	if(++ValueSwitch>1) ValueSwitch=0;
+	switch(ValueSwitch)
+	{
+		case 0 :
+			if(SI_Measurements)
+				sprintf(Message,"%2.1f km/l",(MPG*0.42328f));			// Accumulated km/l on this trip
+			else
+				sprintf(Message,"%2.1f MPG",MPG);			// Accumulated MPG on this trip
+		break;
+		case 1 :
+			if((MPG>0.0f)&&(AccSpdCntr>0))
+				ThrottleV=((AccSpd*(float)TimeElapsed)/((float)AccSpdCntr*5760.0f*MPG));	// This many gallons were used on this trip
+			else
+				ThrottleV=0.0f;
+			if(SI_Measurements)
+				sprintf(Message,"%1.3f Ltr",(ThrottleV*3.78f));
+			else
+				sprintf(Message,"%1.3f Gal",ThrottleV);
+		break;
+	}
+	c=GetMyStringLength(Message,0,2);
+	PutMyString(Message,(WIDTH-8-c),26,0,2);
+
+	for(b=456;b<480;b++)
+	{
+		c=231+b*WIDTH;
+		for(a=0;a<180;a++)
+		{
+			ImageBuffer[c].R=0;
+			ImageBuffer[c].G=0;
+			ImageBuffer[c].B=0;
+			++c;
+		}
+	}
+
+	ThrottleV=((MeasuredKMPG*0.625f*MeasurementKilometers)+(MPG*DistanceTravelled))/(MeasurementKilometers+DistanceTravelled);
+	if(SI_Measurements)
+		sprintf(Message,"%d km=%2.1f km/l",(int)((MeasurementKilometers+DistanceTravelled)+0.5f),(ThrottleV*0.42328f));
+	else
+		sprintf(Message,"%d M=%2.1f W",(int)(((MeasurementKilometers+DistanceTravelled)*0.625f)+0.5f),ThrottleV);
+	c=GetMyStringLength(Message,0,2);	// 321 is the center
+	PutMyString(Message,(321-(c>>1)),457,0,2);			// All MPG and Miles
+
+	ThrottleV=((float)AccSpd/(float)AccSpdCntr)*0.625f;		// Average Trip Speed
+	if(SI_Measurements)
+		sprintf(Message,"%2.1f km/h",(ThrottleV*1.6f));
+	else
+		sprintf(Message,"%2.1f MPH",ThrottleV);
+	c=GetMyStringLength(Message,0,2);
+	PutMyString(Message,(WIDTH-10-c),2,0,2);
+
+	a=(int)((float)TimeElapsed/60.0f);		// minute
+	b=TimeElapsed-(a*60);				// seconds
+	if(a>=60)
+	{
+		c=(int)((float)a/60.0f);	// hour
+		a-=(c*60);
+		sprintf(Message,"%1d:%02d:%02d",c,a,b);
+	}
+	else
+		sprintf(Message,"%02d:%02d",a,b);
+
+	if((c=GetMyStringLength(Message,0,2))>118) c=118;
+	PutMyString(Message,(118-c),2,0,2);
+
+	AccSpd+=SpeedV;
+	++AccSpdCntr;
+
+	MPG=(float)(AccSpd*(double)TimeElapsed)/(double)AccSpdCntr;
+	DistanceTravelled=MPG/3600.0f;		// Since we computed /s updates -> /h
+
+	if(SI_Measurements)
+		sprintf(Message,"%1.1f km",DistanceTravelled);
+	else
+		sprintf(Message,"%1.1f Miles",(DistanceTravelled*0.625f));
+
+	if((c=GetMyStringLength(Message,0,2))>118) c=118;
+	PutMyString(Message,(118-c),26,0,2);
+
+	CopyDisplayBufferToScreen(0,0,(WIDTH-6),46);
+	CopyDisplayBufferToScreen(231,456,180,21);
+
+	ThrottleV=TripGallonValue;
+	if(AccRpm>0.0f)
+	{
+		if(AccSpd>0.0f)
+			MPG=(float)(((AccSpd*SPDSCALER_MILE)/AccRpm));
+		else
+		{
+			if(AccSpdCntr>0)
+				MPG=(float)(((AccSpdCntr*SPDSCALER_MILE)/AccRpm));
+			else
+				MPG=(float)(((SPDSCALER_MILE)/AccRpm));
+		}
+		if(AccSpdCntr>0)
+		{
+			if(AccSpd>0.0f)
+				ThrottleV+=(float)(((AccSpd*(float)TimeElapsed)/((float)AccSpdCntr*MPG)));
+			else
+				ThrottleV+=(float)((((float)TimeElapsed)/((float)AccSpdCntr*MPG)));
+		}
+	}
+	TripGal=ThrottleV/5760.0f;					// gallons consumed since last refill
+	TripMile=(TripKilometers+DistanceTravelled)*0.625f;		// miles from last refill
+
+	UpdateGG();
+
+	if(ProcessGo>1) ProcessGo=0;		// To guarantee accurate distance readings...
+
+#ifdef TRACE_IT
+TrBu[TrBuPtr]='h';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
+#endif
+}
+
+void StopCurrentCollection(char src)
+{
+unsigned int	EndTime;
+struct timeval	tv;
+float		fv;
+
+	LastRegenStopReason=src;
+	if(CollCntr!=0)
+	{
+		if(StrtSpd>PrvSpd)
+		{
+			gettimeofday(&tv,NULL);
+			EndTime=(unsigned int)((time_t)(tv.tv_sec)-StartTime)*(unsigned int)100+(unsigned int)((float)(tv.tv_usec)/10000.0f);
+			EndTime-=CollTime;		// gives us 1/100 second accuracy
+			if(EndTime>100)		// less than a second should not be measured
+			{
+				fv=((((float)CollCurr/(float)CollCntr)*0.1f)*((float)CollVolt/(float)CollCntr))*0.001f;		// average kW
+				fv*=((float)EndTime*0.01f);
+				LastRegenkW=fv;
+				MinMaxkWDisplay=60;	// 60 seconds
+				LastRegenTime=(unsigned char)((float)EndTime*0.01f);
+				LastRegenSpdEnd=PrvSpd;
+				LastRegenSpdStart=StrtSpd;
+#ifdef MORE_DATA
+				if(Info_Brakes_Cnt>0)
+				{
+					LastRegenBrake=(unsigned char)(Info_Brakes/Info_Brakes_Cnt);
+				}
+				else
+					LastRegenBrake=0;
+#endif
+			}
+		}
+	}
+	CollectCurrent=0;
+	CollCntr=0;
+	CollCurr=0;
+	CollVolt=0;
+#ifdef MORE_DATA
+	Info_Brakes=0;
+	Info_Brakes_Cnt=0;
+#endif
+}
+
+#ifdef NON_ZAURUS
+void CopyDisplayBufferToScreen(int x, int y, int w, int h)
+{
+register unsigned short	*TmpWrk=(unsigned short*)WorkData;
+register unsigned char	*TmpChrWrk=(unsigned char*)WorkData;
+register int		a,b,c,d,wx=x,wy=y,wh=(h+y),ww=w;
+
+	if(!WorkWindowInitialized) return;
+
+	wx=0,wy=0;ww=WIDTH-1;wh=HEIGHT;
+
+	if(wx<0)
+	{
+		if((ww-=(0-wx))<=0) return;	// nothing to draw...
+		wx=0;
+	}
+	if(wx>=WIDTH) return;
+	if(wy<0)
+	{
+		if((wh-=(0-wy))<=0) return;
+		wy=0;
+	}
+
+	if(wh>=HEIGHT) wh=HEIGHT-1;
+	if(ww>=WIDTH) ww=WIDTH-1;
+
+	switch(WorkBitsPerRGB)
+	{
+		case 16 :
+			for(b=wy;b<wh;b++)
+				for(a=wx;a<ww;a++)
+				{
+					c=a+b*WIDTH;
+					TmpWrk[c]=((ImageBuffer[c].R>>WorkRedNumberOfShifts)<<WorkRedNumberOfUpShifts)|((ImageBuffer[c].G>>WorkGreenNumberOfShifts)<<WorkGreenNumberOfUpShifts)|((ImageBuffer[c].B>>WorkBlueNumberOfShifts)<<WorkBlueNumberOfUpShifts);
+				}
+		break;
+		case 32 :
+			for(b=wy;b<wh;b++)
+				for(a=wx;a<ww;a++)
+				{
+					c=a+b*WIDTH;
+					d=c<<1;
+					TmpWrk[d++]=ImageBuffer[c].B|(ImageBuffer[c].G<<8);
+					TmpWrk[d]=ImageBuffer[c].R;
+				}
+		break;
+	}
+	XPutImage(WorkDisplay,WorkPixmap,WorkPixmapGC,WorkImage,wx,wy,wx,wy,ww,wh);
+	XCopyArea(WorkDisplay,WorkPixmap,WorkWindow,WorkWindowGC,wx,wy,ww,wh,wx,wy);
+	XFlush(WorkDisplay);
+}
+
+#else
+
+void CopyDisplayBufferToScreen(int x, int y, int w, int h)
+{
+register unsigned short	int*TmpWrk=(unsigned short*)WorkData;
+register unsigned char	*TmpChrWrk=(unsigned char*)WorkData;
+register int		a,b,c,d,wx=x,wy=y,wh=(h+y),ww=(x+w);
+
+#ifdef TRACE_IT
+TrBu[TrBuPtr]='D';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
+#endif
+
+	for(b=wy;b<wh;b++)
+	{
+		c=wx+b*WIDTH;
+		for(a=wx;a<ww;a++)
+		{
+			TmpWrk[c]=(((unsigned short)(ImageBuffer[c].R&0xF8)<<8)|((unsigned short)(ImageBuffer[c].G&0xFC)<<3)|((unsigned short)(ImageBuffer[c].B&0xF8)>>3));
+			++c;
 		}
 	}
 
@@ -3923,14 +5372,12 @@ TrBu[TrBuPtr]='d';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 
 }
 
-#define	I_BKG_R	((unsigned char)0x10)
-#define	I_BKG_G	((unsigned char)0x20)
-#define	I_BKG_B	((unsigned char)0x30)
+#endif
 
-#define	BAR_WIDTH	180
-#define	BAR_SPACING	17
+//#define	BAR_WIDTH	180
+//#define	BAR_SPACING	17
 
-#define	CURRENT_XS	BAR_SPACING
+//#define	CURRENT_XS	BAR_SPACING
 #define	CURRENT_YS	((HEIGHT>>1)-80)
 #define	CURRENT_XE	(BAR_WIDTH+CURRENT_XS)
 #define	CURRENT_YE	(HEIGHT-12)
@@ -3943,25 +5390,49 @@ TrBu[TrBuPtr]='d';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 
 #define		CURRENT_FREQ_UPDATE	20
 #define		ONE_PER_QFU		0.05f
-int		CurrentFreqCntr=CURRENT_FREQ_UPDATE;
+#define		ICE_POWERED_TOLERANCE	4
+unsigned char	CurrentFreqCntr=CURRENT_FREQ_UPDATE;
 long		AccumulatedCurrent=0;
-long		AccumulatedHB_Level=0;
+long		AccumulatedHB_Level=0;		// Voltage
+int		PreRegVal=0;
 
 void UpdateCurrent(void)		// 31/s
 {
-register int	x,y,ty,c,ty1,Value,PrintValue;
+register int	x,y,ty,c,ty1,Value,PrintValue,RVal,RegVal;
+float		HB_Level,w1,w2;
+unsigned char	cq;
 
 //printf("\nUC : %x",V);fflush(stdout);
 
 #ifdef TRACE_IT
 TrBu[TrBuPtr]='E';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 #endif
+
 	Value=(int)((float)AccumulatedCurrent*ONE_PER_QFU);
 	HB_Level=(float)AccumulatedHB_Level*ONE_PER_QFU;
 	CurrentFreqCntr=CURRENT_FREQ_UPDATE;
 	AccumulatedCurrent=0;
 	AccumulatedHB_Level=0;
 
+	if((ICEPoweredCurrStage<ICE_POWERED_TOLERANCE)&&(Value<0)&&(SpeedCurrStageCntr>0))					// For bookkeeping purposes...
+	{
+		x=(int)((float)SpeedCurrStage/((float)SpeedCurrStageCntr*2.0f));	// Speed for Every 2nd km/h
+		PrintValue=-Value;		// 12bit Signum conversion   *** REGEN ***
+		if(PrintValue<1800)		// 180A average should be way enough
+		{
+			if(x<50)		// Speed / 2
+			{
+				if(SOCValueCurrStage==0) SOCValueCurrStage=SOCValue;
+				y=(int)((float)(SOCValueCurrStage>>1)/5.0f);		// real % to 76% => 7   SOCValueCurrStage is *2
+				if((y-=8)<0) y=0;					// 40=0  80=8
+				if(y>8) y=8;						// -> 80%
+				cq=(unsigned int)((float)PrintValue*0.1f);		// Real Amperage
+				if(cq>(unsigned int)MaxCurrentValues[x][y]) MaxCurrentValues[x][y]=(unsigned char)cq;
+			}
+		}
+	}
+
+#if 0
 	if(PreviousCurrentValue==Value)
 	{
 #ifdef TRACE_IT
@@ -3971,14 +5442,22 @@ TrBu[TrBuPtr]='1';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 		return;
 	}
 	PreviousCurrentValue=Value;
+#endif
 
 //printf(" => %x",V);fflush(stdout);
 
 	if(DoorStatus) return;
 
-	if(Value>0)
+	RegVal=0;
+
+	if(Value>0)		// *** DISCHARGE ***
 	{
 		PrintValue=Value;
+
+		if((w1=(float)BattMaxDisChargeCurrent*(float)BattVoltageValue)<1.0f) w1=1.0f;
+		w2=((float)PrintValue*0.1f)*HB_Level;
+		RVal=(int)((w2*100.0f)/w1);
+
 		if(Value>UPPER_LIMIT) Value=UPPER_LIMIT;
 		ty=(int)(((float)Value*(float)(CURRENT_YE-CURRENT_YS))*ONE_PER_UPPER_LIMIT);	// How high the bar is
 		ty1=(CURRENT_YE-CURRENT_YS)-ty+CURRENT_YS;
@@ -4007,8 +5486,24 @@ TrBu[TrBuPtr]='1';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 	}
 	else
 	{
-		Value=-Value;		// 12bit Signum conversion
+		Value=-Value;		// 12bit Signum conversion   *** REGEN ***
 		PrintValue=Value;
+
+// Use empirical values for checking recharge capacity if speed is less than 100km/h
+		ty1=((int)PrvSpd)>>1;		// Every 2nd km/h
+		if((ty1<50)&&(ICEPoweredCurrStage<ICE_POWERED_TOLERANCE))
+		{
+			ty=(int)((float)(SOCValue>>1)/5.0f);		// real % to 76% => 7
+			if((ty-=8)<0) ty=0;
+			if(ty>8) ty=8;
+			w2=(float)MaxCurrentValues[ty1][ty];
+			if(w2>0.0f) RegVal=(int)(((float)PrintValue*10.0f)/w2);	// For this is expressed in % and PrintValue is already *10
+		}
+
+		if((w1=(float)BattMaxChargeCurrent*(float)BattVoltageValue)<1.0f) w1=1.0f;
+		w2=((float)PrintValue*0.1f)*HB_Level;
+		RVal=(int)((w2*100.0f)/w1);
+
 		if(Value>LOWER_LIMIT) Value=LOWER_LIMIT;
 		ty=(int)(((float)Value*(float)(CURRENT_YE-CURRENT_YS))*ONE_PER_LOWER_LIMIT);	// How high the bar is
 		ty1=(CURRENT_YE-CURRENT_YS)-ty+CURRENT_YS;
@@ -4035,45 +5530,90 @@ TrBu[TrBuPtr]='1';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 			}
 		}
 	}
-#ifdef SHOWEXTRAVALUES
-	if(ShowValues==1)
-#endif
-	{
-		sprintf(Message,"%1.1fA",((float)PrintValue*0.1f));
-		c=GetMyStringLength(Message,0,3);
-		PutMyString(Message,(CURRENT_XS+((BAR_WIDTH-c)>>1)),(CURRENT_YS+((CURRENT_YE-CURRENT_YS)>>1))-15,0,3);
 
-		sprintf(Message,"%3.1f V",HB_Level);
-		c=GetMyStringLength(Message,0,2);
-		PutMyString(Message,(CURRENT_XS+((BAR_WIDTH-c)>>1)),(CURRENT_YS+((CURRENT_YE-CURRENT_YS)>>1)+30),0,2);
-	}
-#ifdef SHOWEXTRAVALUES
-	else
+	if(RVal<0) RVal=0;
+	else if(RVal>1000) RVal=1000;
+	sprintf(Message,"%d%%",RVal);
+	c=GetMyStringLength(Message,0,3);
+	PutMyString(Message,(CURRENT_XS+((BAR_WIDTH-c)>>1)),(CURRENT_YS+2),0,3);
+
+	if(PreRegVal!=RegVal)
 	{
-		if(ShowValues>2)
-		{
-			sprintf(Message,"%d",PrintValue);
-			c=GetMyStringLength(Message,0,3);
-			PutMyString(Message,(CURRENT_XS+((BAR_WIDTH-c)>>1)),(CURRENT_YS+((CURRENT_YE-CURRENT_YS)>>1)),0,3);
-		}
+		PreRegVal=RegVal;
+		PutExtraInfo();		
 	}
+
+	sprintf(Message,"%1.1fA",((float)PrintValue*0.1f));
+	c=GetMyStringLength(Message,0,3);
+	PutMyString(Message,(CURRENT_XS+((BAR_WIDTH-c)>>1)),(CURRENT_YS+((CURRENT_YE-CURRENT_YS)>>1))-15,0,3);
+
+	sprintf(Message,"%3.1f V",HB_Level);
+	c=GetMyStringLength(Message,0,2);
+	PutMyString(Message,(CURRENT_XS+((BAR_WIDTH-c)>>1)),(CURRENT_YS+((CURRENT_YE-CURRENT_YS)>>1)+30),0,2);
+
+	if(MinMaxCurrentDisplay)
+	{
+		sprintf(Message,"Chg: %3.1f A",((float)MinCurrent*0.1f));
+		PutMyString(Message,(CURRENT_XS+31),(CURRENT_YS+48),0,2);
+		sprintf(Message,"Dischg: %3.1f A",((float)MaxCurrent*0.1f));
+		PutMyString(Message,(CURRENT_XS+5),(CURRENT_YS+68),0,2);
+	}
+	if(MinMaxkWDisplay)
+	{
+		sprintf(Message,"%2ds: %3.1fkw %c",LastRegenTime,LastRegenkW,LastRegenStopReason);
+		c=GetMyStringLength(Message,0,2);
+		PutMyString(Message,(CURRENT_XS+((BAR_WIDTH-c)>>1)),(CURRENT_YS+254),0,2);
+#ifdef MORE_DATA
+		sprintf(Message,"%2d - %2d : %3d",(unsigned char)(((float)LastRegenSpdStart*0.625f)+0.5f),(unsigned char)((((float)LastRegenSpdEnd*0.625f)+0.5f)),LastRegenBrake);
+#else
+		sprintf(Message,"%2d - %2d",(unsigned char)(((float)LastRegenSpdStart*0.625f)+0.5f),(unsigned char)((((float)LastRegenSpdEnd*0.625f)+0.5f)));
 #endif
-	CopyDisplayBufferToScreen(CURRENT_XS,CURRENT_YS,CURRENT_XE,CURRENT_YE);
+		c=GetMyStringLength(Message,0,2);
+		PutMyString(Message,(CURRENT_XS+((BAR_WIDTH-c)>>1)),(CURRENT_YS+280),0,2);
+	}
+
+	CopyDisplayBufferToScreen(CURRENT_XS,CURRENT_YS,BAR_WIDTH,(CURRENT_YE-CURRENT_YS+1));
+
 #ifdef TRACE_IT
 TrBu[TrBuPtr]='e';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 #endif
 }
 
-#define	SOC_XS	(BAR_WIDTH+CURRENT_XS)+(BAR_SPACING<<1)		// ( 180 + 17 ) + 34 = 231
-#ifdef TRAFFIC_PROFILE
-#define	SOC_YS	((HEIGHT>>1)+10)
-#else
-#define	SOC_YS	(HEIGHT>>1)
+
+#ifdef USE_VOICE_ANNOUNCEMENT
+void SaySOC(void)
+{
+register int	c,ty1;
+
+	c=(unsigned int)(SOCValue>>1);		// real %
+
+	CallVoice(V_BATTERYAT,0);
+	ty1=c;
+	ty1/=10;
+	if(ty1>0)
+	{
+		if(ty1==1)
+		{
+			c-=10;
+			CallVoice(V_10+c,0);
+		}
+		else
+		{
+			CallVoice(V_20+ty1-2,0);
+			c-=(ty1*10);
+			if(c>0)
+				CallVoice(V_1+c-1,0);
+		}
+	}
+	else
+	{
+//		c-=(ty1*10);
+		if(c>0)
+			CallVoice(V_1+c-1,0);
+	}
+	CallVoice(V_PERCENT,1);
+}
 #endif
-#define	SOC_XE	(BAR_WIDTH+SOC_XS)
-#define	SOC_YE	(HEIGHT-30)
-#define	SOC_UPPER_LIMIT	140
-#define	SOC_LOWER_LIMIT	90
 
 void UpdateSOC(void)		//   150-128-110-104-98-90   95-103-109-115-133
 {
@@ -4136,42 +5676,91 @@ TrBu[TrBuPtr]='B';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 			++c;			
 		}
 	}
-#ifdef SHOWEXTRAVALUES
-	if(ShowValues==1)
-#endif
+//	if((c=(int)((((float)SOCValue-90.0f)*0.7)+45.0f))>100) c=100;
+//	sprintf(Message,"%2d%%",c);
+
+	sprintf(Message,"%2.1f%%",((float)SOCValue*0.5f));
+	c=GetMyStringLength(Message,1,3);
+	PutMyString(Message,(SOC_XS+((BAR_WIDTH-c)>>1)),(((SOC_YE-SOC_YS)>>1)+SOC_YS-20),1,3);
+
+#ifdef USE_VOICE_ANNOUNCEMENT
+
+	if(((SOCValue%10)==0)||(FirstTimeSOC))
 	{
-//		if((c=(int)((((float)SOCValue-90.0f)*0.7)+45.0f))>100) c=100;
-//		sprintf(Message,"%2d%%",c);
-
-		sprintf(Message,"%2.1f%%",((float)SOCValue*0.5f));
-		c=GetMyStringLength(Message,1,3);
-		PutMyString(Message,(SOC_XS+((BAR_WIDTH-c)>>1)),(((SOC_YE-SOC_YS)>>1)+SOC_YS-20),1,3);
-
-		sprintf(Message,"%d^",BattTempValue);
-		c=GetMyStringLength(Message,0,2);
-		PutMyString(Message,(SOC_XS+((BAR_WIDTH-c)>>1)),(((SOC_YE-SOC_YS)>>1)+SOC_YS+30),0,2);
-
-#ifdef SHOWEXTRAVALUES
-		if(ShowValues>1)
+		if((FirstTimeSOC)||(LSOCValue!=SOCValue))		// Every 10 units -> 5 percent
 		{
-			sprintf(Message,"[%d]",SOCValue);
-			c=GetMyStringLength(Message,0,2);
-			PutMyString(Message,(SOC_XS+((BAR_WIDTH-c)>>1)),((SOC_YE-SOC_YS)>>1)+SOC_YS+52,0,2);
+			SaySOC();
+			FirstTimeSOC=0;
 		}
-#endif
+		LSOCValue=SOCValue;
 	}
-	CopyDisplayBufferToScreen(SOC_XS,SOC_YS,SOC_XE,SOC_YE);
+
+#endif
+
+	sprintf(Message,"%d^",BattTempValue);
+	c=GetMyStringLength(Message,0,2);
+	PutMyString(Message,(SOC_XS+((BAR_WIDTH-c)>>1)),(((SOC_YE-SOC_YS)>>1)+SOC_YS+30),0,2);
+
+	sprintf(Message,"%d V",BattVoltageValue);
+	c=GetMyStringLength(Message,0,2);
+	PutMyString(Message,(SOC_XS+((BAR_WIDTH-c)>>1)),(((SOC_YE-SOC_YS)>>1)+SOC_YS+60),0,2);
+
+	CopyDisplayBufferToScreen(SOC_XS,SOC_YS,BAR_WIDTH,(SOC_YE-SOC_YS+1));
 #ifdef TRACE_IT
 TrBu[TrBuPtr]='b';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 #endif
 }
 
 
-#define	GG_XS	SOC_XS
-#define	GG_YS	50
-#define	GG_XE	SOC_XE
-#define	GG_YE	((HEIGHT>>1)-20)
-#define	GG_UPPER_LIMIT	0x2A
+
+#ifdef USE_VOICE_ANNOUNCEMENT
+
+void SayMileage(void)
+{
+register int	c,hu,te,on;
+
+	CallVoice(V_FUELAVAIL,0);
+	hu=PreGasValue/100;
+	te=(PreGasValue-(hu*100))/10;
+	on=PreGasValue-((hu*100)+(te*10));
+
+	if((c=PreGasValue)>20)		// Approx...
+	{
+		if(on>5) ++te;
+		if(te>9) {te=0;++hu;}
+		on=0;
+	}
+
+	if(hu>0)
+	{
+		CallVoice(V_1+hu-1,0);
+		CallVoice(V_100,0);
+	}
+
+	if(te>0)
+	{
+		if(te==1)
+		{
+			CallVoice(V_10+on,0);
+		}
+		else
+		{
+			CallVoice(V_20+te-2,0);
+			if(on>0)
+				CallVoice(V_1+on-1,0);
+		}
+	}
+	else
+	{
+		if(on>0)
+			CallVoice(V_1+on-1,0);
+	}
+	CallVoice(V_MILES,1);
+}
+
+#endif
+
+#define GG_TINFO	((GG_YE)-16)
 
 void UpdateGG(void)			// 11.9 Gal / 45 Liter ( 11.904762 Gal )
 {
@@ -4210,69 +5799,84 @@ TrBu[TrBuPtr]='G';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 			++c;
 		}
 	}
-#ifdef SHOWEXTRAVALUES
-	if(ShowValues==1)
-#endif
-	{
-		c=(int)(((float)GasGauge*100.0f)/(float)GG_UPPER_LIMIT);
-		sprintf(Message,"%2d%%",c);
-		c=GetMyStringLength(Message,1,3);
-		PutMyString(Message,((GG_XS+((BAR_WIDTH-c)>>1))+5),((GG_YS+((GG_YE-GG_YS)>>1)))-36,1,3);
+	c=(int)(((float)GasGauge*100.0f)/(float)GG_UPPER_LIMIT);
+	sprintf(Message,"%2d%%",c);
+	c=GetMyStringLength(Message,1,3);
+	PutMyString(Message,((GG_XS+((BAR_WIDTH-c)>>1))+5),((GG_YS+((GG_YE-GG_YS)>>1)))-20,1,3);
 
 if(GasGaugeExtraValue!=99)
 {
 	sprintf(Message,"%2d",(int)GasGaugeExtraValue);
 	c=GetMyStringLength(Message,1,2);
-	PutMyString(Message,((GG_XS+((BAR_WIDTH-c)>>1))+5),(GG_YS+10),1,2);
+	PutMyString(Message,(GG_XS+(BAR_WIDTH-c)),(GG_YS+2),1,2);
 }
 
 
 
-		Galls=((float)GasGauge*45.0f)/((float)GG_UPPER_LIMIT*3.78f);	// In Gallons
+	Galls=((float)GasGauge*45.0f)/((float)GG_UPPER_LIMIT*3.78f);	// In Gallons
 
-		if(AccRpm!=0.0f)
-			MPG=(float)(((AccSpd*SPDSCALER_MILE)/AccRpm));
+	if(AccRpm>0.0f)
+		MPG=(float)(((AccSpd*SPDSCALER_MILE)/AccRpm));
+	else
+		MPG=0.0f;
+
+	if((MeasurementKilometers+DistanceTravelled)>0)
+	{
+		Value=((MeasuredKMPG*0.625f*MeasurementKilometers)+(MPG*DistanceTravelled))/(MeasurementKilometers+DistanceTravelled);	// Accumulated MPG
+		Value*=Galls;
+		if(SI_Measurements)
+			sprintf(Message,"%3.0f km",(Value*1.6f));
 		else
-			MPG=0.0f;
+			sprintf(Message,"%3.0f mil",Value);
 
-		if((MeasurementKilometers+DistanceTravelled)>0)
+#ifdef USE_VOICE_ANNOUNCEMENT
+		if((FirstTimeGas))		// ||(Value<50))	// Don't say small numbers...
 		{
-			Value=((MeasuredKMPG*0.625f*MeasurementKilometers)+(MPG*DistanceTravelled))/(MeasurementKilometers+DistanceTravelled);	// Accumulated MPG
-			Value*=Galls;
-			sprintf(Message,"%3.0f M",Value);
-		}
-		else
-			sprintf(Message,"qqqqq");
-		PutMyString(Message,(GG_XS+5),((GG_YS+((GG_YE-GG_YS)>>1)))+20,0,2);
-
-		if(MPG!=0.0f)
-		{
-			MPG*=Galls;
-			sprintf(Message,"%3.0f M",MPG);
-		}
-		else
-			sprintf(Message,"qqqqq");
-		c=GetMyStringLength(Message,0,2);
-		PutMyString(Message,(GG_XE-c-5),((GG_YS+((GG_YE-GG_YS)>>1)))+20,0,2);
-
-		if(CurrGasGauge!=GasGauge)
-		{
-			c=(int)(((float)CurrGasGauge*100.0f)/(float)GG_UPPER_LIMIT);
-			sprintf(Message,"[%2d%%]",c);
-			c=GetMyStringLength(Message,0,2);
-			PutMyString(Message,(GG_XS+((BAR_WIDTH-c)>>1)),(GG_YE-30),0,2);
-		}
-
-#ifdef SHOWEXTRAVALUES
-		if(ShowValues>1)
-		{
-			sprintf(Message,"[%02x]",PGG);
-			c=GetMyStringLength(Message,0,2);
-			PutMyString(Message,(GG_XS+((BAR_WIDTH-c)>>1)),(GG_YS+((GG_YE-GG_YS)>>1))+42,0,2);
+			if(NoTrafficYet==0)
+			{
+				FirstTimeGas=0;
+				if(PreGasValue!=(int)Value)
+				{
+					PreGasValue=(int)Value;
+					SayMileage();
+				}
+			}
 		}
 #endif
 	}
-	CopyDisplayBufferToScreen(GG_XS,GG_YS,GG_XE,GG_YE);
+	else
+		sprintf(Message,"=====");
+	PutMyString(Message,(GG_XS+5),((GG_YS+((GG_YE-GG_YS)>>1)))+36,0,2);
+
+	if(MPG!=0.0f)
+	{
+		MPG*=Galls;
+		if(SI_Measurements)
+			sprintf(Message,"%3.0f km",(MPG*1.6f));
+		else
+			sprintf(Message,"%3.0f mil",MPG);
+	}
+	else
+		sprintf(Message,"=====");
+	c=GetMyStringLength(Message,0,2);
+	PutMyString(Message,(GG_XE-c-5),((GG_YS+((GG_YE-GG_YS)>>1)))+36,0,2);
+
+	if((Galls=11.904762f-TripGal)<0.01f) Galls=0.0f;			// Assuming 11.9 Gallon bladder size
+	if(SI_Measurements)
+		sprintf(Message,"%1.2f Ltr",(Galls*3.78f));
+	else
+		sprintf(Message,"%1.2f Gal",Galls);
+	c=GetMyStringLength(Message,0,2);
+	PutMyString(Message,(GG_XS+((BAR_WIDTH-c)>>1)),(GG_YS+16),0,2);
+
+	if(SI_Measurements)
+		sprintf(Message,"%3.1f km = %1.3f l",(TripMile*1.6f),(TripGal*3.78f));
+	else
+		sprintf(Message,"%3.1f mil = %1.3f Gal",TripMile,TripGal);
+	c=GetMyStringLength(Message,0,1);
+	PutMyString(Message,((GG_XS+((BAR_WIDTH-c)>>1))+2),(GG_TINFO+2),0,1);
+
+	CopyDisplayBufferToScreen(GG_XS,GG_YS,BAR_WIDTH,(GG_YE-GG_YS+1));
 #ifdef TRACE_IT
 TrBu[TrBuPtr]='g';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 #endif
@@ -4280,10 +5884,6 @@ TrBu[TrBuPtr]='g';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 }
 
 
-#define	RPM_XS			(BAR_WIDTH+SOC_XS)+(BAR_SPACING<<1)	// 180 + 231 + 34  = 445
-#define	RPM_YS			180
-#define	RPM_XE			(BAR_WIDTH+RPM_XS)
-#define	RPM_YE			(HEIGHT-12)
 #define	RPM_UPPER_LIMIT		0x6F		// 0x77 is rare...
 #define	ONE_PER_RPM_UPPER_LIMIT	0.009f
 #define	IDDLE_RPM		0x28
@@ -4305,6 +5905,8 @@ unsigned char	Rv,Gv;
 #ifdef TRACE_IT
 TrBu[TrBuPtr]='R';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 #endif
+
+
 
 	Value=(int)((float)AccumulatedRPM*ONE_PER_RPM_FREQ_UPDATE);
 	ShowValue=Value;
@@ -4372,26 +5974,10 @@ TrBu[TrBuPtr]='1';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 		}
 	}
 
-#ifdef SHOWEXTRAVALUES
-	if(ShowValues==1)
-#endif
-	{
-		sprintf(Message,"%d",(ShowValue<<5));
-		c=GetMyStringLength(Message,0,3);
-		PutMyString(Message,(RPM_XS+((BAR_WIDTH-c)>>1)),(((RPM_YE-RPM_YS)>>1)+RPM_YS),0,3);
-	}
-#ifdef SHOWEXTRAVALUES
-	else
-	{
-		if(ShowValues>1)
-		{
-			sprintf(Message,"%d",ShowValue);
-			c=GetMyStringLength(Message,0,3);
-			PutMyString(Message,(RPM_XS+((BAR_WIDTH-c)>>1)),(((RPM_YE-RPM_YS)>>1)+RPM_YS),0,3);
-		}
-	}
-#endif
-	CopyDisplayBufferToScreen(RPM_XS,RPM_YS,RPM_XE,RPM_YE);
+	sprintf(Message,"%d",(ShowValue<<5));
+	c=GetMyStringLength(Message,0,3);
+	PutMyString(Message,(RPM_XS+((BAR_WIDTH-c)>>1)),(((RPM_YE-RPM_YS)>>1)+RPM_YS),0,3);
+	CopyDisplayBufferToScreen(RPM_XS,RPM_YS,BAR_WIDTH,(RPM_YE-RPM_YS+1));
 #ifdef TRACE_IT
 TrBu[TrBuPtr]='r';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 #endif
@@ -4400,20 +5986,63 @@ TrBu[TrBuPtr]='r';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 
 #define	TEMP_XS			RPM_XS
 #define	TEMP_YS			50
-#define	TEMP_XE			RPM_XE
-#define	TEMP_YE			160
-#define	TEMP_UPPER_LIMIT	0xB5
-#define	TEMP_LOWER_LIMIT	0x30
+#define	TEMP_YS_1		120
+#define	TEMP_XE_1		((RPM_XE)-(BAR_WIDTH>>1))
+#define	TEMP_XE_2		RPM_XE
+
+#define	TEMP_UPPER_LIMIT		190		// 80 C
+#define	TEMP_UPPER_LIMIT_CLR_H		96		// 48 C
+#define	TEMP_UPPER_LIMIT_CLR_L		72		// 36 C
+#define	TEMP_LOWER_LIMIT		48		// 24 C
+
+#define	TEMP_UPPER_LIMIT_ENB		95		// 95 C
+#define	TEMP_UPPER_LIMIT_ENB_CLR_H	44
+#define	TEMP_UPPER_LIMIT_ENB_CLR_L	36
+#define	TEMP_LOWER_LIMIT_ENB		24
+
+
+void GetColors(int Value, int LL, int CLL, int CHL, unsigned char* Rv, unsigned char* Gv, unsigned char* Bv)
+{
+	if(Value>=CHL)
+	{
+		*Rv=255;
+		*Bv=8;
+		*Gv=8;
+		return;
+	}
+	if(Value<=LL)
+	{
+		*Rv=8;
+		*Bv=255;
+		*Gv=8;
+		return;
+	}
+	if(Value<=CLL)		// Blue to white
+	{
+		*Rv=((unsigned char)((((float)(Value-LL)*(float)239)/(float)(CLL-LL))+16)>>1);
+		*Bv=255;
+		*Gv=*Rv;
+		return;
+	}
+	else			// White to Red
+	{
+		*Bv=((unsigned char)((255-(((float)(Value-CLL)*(float)239)/(float)(CHL-CLL))))>>1);
+		*Rv=255;
+		*Gv=*Bv;
+		return;
+	}
+}
 
 void UpdateTemp(void)
 {
 register int	x,y,ty,c,ty1,Value;
-unsigned char	Rv,Gv;
+unsigned char	Rv,Gv,Bv;
 
 #ifdef TRACE_IT
 TrBu[TrBuPtr]='J';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 #endif
-	Value=TempValue;
+
+	Value=(int)TempValue;
 
 //printf("\n%d",Value);fflush(stdout);
 
@@ -4422,16 +6051,13 @@ TrBu[TrBuPtr]='J';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 		if(Value<TEMP_LOWER_LIMIT) Value=TEMP_LOWER_LIMIT;
 
 	c=Value-TEMP_LOWER_LIMIT;
-	Rv=(unsigned char)(((float)c*(float)255)/(float)(TEMP_UPPER_LIMIT-TEMP_LOWER_LIMIT));
-	Gv=255-Rv;
-
-	c=Value-TEMP_LOWER_LIMIT;
-	ty=(int)(((float)c*(float)(TEMP_YE-TEMP_YS))/(float)(TEMP_UPPER_LIMIT-TEMP_LOWER_LIMIT));	// How high the bar is
-	ty1=(TEMP_YE-TEMP_YS)-ty+TEMP_YS;
-	for(y=TEMP_YS;y<ty1;y++)
+	GetColors(Value,TEMP_LOWER_LIMIT,TEMP_UPPER_LIMIT_CLR_L,TEMP_UPPER_LIMIT_CLR_H,&Rv,&Gv,&Bv);
+	ty=(int)(((float)c*(float)(TEMP_YE-TEMP_YS_1))/(float)(TEMP_UPPER_LIMIT-TEMP_LOWER_LIMIT));	// How high the bar is
+	ty1=(TEMP_YE-TEMP_YS_1)-ty+TEMP_YS_1;
+	for(y=TEMP_YS_1;y<ty1;y++)
 	{
 		c=TEMP_XS+y*WIDTH;
-		for(x=TEMP_XS;x<TEMP_XE;x++)
+		for(x=TEMP_XS;x<TEMP_XE_1;x++)
 		{
 			ImageBuffer[c].R=I_BKG_R;
 			ImageBuffer[c].G=I_BKG_G;
@@ -4442,44 +6068,249 @@ TrBu[TrBuPtr]='J';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 	for(y=ty1;y<TEMP_YE;y++)
 	{
 		c=TEMP_XS+y*WIDTH;
-		for(x=TEMP_XS;x<TEMP_XE;x++)
+		for(x=TEMP_XS;x<TEMP_XE_1;x++)
 		{
 			ImageBuffer[c].R=Rv;
 			ImageBuffer[c].G=Gv;
-			ImageBuffer[c].B=0;
+			ImageBuffer[c].B=Bv;
 			++c;
 		}
 	}
-#ifdef SHOWEXTRAVALUES
-	if(ShowValues==1)
-#endif
-	{
-		sprintf(Message,"%d^",(TempValue>>1));
-		c=GetMyStringLength(Message,0,3);
-		PutMyString(Message,(TEMP_XS+((BAR_WIDTH-c)>>1)),(((TEMP_YE-TEMP_YS)>>1)+TEMP_YS-6),0,3);
-	}
-#ifdef SHOWEXTRAVALUES
+
+
+
+
+	Value=(int)EngBlckTmp;
+
+//printf("\n%d",Value);fflush(stdout);
+
+	if(Value>TEMP_UPPER_LIMIT_ENB) Value=TEMP_UPPER_LIMIT_ENB;
 	else
+		if(Value<TEMP_LOWER_LIMIT_ENB) Value=TEMP_LOWER_LIMIT_ENB;
+
+	c=Value-TEMP_LOWER_LIMIT_ENB;
+	GetColors(Value,TEMP_LOWER_LIMIT_ENB,TEMP_UPPER_LIMIT_ENB_CLR_L,TEMP_UPPER_LIMIT_ENB_CLR_H,&Rv,&Gv,&Bv);
+	ty=(int)(((float)c*(float)(TEMP_YE-TEMP_YS_1))/(float)(TEMP_UPPER_LIMIT_ENB-TEMP_LOWER_LIMIT_ENB));	// How high the bar is
+	ty1=(TEMP_YE-TEMP_YS_1)-ty+TEMP_YS_1;
+	for(y=TEMP_YS_1;y<ty1;y++)
 	{
-		if(ShowValues>1)
+		c=TEMP_XE_1+y*WIDTH;
+		for(x=TEMP_XE_1;x<TEMP_XE_2;x++)
 		{
-			sprintf(Message,"%d",TempValue);
-			c=GetMyStringLength(Message,0,3);
-			PutMyString(Message,(TEMP_XS+((BAR_WIDTH-c)>>1)),(((TEMP_YE-TEMP_YS)>>1)+TEMP_YS-6),0,3);
+			ImageBuffer[c].R=I_BKG_R;
+			ImageBuffer[c].G=I_BKG_G;
+			ImageBuffer[c].B=I_BKG_B;
+			++c;
 		}
 	}
-#endif
-	CopyDisplayBufferToScreen(TEMP_XS,TEMP_YS,TEMP_XE,TEMP_YE);
+	for(y=ty1;y<TEMP_YE;y++)
+	{
+		c=TEMP_XE_1+y*WIDTH;
+		for(x=TEMP_XE_1;x<TEMP_XE_2;x++)
+		{
+			ImageBuffer[c].R=Rv;
+			ImageBuffer[c].G=Gv;
+			ImageBuffer[c].B=Bv;
+			++c;
+		}
+	}
+
+
+	sprintf(Message,"%d",(TempValue>>1));
+	c=GetMyStringLength(Message,0,3);
+	PutMyString(Message,(TEMP_XS+((BAR_WIDTH-c)>>2))-10,(((TEMP_YE-TEMP_YS_1)>>1)+TEMP_YS_1-10),0,3);
+
+	sprintf(Message,"%d",EngBlckTmp);
+	c=GetMyStringLength(Message,0,3);
+	PutMyString(Message,(TEMP_XE_1+((BAR_WIDTH-c)>>2))-10,(((TEMP_YE-TEMP_YS_1)>>1)+TEMP_YS_1-10),0,3);
+
+	sprintf(Message,"^");
+	c=GetMyStringLength(Message,0,3);
+	PutMyString(Message,(TEMP_XS+((BAR_WIDTH-c)>>1)),(((TEMP_YE-TEMP_YS_1)>>1)+TEMP_YS_1+10),0,3);
+	CopyDisplayBufferToScreen(TEMP_XS,TEMP_YS_1,BAR_WIDTH,(TEMP_YE-TEMP_YS_1+1));
 #ifdef TRACE_IT
 TrBu[TrBuPtr]='j';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 #endif
 }
 
+#define	TEMP_UPPER_LIMIT_CAT1		800
+#define	TEMP_UPPER_LIMIT_CAT1_CLR_H	280
+#define	TEMP_UPPER_LIMIT_CAT1_CLR_L	140
+#define	TEMP_LOWER_LIMIT_CAT1		-50
 
-#define	EV_XS	36
-#define	EV_YS	48
-#define	EV_YE	(EV_YS+102)
-#define	EV_XE	(EV_XS+140)
+#define	TEMP_UPPER_LIMIT_CAT2		600
+#define	TEMP_UPPER_LIMIT_CAT2_CLR_H	90
+#define	TEMP_UPPER_LIMIT_CAT2_CLR_L	45
+#define	TEMP_LOWER_LIMIT_CAT2		-50
+
+#define	TEMP_YE_1		(TEMP_YS_1-10)
+
+void UpdateCatTemp(void)
+{
+register int	x,y,ty,c,ty1,Value;
+unsigned char	Rv,Gv,Bv;
+
+#ifdef TRACE_IT
+TrBu[TrBuPtr]='K';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
+#endif
+
+	Value=(int)Cat1Temp;
+
+//printf("\n%d",Value);fflush(stdout);
+
+	if(Value>TEMP_UPPER_LIMIT_CAT1) Value=TEMP_UPPER_LIMIT_CAT1;
+	else
+		if(Value<TEMP_LOWER_LIMIT_CAT1) Value=TEMP_LOWER_LIMIT_CAT1;
+
+	c=Value-TEMP_LOWER_LIMIT_CAT1;
+	GetColors(Value,TEMP_LOWER_LIMIT_CAT1,TEMP_UPPER_LIMIT_CAT1_CLR_L,TEMP_UPPER_LIMIT_CAT1_CLR_H,&Rv,&Gv,&Bv);
+	ty=(int)(((float)c*(float)(TEMP_YE_1-TEMP_YS))/(float)(TEMP_UPPER_LIMIT_CAT1-TEMP_LOWER_LIMIT_CAT1));	// How high the bar is
+	ty1=(TEMP_YE_1-TEMP_YS)-ty+TEMP_YS;
+
+	if(LatestRPM)		// Valid only if ICE is ON.
+	{
+		for(y=TEMP_YS;y<ty1;y++)
+		{
+			c=TEMP_XS+y*WIDTH;
+			for(x=TEMP_XS;x<TEMP_XE_1;x++)
+			{
+				ImageBuffer[c].R=I_BKG_R;
+				ImageBuffer[c].G=I_BKG_G;
+				ImageBuffer[c].B=I_BKG_B;
+				++c;
+			}
+		}
+		for(y=ty1;y<TEMP_YE_1;y++)
+		{
+			c=TEMP_XS+y*WIDTH;
+			for(x=TEMP_XS;x<TEMP_XE_1;x++)
+			{
+				ImageBuffer[c].R=Rv;
+				ImageBuffer[c].G=Gv;
+				ImageBuffer[c].B=Bv;
+				++c;
+			}
+		}
+	}
+	else
+	{
+		for(y=TEMP_YS;y<TEMP_YE_1;y++)
+		{
+			c=TEMP_XS+y*WIDTH;
+			for(x=TEMP_XS;x<TEMP_XE_1;x++)
+			{
+				ImageBuffer[c].R=I_BKG_R;
+				ImageBuffer[c].G=I_BKG_G;
+				ImageBuffer[c].B=I_BKG_B;
+				++c;
+			}
+		}
+		for(y=ty1;y<(ty1+7);y++)
+		{
+			c=TEMP_XS+y*WIDTH;
+			for(x=TEMP_XS;x<TEMP_XE_1;x++)
+			{
+				ImageBuffer[c].R=Rv;
+				ImageBuffer[c].G=Gv;
+				ImageBuffer[c].B=Bv;
+				++c;
+			}
+			Rv>>=1;
+			Gv>>=1;
+			Bv>>=1;
+		}
+	}
+
+
+	Value=(int)Cat2Temp;
+
+//printf("\n%d",Value);fflush(stdout);
+
+	if(Value>TEMP_UPPER_LIMIT_CAT2) Value=TEMP_UPPER_LIMIT_CAT2;
+	else
+		if(Value<TEMP_LOWER_LIMIT_CAT2) Value=TEMP_LOWER_LIMIT_CAT2;
+
+	c=Value-TEMP_LOWER_LIMIT_CAT2;
+	GetColors(Value,TEMP_LOWER_LIMIT_CAT2,TEMP_UPPER_LIMIT_CAT2_CLR_L,TEMP_UPPER_LIMIT_CAT2_CLR_H,&Rv,&Gv,&Bv);
+	ty=(int)(((float)c*(float)(TEMP_YE_1-TEMP_YS))/(float)(TEMP_UPPER_LIMIT_CAT2-TEMP_LOWER_LIMIT_CAT2));	// How high the bar is
+	ty1=(TEMP_YE_1-TEMP_YS)-ty+TEMP_YS;
+	if(LatestRPM)		// Valid only if ICE is ON.
+	{
+		for(y=TEMP_YS;y<ty1;y++)
+		{
+			c=TEMP_XE_1+y*WIDTH;
+			for(x=TEMP_XE_1;x<TEMP_XE_2;x++)
+			{
+				ImageBuffer[c].R=I_BKG_R;
+				ImageBuffer[c].G=I_BKG_G;
+				ImageBuffer[c].B=I_BKG_B;
+				++c;
+			}
+		}
+		for(y=ty1;y<TEMP_YE_1;y++)
+		{
+			c=TEMP_XE_1+y*WIDTH;
+			for(x=TEMP_XE_1;x<TEMP_XE_2;x++)
+			{
+				ImageBuffer[c].R=Rv;
+				ImageBuffer[c].G=Gv;
+				ImageBuffer[c].B=Bv;
+				++c;
+			}
+		}
+	}
+	else
+	{
+		for(y=TEMP_YS;y<TEMP_YE_1;y++)
+		{
+			c=TEMP_XE_1+y*WIDTH;
+			for(x=TEMP_XE_1;x<TEMP_XE_2;x++)
+			{
+				ImageBuffer[c].R=I_BKG_R;
+				ImageBuffer[c].G=I_BKG_G;
+				ImageBuffer[c].B=I_BKG_B;
+				++c;
+			}
+		}
+		for(y=ty1;y<(ty1+7);y++)
+		{
+			c=TEMP_XE_1+y*WIDTH;
+			for(x=TEMP_XE_1;x<TEMP_XE_2;x++)
+			{
+				ImageBuffer[c].R=Rv;
+				ImageBuffer[c].G=Gv;
+				ImageBuffer[c].B=Bv;
+				++c;
+			}
+			Rv>>=1;
+			Gv>>=1;
+			Bv>>=1;
+		}
+	}
+
+	sprintf(Message,"%d",Cat1Temp);
+	c=GetMyStringLength(Message,0,3);
+	PutMyString(Message,(TEMP_XS+((BAR_WIDTH-c)>>2))-20,(((TEMP_YE_1-TEMP_YS)>>1)+TEMP_YS-20),0,3);
+
+	sprintf(Message,"%d",Cat2Temp);
+	c=GetMyStringLength(Message,0,3);
+	PutMyString(Message,(TEMP_XE_1+((BAR_WIDTH-c)>>2))-10,(((TEMP_YE_1-TEMP_YS)>>1)+TEMP_YS-20),0,3);
+
+	sprintf(Message,"^");
+	c=GetMyStringLength(Message,0,3);
+	PutMyString(Message,(TEMP_XS+((BAR_WIDTH-c)>>1)),(((TEMP_YE_1-TEMP_YS)>>1)+TEMP_YS),0,3);
+	CopyDisplayBufferToScreen(TEMP_XS,TEMP_YS,BAR_WIDTH,(TEMP_YE_1-TEMP_YS+1));
+#ifdef TRACE_IT
+TrBu[TrBuPtr]='k';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
+#endif
+}
+
+
+#define	EV_XS		36
+#define	EV_YS		48
+#define	EV_YE		(EV_YS+102)
+#define	EV_WIDTH	140
+#define	EV_XE		(EV_XS+EV_WIDTH)
 
 void UpdateDriveMode(void)
 {
@@ -4499,6 +6330,9 @@ TrBu[TrBuPtr]='V';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 		case 0x40 :		// EV operation
 			ColorInfo=Mode_Electric_Color;
 			PictureInfo=(unsigned char *)Mode_Electric_Picture;
+#ifdef USE_VOICE_ANNOUNCEMENT
+			if(LEVMode!=EVMode) {CallVoice(V_EVACT,1);LEVMode=EVMode;}
+#endif
 		break;
 		case 0x0 :		// Normal operation
 			if(ICEPowered)
@@ -4520,6 +6354,13 @@ TrBu[TrBuPtr]='V';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 					sr=0;
 				}
 			}
+#ifdef USE_VOICE_ANNOUNCEMENT
+			if(LEVMode!=EVMode)
+			{
+				if(LEVMode==0x40) CallVoice(V_EVCANC,1);
+				LEVMode=EVMode;
+			}
+#endif
 		break;
 		case 0x80 :		// Can not complete EV request
 			ColorInfo=Mode_ElectricCanc_Color;
@@ -4528,6 +6369,13 @@ TrBu[TrBuPtr]='V';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 		default :		// EV cancelled by override
 			ColorInfo=Mode_ElectricCanc_Color;
 			PictureInfo=(unsigned char *)Mode_ElectricCanc_Picture;
+#ifdef USE_VOICE_ANNOUNCEMENT
+			if(LEVMode!=EVMode)
+			{
+				if(LEVMode==0x40) CallVoice(V_EVCANC,1);
+				LEVMode=EVMode;
+			}
+#endif
 		break;
 	}
 
@@ -4555,22 +6403,51 @@ TrBu[TrBuPtr]='V';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 			++c;++d;
 		}
 	}
-
-#ifdef SHOWEXTRAVALUES
-	if(ShowValues>1)	// Override "Normal" strings...
-	{
-		sprintf(Message,"%02x",EVMode);
-	}
-
-
-#endif
-
-	CopyDisplayBufferToScreen(EV_XS,EV_YS,EV_XE,EV_YE);
+	CopyDisplayBufferToScreen(EV_XS,EV_YS,EV_WIDTH,(EV_YE-EV_YS+1));
 
 #ifdef TRACE_IT
 TrBu[TrBuPtr]='v';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 #endif
 }
+
+#define	EI_XS		RPM_XS
+#define	EI_YS		(RPM_YS-50)			// (TEMP_YE+10)
+#define	EI_XE		RPM_XE
+#define	EI_YE		(EI_YS+40)			// (RPM_YS-10)
+#define	EI_HG		((EI_YE)-(EI_YS))		// BARWIDTH = 180
+
+void PutExtraInfo(void)
+{
+register int	a,b,c,va;
+unsigned char	Rc,Gc;
+
+	ClearDisplayBufferArea(EI_XS,EI_YS,BAR_WIDTH,EI_HG);
+
+	if(PreRegVal>0)
+	{
+		if((va=((int)((float)PreRegVal*1.8f)))>180) va=180;
+		Gc=(unsigned char)((float)va*1.412f);
+		Rc=(unsigned char)(255-Gc);
+		for(b=EI_YS;b<EI_YE;b++)
+		{
+			c=b*WIDTH+EI_XS;
+			for(a=0;a<va;a++)
+			{
+				ImageBuffer[c].R=Rc;
+				ImageBuffer[c].G=Gc;
+				ImageBuffer[c].B=16;
+				++c;
+			}
+		}
+	}
+
+	sprintf(Message,"%d%%",PreRegVal);
+	c=GetMyStringLength(Message,0,3);
+	PutMyString(Message,(EI_XS+((BAR_WIDTH-c)>>1)),(EI_YS+5),0,3);
+
+	CopyDisplayBufferToScreen(EI_XS,EI_YS,BAR_WIDTH,(EI_HG+1));
+}
+
 
 #if 0
 #define	EV_XS	CURRENT_XS
@@ -4619,12 +6496,6 @@ TrBu[TrBuPtr]='V';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 	}
 
 
-#ifdef SHOWEXTRAVALUES
-	if(ShowValues>1)	// Override "Normal" strings...
-	{
-		sprintf(Message,"%02x",EVMode);
-	}
-#endif
 	c=GetMyStringLength(Message,0,3);
 	PutMyString(Message,(EV_XS+((BAR_WIDTH-c)>>1)),(((EV_YE-EV_YS)>>1)+EV_YS-8),0,3);
 
@@ -4642,7 +6513,7 @@ TrBu[TrBuPtr]='V';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 			++c;++d;
 		}
 	}
-	CopyDisplayBufferToScreen(EV_XS,EV_YS,EV_XE,EV_YE);
+	CopyDisplayBufferToScreen(EV_XS,EV_YS,BAR_WIDTH,(EV_YE-EV_YS+1));
 #ifdef TRACE_IT
 TrBu[TrBuPtr]='v';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 #endif
@@ -4711,267 +6582,295 @@ TrBu[TrBuPtr]='u';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 return((unsigned int)((((int)c<<8)+(int)d)));
 }
 
-//int	CFCNTR=0;
 
-void AnalyseFrame(int Position)
+#ifdef MORE_DATA
+void AnalyseBrakes(int Position)
 {
-register unsigned int	V;
-register unsigned char	CV,CV1;
-register int		a,b,c;
+register unsigned char	CV;
 
-#ifdef TRACE_IT
-TrBu[TrBuPtr]='Z';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
-#endif
-
-#ifdef COMM_DEBUG
-printf(" '%03x' ",IC_MessageID);fflush(stdout);
-#endif
-	switch(IC_MessageID)
+	if(CollectCurrent)
 	{
-		case 0x3B :	// Current	60/s
-			V=MineUInt(Position+4);
-			AccumulatedHB_Level+=(unsigned long)V;
-			V=MineUInt(Position);
-//printf("\n%08x",V);fflush(stdout);
-
-//			++CFCNTR;
-
-			if(V>=0x800)		// Regen  0x0FF4  0x0E59
-			{
-				V=0x0FFF-V;
-#ifdef ELECTRIC_STATISTICS
-				if(ICEPowered)
-				{
-					Cr_Regen_ICE+=(unsigned long)V;
-					Cr_Regen_ICE_Cnt++;
-				}
-				else
-				{
-					Cr_Regen_noICE+=(unsigned long)V;
-					Cr_Regen_noICE_Cnt++;
-				}
+		CV=MineChar(Position+8);
+		Info_Brakes+=(unsigned int)CV;
+		++Info_Brakes_Cnt;
+	}
+}
 #endif
-				AccumulatedCurrent-=(long)V;
+
+
+//#define	GG_UPPER_LIMIT		40
+#define		REFILL_UPPER_TRIGGER	34
+#define		REFILL_LOWER_TRIGGER	12
+
+void AnalyseGasGauge(int Position)
+{
+register unsigned char	CV,CV1;
+
+	CV1=MineChar(Position);
+	CV=MineChar(Position+2);
+	if((GasGauge!=CV)||(CV1!=GasGaugeExtraValue))
+	{
+		if((CV>REFILL_UPPER_TRIGGER)&&(GasGauge<REFILL_LOWER_TRIGGER))
+		{
+			TripKilometers=0.0f;
+			TripGallonValue=0.0f;
+			FirstGasReading=2;
+		}
+		GasGaugeExtraValue=CV1;
+		GasGauge=CV;
+		UpdateFuelFile();
+		FirstGasReading=0;
+		if(!DoorStatus) UpdateGG();
+	}
+}
+
+void AnalyseLights(int Position)
+{
+register unsigned char	CV;
+
+	CV=MineChar(Position+4);	// Bit #3 is the Key one
+	if(CV!=LightValue)
+	{
+		LightValue=CV;
+		CV>>=3;
+		CV&=1;
+		if(InstrumentsDimmed!=CV)
+		{
+			InstrumentsDimmed=CV;
+			AdjustBackLight();
+		}
+	}
+}
+
+void AnalyseDoors(int Position)
+{
+register unsigned char	CV;
+
+	if(SpeedAccumulated)			// If moving, don't show open door...
+	{
+		DoorStatus=0;
+		CV=(unsigned char)MineChar(Position+4);
+#ifdef USE_VOICE_ANNOUNCEMENT
+		if(CV!=0)			// Open
+		{
+			if(DoorOpenCnt==0)
+			{
+				CallVoice(V_DOOROPEN,1);
+				DoorOpenCnt=5;
 			}
 			else
-			{
-#ifdef ELECTRIC_STATISTICS
-				if(ICEPowered)
-				{
-					Cr_Consd_ICE+=(unsigned long)V;
-					Cr_Consd_ICE_Cnt++;
-				}
-				else
-				{
-					Cr_Consd_noICE+=(unsigned long)V;
-					Cr_Consd_noICE_Cnt++;
-				}
-#endif
-				AccumulatedCurrent+=(long)V;
-			}
-#ifdef CHKMSGTRAFFIC
-			++d3b;
-			if(N3b>V) N3b=V;
-			if(X3b<V) X3b=V;
-#endif
-			if(--CurrentFreqCntr==0)
-			{
-				UpdateCurrent();
-			}
-		break;
-
-		case 0x120 :
-			if(IB[Position+13]=='0')		// If car is in standby
-				PriusIsPowered=0;
-			else
-				if(!PriusIsPowered) PriusIsPowered=1;
-		break;
-
-		case 0x348 :	// Throttle	11.3/s		0 - 33280
-			CV=MineChar(Position+8);	// 0 when ICE is not excerting power
-			if(CV!=0) CV=1;
-			if(ICEPowered!=CV)
-			{
-				ICEPowered=CV;
-				if(!DoorStatus) UpdateDriveMode();
-			}
-			V=MineUInt(Position+4);
-			if(LatestRPM==0)
-			{
-				V=0;
-			}
-#ifdef CHKMSGTRAFFIC
-			++d348;
-			if(N348>V) N348=V;
-			if(X348<V) X348=V;
-#endif
-			ThrottleAccumulated+=(unsigned long)V;
-			++ThrottleAccumulatedCntr;
-		break;
-
-		case 0x3C8 :	// RPM		7.1/s	0 - 26880
-			CV=MineChar(Position+4);
-#ifdef CHKMSGTRAFFIC
-			++d3c8;
-			if(N3c8>V) N3c8=V;
-			if(X3c8<V) X3c8=V;
-#endif
-			AccumulatedRPM+=(unsigned int)CV;
-			if(--RPMFreqCntr==0)
-			{
-				if((CV==0)&&(LatestRPM!=0))
-				{
-					LatestRPM=0;
-					UpdateDriveMode();
-				}
-				else
-					LatestRPM=CV;
-				UpdateRpm();
-			}
-		break;
-
-		case 0x3CA :	// Speed	4.6/s
-#ifdef CHKMSGTRAFFIC
-			++d3ca;
-#endif
-			SpeedAccumulated+=(unsigned int)(MineChar(Position+4));
-			++SpeedAccumulatedCntr;
-			if(DoorStatus)
-			{
-				if(SpeedAccumulated)
-				{
-					DoorStatus=0;
-					ClearDisplayBuffer();
-					UpdateDriveMode();
-					UpdateGG();
-					UpdateTemp();
-					UpdateSOC();
-					CopyDisplayBufferToScreen(0,0,WIDTH,HEIGHT);
-				}
-			}
-		break;
-
-		case 0x3CB :	// SOC		4.6/s
-#ifdef CHKMSGTRAFFIC
-			++d3cb;
-#endif
-			if(--SOCUpdater==0)
-			{
-				V=(unsigned int)(MineChar(Position+8));
-				V+=(unsigned int)(MineChar(Position+10));
-				V>>=1;						// Temp of Battery
-				BattTempValue=V;
-
-				V=(unsigned int)(MineChar(Position+6));
-				if(V!=SOCValue)
-				{
-					SOCValue=V;
-					if(!DoorStatus) UpdateSOC();
-				}
-				SOCUpdater=5;
-			}
-		break;
-
-		case 0x52C :	// Temp		4.6/s
-#ifdef CHKMSGTRAFFIC
-			++d52c;
-#endif
-			V=(unsigned int)(MineChar(Position+2));
-			if(V!=TempValue)
-			{
-				TempValue=V;
-				if(!DoorStatus) UpdateTemp();
-			}
-		break;
-
-		case 0x57F :	// Ligths / Instrument Panel Dimming
-
-			CV1=MineChar(Position+4);	// Bit #3 is the Key one
-			if(CV1!=LightValue)
-			{
-				LightValue=CV1;
-				CV1>>=3;
-				CV1&=1;
-				if(InstrumentsDimmed!=CV1)
-				{
-					InstrumentsDimmed=CV1;
-					CopyDisplayBufferToScreen(0,0,WIDTH,HEIGHT);
-				}
-			}
-		break;
-
-		case 0x5A4 :	// Gas Gauge  0.1/s
-#ifdef CHKMSGTRAFFIC
-			++d5A4;
-#endif
-			CV1=MineChar(Position);
-			CurrGasGauge=MineChar(Position+2);
-			if((GasGauge!=CurrGasGauge)||(CV1!=GasGaugeExtraValue))
-			{
-				GasGaugeExtraValue=CV1;
-				if(((CurrGasGauge+1)==GasGauge)||((GasGauge+1)==CurrGasGauge))	// Since it changed only 1 unit, we can update, no median needs to be computed
-				{
-					GasGauge=CurrGasGauge;
-				}
-				else
-				{
-					GasGauge+=CurrGasGauge;
-					GasGauge>>=1;
-				}
-				if(!DoorStatus) UpdateGG();
-			}
-		break;
-
-		case 0x5B6 :		// Doors
-			if(SpeedAccumulated)
-				DoorStatus=0;
-			else
-			{
-				CV1=(unsigned char)MineChar(Position+4);
-				if((CV1!=0)||(DoorStatus!=0))	// open...
-				{
-					if(DoorStatus!=CV1)
-					{
-						DoorStatus=CV1;
-						ShowPrius();
-					}
-					if(DoorStatus==0)
-					{
-						ClearDisplayBuffer();
-						UpdateDriveMode();
-						UpdateGG();
-						UpdateTemp();
-						UpdateSOC();
-						CopyDisplayBufferToScreen(0,0,WIDTH,HEIGHT);
-					}
-				}
-			}
-		break;
-
-		case 0x529 :		// EV mode
-			CV=MineChar(Position+8);
-			if(EVMode!=CV)
-			{
-				EVMode=CV;
-//				if(!DoorStatus)
-					UpdateDriveMode();
-			}
-		break;
-
-#ifdef CHKMSGTRAFFIC
-		default :	// [0x349], [0x34A], [0x34B], 0x3C9		115/s
-			++dd;
-		break;
+				--DoorOpenCnt;
+		}
 #endif
 	}
-#ifdef TRACE_IT
-TrBu[TrBuPtr]='z';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
-#endif
+	else
+	{
+		CV=(unsigned char)MineChar(Position+4);
+		if((CV!=0)||(DoorStatus!=0))	// open...
+		{
+			if(DoorStatus!=CV)
+			{
+				DoorStatus=CV;
+				DoorOpenCnt=0;
+				ShowPrius();
+			}
+			if(DoorStatus==0)
+			{
+				ClearDisplayBuffer();
+				UpdateDriveMode();
+				UpdateGG();
+				UpdateTemp();
+				UpdateSOC();
+				CopyDisplayBufferToScreen(0,0,WIDTH,HEIGHT);
+			}
+		}
+	}
+}
+
+void AnalyseSpeed(int Position)
+{
+register unsigned char	CV;
+struct timeval		tv;
+
+	CV=MineChar(Position+4);
+	SpeedCurrStage+=(unsigned int)CV;
+	SpeedCurrStageCntr++;
+	if(CV<=(PrvSpd+1))			// Slowing down...
+	{
+		if(CV<PrvSpd)		// Only trigger if no false positive
+		{
+			if(Decel==0)
+			{
+				Decel=1;
+				CollectCurrent=1;
+				gettimeofday(&tv,NULL);
+				CollTime=(unsigned int)((time_t)(tv.tv_sec)-StartTime)*(unsigned int)100+(unsigned int)((float)(tv.tv_usec)/10000.0f);
+				StrtSpd=CV;
+			}
+		}
+		if(CV==0)
+		{
+			if(Decel) StopCurrentCollection('S');
+			Decel=0;
+		}
+	}
+	else
+	{
+		if(Decel)
+		{
+			StopCurrentCollection('A');
+			Decel=0;
+		}
+	}
+	PrvSpd=CV;
+
+	SpeedAccumulated+=(unsigned int)CV;
+	++SpeedAccumulatedCntr;
+	if(DoorStatus)		// Door is open
+	{
+		if(SpeedAccumulated)		// If moving
+		{
+			DoorStatus=0;
+			ClearDisplayBuffer();
+			UpdateDriveMode();
+			UpdateGG();
+			UpdateTemp();
+			UpdateSOC();
+			CopyDisplayBufferToScreen(0,0,WIDTH,HEIGHT);
+		}
+	}
+}
+
+void AnalyseSOC(int Position)
+{
+register unsigned int	V;
+int			IV;
+
+	if(--SOCUpdater==0)
+	{
+		V=(unsigned int)(MineChar(Position+8));
+		V+=(unsigned int)(MineChar(Position+10));
+		V>>=1;						// Temp of Battery
+		BattTempValue=V;
+		BattMaxChargeCurrent=(unsigned int)(MineChar(Position+0));
+		BattMaxDisChargeCurrent=(unsigned int)(MineChar(Position+2));
+		V=(unsigned int)(MineChar(Position+6));
+		if(V!=SOCValue)
+		{
+			if((IV=(int)SOCValue-(int)V)<0) IV=-IV;
+			if((IV<4)||(SOCValue==0))	// Filter Ocasional Error on receiving
+			{
+				SOCValue=V;
+				if(!DoorStatus) UpdateSOC();
+			}
+		}
+		SOCUpdater=5;
+	}
+}
+
+void AnalyseRPM(int Position)
+{
+register unsigned char	CV;
+
+	CV=MineChar(Position+4);
+	AccumulatedRPM+=(unsigned int)CV;
+	if(--RPMFreqCntr==0)
+	{
+		if((CV==0)&&(LatestRPM!=0))
+		{
+			LatestRPM=0;
+			UpdateDriveMode();
+			UpdateCatTemp();
+		}
+		else
+			LatestRPM=CV;
+		UpdateRpm();
+	}
+}
+
+void AnalyseThrottle(int Position)
+{
+register unsigned int	V;
+register unsigned char	CV;
+
+	CV=MineChar(Position+8);	// 0 when ICE is not excerting power
+//	if(CV!=0) CV=1;
+	if((CV<0xE0)&&(CV!=0)) CV=1; else CV=0;
+	if(ICEPowered!=CV)
+	{
+		ICEPowered=CV;
+		if(!DoorStatus) UpdateDriveMode();
+	}
+	V=MineUInt(Position+4);
+	if(LatestRPM==0)
+	{
+		V=0;
+	}
+	ThrottleAccumulated+=(unsigned long)V;
+	++ThrottleAccumulatedCntr;
+}
+
+void AnalyseCurrent(int Position)
+{
+register unsigned int	V,B;
+
+	B=MineUInt(Position+4);				// Voltage
+	AccumulatedHB_Level+=(unsigned long)B;
+	V=MineUInt(Position);				// Current
+
+	if(ICEPowered) ICEPoweredCurrStage++;
+
+	if(V>=0x800)		// Regen  0x0FF4  0x0E59
+	{
+		V=0x0FFF-(V&0xFFF);
+		if(MinCurrent<V)
+		{
+			MinCurrent=V;
+			MinCurrentVoltage=B;
+			MinMaxCurrentDisplay=30;	// 30 seconds
+		}
+		AccumulatedCurrent-=(long)V;
+		if(CollectCurrent)
+		{
+			if(ICEPowered==0)
+			{
+				CollCurr+=(unsigned long)V;
+				CollVolt+=(unsigned long)B;
+				++CollCntr;
+			}
+			CollectCurrent=1;
+		}
+	}
+	else
+	{
+		if(MaxCurrent<V)
+		{
+			MaxCurrent=V;
+			MaxCurrentVoltage=B;
+			MinMaxCurrentDisplay=30;	// 30 seconds
+		}
+		AccumulatedCurrent+=(long)V;
+		if(CollectCurrent)
+		{
+			if(++CollectCurrent>30) {StopCurrentCollection('C');Decel=0;}
+		}
+	}
+	if(--CurrentFreqCntr==0)
+	{
+		UpdateCurrent();
+		ICEPoweredCurrStage=0;
+		SOCValueCurrStage=SOCValue;
+		SpeedCurrStage=0;
+		SpeedCurrStageCntr=0;
+	}
 }
 
 void FastPoll(void)
 {
-register int	cp,pp,a,go,ml,c,mid;
+register int		cp,pp,a,go,ml,c,mid;
+register unsigned int	V;
+unsigned char		CV;
+
 
 #ifdef SIMULATION
 int		b;
@@ -4981,16 +6880,22 @@ unsigned char	CV1;
 	ICEPowered=(unsigned char)(rand()&1);
 	ThrottleAccumulated+=(unsigned long)(rand()%0xFFFF);
 	++ThrottleAccumulatedCntr;
-	SpeedAccumulated+=(unsigned int)(float)(rand()&0x3F);
+	SpeedAccumulated+=(unsigned int)(float)(rand()&0x7F);
 	++SpeedAccumulatedCntr;
 	AccumulatedRPM+=(unsigned int)(rand()%0x01FF);
 	LatestRPM=(unsigned char)(rand()&0x1F);UpdateRpm();
 	SOCValue=(unsigned int)(rand()&0x3F)+90;UpdateSOC();
-	TempValue=(unsigned int)(rand()&0x7F)+30;UpdateTemp();
+	TempValue=(unsigned char)(rand()&0x7F)+10;
+	EngBlckTmp=(unsigned char)(rand()&0x7F);
+	UpdateTemp();
+	Cat1Temp=(unsigned char)(rand()&0xFF)+10;
+	Cat2Temp=(unsigned char)(rand()&0xFF)+10;
+	UpdateCatTemp();
+
 	GasGauge=(unsigned char)(rand()&0x1F);UpdateGG();
 	CV1=0x20;CV1<<=(rand()&0x3);
 	EVMode=CV1;UpdateDriveMode();	// 0x40, 0x80, 0x00, 
-	CopyDisplayBufferToScreen((EV_XE-20),EV_YS,EV_XE,EV_YE);
+	CopyDisplayBufferToScreen((EV_XE-20),EV_YS,BAR_WIDTH,(EV_YE-EV_YS+1));
 	return;
 #endif
 
@@ -5006,7 +6911,16 @@ TrBu[TrBuPtr]='<';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 	++NofNInv;
 #endif
 
-	if((cp=read(Port,IB+IBCP,(IBS-IBCP)))<=0)
+
+#ifdef SIMULATION
+	sprintf(IB+IBCP,"t03B502E400BFE5\nt12080000000010130450\nt3486000100000052\nt3C8504280000FC\nt3CA5004D210040\nt3CB76664007E131141\nt3CD5000000BE93\nt52C2238A\nt57F768301000000000\nt5A426323\nt5296A70000854000\nt5B6364C100\n");
+	cp=231-26-12;
+#else
+	cp=read(Port,IB+IBCP,(IBS-IBCP));
+#endif
+
+
+	if(cp<=0)
 	{
 #ifdef TRACE_IT
 TrBu[TrBuPtr]='>';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
@@ -5015,10 +6929,55 @@ TrBu[TrBuPtr]='1';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 		return;
 	}
 
+	if(NoTrafficYet)
+	{
+		NoTrafficYet=0;
+#ifdef USE_VOICE_ANNOUNCEMENT
+		CallVoice(V_GREETINGS,0);
+		SayTime();
+#endif
+	}
+
+	ml=SOC_XS+TrafficCtr+(TrafficSubCtr*29)+((GG_YE+4)*WIDTH);
+	for(go=(GG_YE+4);go<(SOC_YS-4);go++)		// TrafficSubCtr==0 going right
+	{
+		ImageBuffer[ml].R=0;
+		ImageBuffer[ml].G=0;
+		ImageBuffer[ml].B=0;
+		ml+=WIDTH;
+	}
+	CopyDisplayBufferToScreen((SOC_XS+TrafficCtr+(TrafficSubCtr*29)),(GG_YE+4),1,((SOC_YS-4)-(GG_YE+4)+1));
+
+	if(TrafficSubCtr)
+	{
+		if(TrafficCtr==0)
+			TrafficSubCtr=0;
+		else
+			--TrafficCtr;
+	}
+	else
+	{
+		if(TrafficCtr==149)
+			TrafficSubCtr=1;
+		else
+			++TrafficCtr;
+	}
+
+	ml=SOC_XS+TrafficCtr+((1-TrafficSubCtr)*29)+(GG_YE+4)*WIDTH;
+	for(go=(GG_YE+4);go<(SOC_YS-4);go++)
+	{
+		ImageBuffer[ml].R=255;
+		ImageBuffer[ml].G=150;
+		ImageBuffer[ml].B=0;
+		ml+=WIDTH;
+	}
+	CopyDisplayBufferToScreen((SOC_XS+TrafficCtr+((1-TrafficSubCtr)*29)),(GG_YE+4),1,((SOC_YS-4)-(GG_YE+4)+1));
+
+	NofTrafficBytes+=(unsigned int)cp;
+
 
 #ifdef TRAFFIC_PROFILE
 	++NofInv;
-	NofTrafficBytes+=(unsigned int)cp;
 #endif
 
 	IBCP+=cp;
@@ -5031,9 +6990,17 @@ TrBu[TrBuPtr]='1';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 		else
 		{			// 't' found, a points to MessageID;
 			pp=cp;
-			a=cp+1;
+			a=cp+1;		// a points to first character in ID
 			if((a+4)<IBCP)	// The header can be mined
 			{
+#if 0
+if(IB[a]=='7')
+{
+printf("\n");
+for(ml=0;ml<20;ml++) printf("%c",IB[a+ml]);
+fflush(stdout);
+}
+#endif
 				ml=(int)(IB[a+3]-'0');		// t3CDl0011223344556677
 				if((ml>0)&&(ml<9))		// valid ?
 				{
@@ -5048,13 +7015,111 @@ TrBu[TrBuPtr]='1';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 							else
 								mid+=(IB[a]-'0');
 						}
-						if((mid>0x38)&&(mid!=0x3C9))
+
+//  0x3B: Current		60/s
+// 0x120: CarOn/Off
+// 0x348: Throttle		11.3/s
+// 0x3C8: RPM			7.1/s
+// 0x3CA: Speed			4.6/s
+// 0x3CB: SOC			4.6/s
+// 0x3CD: Battery Voltage	4.6/s
+// 0x52C: Temp			4.6/s
+// 0x57F: Lights / Instrument Panel Dimming
+// 0x5A4: Gas Gauge  		0.1/s
+// 0x5B6: Doors
+// 0x529: EV mode
+// 0x7Ex: Module response
+						++a;
+						switch(mid)
 						{
-							IC_MessageLength=ml;
-							IC_MessageID=mid;
-							AnalyseFrame((a+1));
+#ifdef MORE_DATA
+							case 0x30 :	// Brakes
+								AnalyseBrakes(a);
+							break;
+#endif
+
+							case 0x39 :	// Temp		60/s
+								if(--EngBlckTmpCnt==0)
+								{
+									EngBlckTmpCnt=30;
+									CV=MineChar(a);
+									if(CV!=EngBlckTmp)
+									{
+										EngBlckTmp=CV;
+										if(!DoorStatus) UpdateTemp();
+									}
+								}
+							break;
+
+							case 0x3B :	// Current	60/s
+								AnalyseCurrent(a);
+							break;
+
+							case 0x120 :
+								if(IB[a+13]=='0')		// If car is in standby
+									PriusIsPowered=0;
+								else
+									PriusIsPowered=1;
+							break;
+
+							case 0x348 :	// Throttle	11.3/s		0 - 33280
+								AnalyseThrottle(a);
+							break;
+
+							case 0x3C8 :	// RPM		7.1/s	0 - 26880
+								AnalyseRPM(a);
+							break;
+
+							case 0x3CA :	// Speed	4.6/s
+								AnalyseSpeed(a);
+							break;
+
+							case 0x3CB :	// SOC		4.6/s
+								AnalyseSOC(a);
+							break;
+
+							case 0x3CD :	// Battery Voltage		4.6/s
+								V=MineUInt(a+4);			// Voltage
+								if(BattVoltageValue!=V) BattVoltageValue=V;
+							break;
+
+							case 0x52C :	// Temp		4.6/s
+								CV=MineChar(a+2);
+								if(CV!=TempValue)
+								{
+									TempValue=CV;
+									if(!DoorStatus) UpdateTemp();
+								}
+							break;
+
+							case 0x57F :	// Lights / Instrument Panel Dimming
+								AnalyseLights(a);
+							break;
+
+							case 0x5A4 :	// Gas Gauge  0.1/s
+								AnalyseGasGauge(a);
+							break;
+
+							case 0x5B6 :		// Doors
+								AnalyseDoors(a);
+							break;
+
+							case 0x529 :		// EV mode
+								CV=MineChar(a+8);
+								if(EVMode!=CV)
+								{
+									EVMode=CV;
+									UpdateDriveMode();
+								}
+							break;
+
+							case 0x7E8 :
+							case 0x7EA :
+							case 0x7EB :
+								AnalyseHighCANMessages(mid,a);
+							break;
 						}
-						cp=a+3+(ml<<1);
+						cp=a+2+(ml<<1);
 					}
 					else
 						go=0;
@@ -5070,6 +7135,10 @@ TrBu[TrBuPtr]='1';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 	if(pp==0)
 	{
 		IBCP=0;
+#ifdef TRACE_IT
+TrBu[TrBuPtr]='>';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
+TrBu[TrBuPtr]='2';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
+#endif
 		return;
 	}
 	memcpy((void*)(&IB[0]),(void*)(&IB[pp]),(size_t)(IBCP-pp));
@@ -5080,15 +7149,14 @@ TrBu[TrBuPtr]='1';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 #ifdef TRACE_IT
 TrBu[TrBuPtr]='>';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 #endif
+
 return;
 }
 
 int main(int argc,char **argv)
 {
 int		a,b,c,d,e;
-#ifdef ELECTRIC_STATISTICS
-float		fv;
-#endif
+unsigned char	FVoiceMode=0;
 #ifdef TRAFFIC_PROFILE
 float		fv;
 #endif
@@ -5103,11 +7171,56 @@ float		fv;
 TrBu[TrBuPtr]='.';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 #endif
 
+	b=1;
+	while(argc>b)
+	{
+		a=0;
+		while(argv[b][a]!='\0')
+		{
+			switch(argv[b][a])
+			{
+				case 'v' :
+					FVoiceMode=1;
+				break;
+				case 'f' :
+					ForcePath=1;
+				break;
+				case 's' :
+					SI_Measurements=1;
+				break;
+				case '-' :
+				case 'h' :
+				case '?' :
+					printf("\n\nGraphCan %s",VERSION_STRING);
+					printf("\n\nUsage : %s [vfs]",argv[0]);
+					printf("\n\tv - Turn OFF voice mode");
+					printf("\n\tf - Take sound samples and player from %s directory",FORCE_PATH);
+					printf("\n\ts - Use SI measurements ( km/h etc.)");
+					printf("\n\nTouching the 1st vertical quarter of the screen :");
+					printf("\n    Switch Voice On/Off.");
+					printf("\n 2nd and 3rd quarter of the screen :");
+					printf("\n    While Initializing CAN : Go to Info / Setting mode.");
+					printf("\n    While in ScreenSaver : Save data to card.");
+					printf("\n    While in Running mode : Switch between SI and imperial.");
+					printf("\n 4th quarter :");
+					printf("\n    Quit.");
+					printf("\n\nType 'su' and 'chmod a+w /dev/fl' for backlight control from GraphCan after reboot...");fflush(stdout);
+					printf("\n\n");fflush(stdout);
+					exit(0);
+				break;
+			}
+			++a;
+		}
+		++b;
+	}
+
 	SetUpMySignals();
 	if(CreateMainWindow()) return(0);
 
+	DefineButtons();
 	SetUpPicture();
 
+#ifdef USE_KEYBOARD
 	ioctl(0,TCGETS,&oldT);
 	ioctl(0,TCGETS,&newT);
 	newT.c_lflag&=~ECHO;
@@ -5123,18 +7236,27 @@ TrBu[TrBuPtr]='.';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 			printf("\nError with SIGIO for terminal...");fflush(stdout);
 		}
 	}
-
+#endif
 
 	while(RealQuit==0)
 	{
+		RunningTask=TASK_INIT;
+		AdjustBackLight();
+		NoTrafficYet=1;
+#ifdef USE_VOICE_ANNOUNCEMENT
+		InitVoice();
+#endif
 
-#ifndef SIMULATION
+		ResetValues();
+		LoadStat();
+		if(FVoiceMode) VoiceMode=0;
 
 INIT_CAN :
-
 		ClearDisplayBuffer();
 		sprintf(Message,"Initializing CAN...");
 		PutMyString(Message,20,150,0,6);
+		c=GetMyStringLength(VERSION_STRING,0,2)+10;
+		PutMyString(VERSION_STRING,(WIDTH-c),450,0,2);
 		CopyDisplayBufferToScreen(0,0,WIDTH,HEIGHT);
 		c=1;
 
@@ -5148,10 +7270,15 @@ INIT_CAN :
 				CopyDisplayBufferToScreen(0,0,WIDTH,HEIGHT);
 				if((ProcessGo==0)||(RealQuit==1))
 				{
+					ClearDisplayBuffer();
+					sprintf(Message,"Quit detected, exit.");
+					PutMyString(Message,20,20,0,6);
+					CopyDisplayBufferToScreen(0,0,WIDTH,HEIGHT);
 					CleanUp(0);
-					printf("\nExciting...");fflush(stdout);
+					printf("\nExited...\n");fflush(stdout);
 					return(1);
 				}
+				if(RunningTask==TASK_INFO) RunTaskInfoMain();
 				if(Port>=0)
 				{
 					close(Port);
@@ -5166,12 +7293,9 @@ INIT_CAN :
 			else
 				c=0;
 		}
-#endif
-
 		if(Port<0) goto INIT_CAN;			// Just to avoid any confusion... This should never happen...
 
-		ResetValues();
-		LoadStat();
+		RunningTask=TASK_RUNNING;
 
 		ClearDisplayBuffer();
 		UpdateDriveMode();UpdateGG();
@@ -5189,55 +7313,38 @@ INIT_CAN :
 
 			if(NeedSynced)	// This gets invoked every second...
 			{
+
+				if(MinMaxkWDisplay>0) --MinMaxkWDisplay;
+				if(MinMaxCurrentDisplay>0) --MinMaxCurrentDisplay;
+
 #ifdef TRACE_IT
 TrBu[TrBuPtr]='!';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 #endif
 
-
 #ifdef TRAFFIC_PROFILE
-				fv=(float)NofNInv/(float)NofInv;
-				sprintf(Message,"%1.2f %d",fv,NofTrafficBytes);
-				c=GetMyStringLength(Message,0,2);
-				ClearDisplayBufferArea(SOC_XS,SOC_YS-24,BAR_WIDTH,24);
-				PutMyString(Message,((WIDTH>>1)-(c>>1)),SOC_YS-23,0,2);
-				CopyDisplayBufferToScreen(((WIDTH>>1)-(c>>1))-10,(SOC_YS-24),c,24);
 
-				NofInv=0;NofNInv=0;NofTrafficBytes=0;
+				NofInv=0;NofNInv=0;
 #endif
 
+				if(NofTrafficBytes==0)
+				{
+					if(++NofTrafficBytesZero>3) PriusIsPowered=0;
+				}
+				else
+				{
+					NofTrafficBytesZero=0;
+				}
 
 				UpdateSpeedComputations();
 
-				if(++SyncCntr>4)
-				{
-#ifdef ELECTRIC_STATISTICS
-					for(b=0;b<46;b++)
-					{
-						c=10+b*WIDTH;
-						for(a=10;a<100;a++)
-						{
-							ImageBuffer[c].R=0;
-							ImageBuffer[c].G=0;
-							ImageBuffer[c].B=0;
-							++c;
-						}
-					}
+				SendCATRequests();
+
+#ifdef USE_VOICE_ANNOUNCEMENT
+				CheckTime();
 #endif
 
-#ifdef ELECTRIC_STATISTICS
-					if(Cr_Consd_noICE_Cnt>0) Consd_noICE+=(unsigned long)(Cr_Consd_noICE/Cr_Consd_noICE_Cnt);
-					if(Cr_Consd_ICE_Cnt>0) Consd_ICE+=(unsigned long)(Cr_Consd_ICE/Cr_Consd_ICE_Cnt);
-					if(Cr_Regen_noICE_Cnt>0) Regen_noICE+=(unsigned long)(Cr_Regen_noICE/Cr_Regen_noICE_Cnt);
-					if(Cr_Regen_ICE_Cnt>0) Regen_ICE+=(unsigned long)(Cr_Regen_ICE/Cr_Regen_ICE_Cnt);
-					Cr_Consd_noICE=0;
-					Cr_Consd_ICE=0;
-					Cr_Regen_noICE=0;
-					Cr_Regen_ICE=0;
-					Cr_Consd_noICE_Cnt=0;
-					Cr_Consd_ICE_Cnt=0;
-					Cr_Regen_noICE_Cnt=0;
-					Cr_Regen_ICE_Cnt=0;
-#endif
+				if(++SyncCntr>4)
+				{
 					if(--FSRCntr==0)	// 6*5 = 30 sec full screen refresh
 					{
 						if(!DoorStatus) UpdateGG();
@@ -5248,22 +7355,25 @@ TrBu[TrBuPtr]='!';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 				NeedSynced=0;
 
 
-//				if(((PreviousCurrentValue==0)&&(CurrentSpeed==0))&&(Sleeping==0))	// Prius turned off
-				if((PriusIsPowered==0)&&(Sleeping==0))	// Prius turned off
+				if((PriusIsPowered==0)&&(Sleeping==0)&&((unsigned char)CurrentSpeed==0))	// Prius turned off
 				{
-					if((difftime(time(NULL),StartTime))>5)
+					if((difftime(time(NULL),StartTime))>15)
 					{
+						RunningTask=TASK_SCREENSAVER;
 						alarm(0);
 						SaveStat();
 						Sleeping=1;
+						ScrSv_NumberOfTimes=1;
 						if(Port>=0)
 						{
 							sprintf(Message,"C\015");	// Close the CAN channel
-							WriteToPort(Message);
+							if(WriteToPort(Message)) {printf("\nError writing to port : Close CAN Channel");fflush(stdout);}
 							close(Port);
 							Port=-1;
 						}
 					}
+					else
+						PriusIsPowered=1;
 				}
 
 #ifdef TRACE_IT
@@ -5272,6 +7382,10 @@ TrBu[TrBuPtr]='@';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
 			}
 #ifdef TRACE_IT
 TrBu[TrBuPtr]=',';if(++TrBuPtr>=TRACE_BUFFER_LENGTH) TrBuPtr=0;
+#endif
+
+#ifdef NON_ZAURUS
+			XMainLoop();
 #endif
 
 		}
