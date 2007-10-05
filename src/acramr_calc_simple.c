@@ -1,5 +1,5 @@
 /*==============================================================================*/
-/* Program to calculcate one ACR/AMR register...				*/
+/* Very basic terminal program fpr restoring CAN232 basic settings...		*/
 /*										*/
 /* DATE:	2004-May-19 18:20:12						*/
 /*										*/

@@ -41,12 +41,18 @@ Working with ACR = 69000760   AMR = 106F000F
 
 
 #define	USE_SORTING	1
+#define PRIUS_SPECIFIC	1
 
 int	ACR,AMR,OriACR,OriAMR;
 #ifdef	USE_SORTING
 int	*ResultsBuffer=NULL;
 int	NoOfResults=0,SizeOfResultsBuffer=0;
 #endif
+
+#ifdef PRIUS_SPECIFIC
+int	PriusValues[]={0x2,0x20,0x22,0x23,0x25,0x30,0x38,0x39,0x3A,0x3B,0x3E,0x60,0x87,0xB0,0xB1,0xB3,0xB4,0xC9,0x120,0x230,0x244,0x262,0x348,0x34F,0x3C8,0x3C9,0x3CA,0x3CB,0x3CD,0x3CF,0x423,0x4C1,0x4C3,0x4C6,0x4C7,0x4C8,0x4CE,0x4D0,0x4D1,0x520,0x521,0x526,0x527,0x528,0x529,0x52C,0x540,0x553,0x554,0x56D,0x57F,0x591,0x5A4,0x5B2,0x5B6,0x5C8,0x5CC,0x5D4,0x5EC,0x5ED,0x5F8,0x602,0xC00,0xFFF};
+#endif
+
 unsigned char	PCOM[4096];
 
 
@@ -101,7 +107,21 @@ register int a,b,c;
 	for(a=0;a<NoOfResults;a++)
 	{
 //		printf("%03x  ",ResultsBuffer[a]);
+#ifdef PRIUS_SPECIFIC
+		b=ResultsBuffer[a];
+		c=0;
+		while((c<0xFFF)&&(PriusValues[c]!=0xFFF))
+		{
+			if(b==PriusValues[c])
+			{
+				PrintHexa(3,ResultsBuffer[a]);printf("  ");
+				c=0xFFE;
+			}
+			++c;
+		}
+#else
 		PrintHexa(3,ResultsBuffer[a]);printf("  ");
+#endif
 	}
 	fflush(stdout);
 }
@@ -128,6 +148,7 @@ register int	a;
 }
 #endif
 
+#if 0
 void CEval(void)
 {
 register int	a,tam,c;
@@ -136,7 +157,8 @@ register int	a,tam,c;
 	for(a=0;a<11;a++)
 	{
 		if(PCOM[a]==1) tam+=c;
-		c*=2;
+//		c*=2;
+		c<<=1;
 	}
 	tam+=ACR;
 #ifdef	USE_SORTING
@@ -145,10 +167,11 @@ register int	a,tam,c;
 	printf("%03x  ",tam);fflush(stdout);
 #endif
 }
+#endif
 
 void CWalkThisMany(int npc,int tm,int frh)
 {
-int	a,c=tm,k,tam;
+register int	a,c=tm,k,tam,ca,ctam,cc;
 
 	for(a=frh;a<npc;a++)
 	{
@@ -159,7 +182,21 @@ int	a,c=tm,k,tam;
 			PCOM[a]=1;
 			if(--c==0)
 			{
-				CEval();
+
+				ctam=0;cc=1;
+				for(ca=0;ca<11;ca++)
+				{
+					if(PCOM[ca]==1) ctam+=cc;
+//					cc*=2;
+					cc<<=1;
+				}
+				ctam+=ACR;
+#ifdef	USE_SORTING
+				AddToResultsBuffer(ctam);
+#else
+				printf("%03x  ",ctam);fflush(stdout);
+#endif
+
 				PCOM[a]=0;
 			}
 			else
@@ -172,10 +209,15 @@ int	a,c=tm,k,tam;
 
 void CWalker(int npc)
 {
-int	a,k;
+int	a,k,d=0;
 
 	for(a=1;a<npc;a++)
 	{
+		if(((a*100)/npc)>d)
+		{
+			printf("%d%% ",d);fflush(stdout);
+			d+=5;
+		}
 		for(k=0;k<npc;k++) PCOM[k]=0;
 		CWalkThisMany(npc,a,0);
 	}
@@ -223,7 +265,7 @@ int	lACR,lAMR,lsACR,lsAMR;
 	AMR=((OriAMR>>16)&0xFFFF);
 	lsACR=ACR;lsAMR=AMR;
 	NoOfResults=r1+r2;
-//			printf("\tACR = %04x%04x    AMR = %04x%04x",lACR,ACR,lAMR,AMR);
+//	printf("\tACR = %04x%04x    AMR = %04x%04x",lACR,ACR,lAMR,AMR);
 	printf("\n\n%d results =  ",NoOfResults);fflush(stdout);
 	NoOfResults=0;
 	GiveCombo(r1,lACR,lAMR);

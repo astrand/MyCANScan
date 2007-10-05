@@ -312,11 +312,18 @@ void Walker(void)
 {
 int	a,k;
 
-	for(a=1;a<numofids;a++)
+	if(numofids==1)
 	{
-		if(ResultPhase==0) printf(".");fflush(stdout);
-		for(k=0;k<numofids;k++) WIDW[k]=0;
-		WalkThisMany(a,0);
+			WalkThisMany(1,0);
+	}
+	else
+	{
+		for(a=1;a<numofids;a++)
+		{
+			if(ResultPhase==0) printf(".");fflush(stdout);
+			for(k=0;k<numofids;k++) WIDW[k]=0;
+			WalkThisMany(a,0);
+		}
 	}
 }
 

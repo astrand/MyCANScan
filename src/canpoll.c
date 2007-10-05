@@ -73,7 +73,7 @@ int		SharedDataMemId[2];		// for Dual Buffer
 char*		SharedDataMemPtr[2];		// for Dual Buffer
 int		SharedCommMemId;
 char*		SharedCommMemPtr;
-char		Message[16];
+char		Message[32];
 unsigned int	ActiveBank=0,AB_Cntr=0,ActiveFile=0,DiskIO=0;
 struct shmid_ds	SMMyInfo;
 static	pid_t	PidMain=-1,PidCollector=-1,PidMine=-1;
@@ -156,6 +156,9 @@ int WriteToPort(char* ZTV)
 register a=0,b=0,str=0;
 
 	while(*(ZTV+a)!='\0') ++a;
+
+printf("\nwriting to port %d. %d bytes.",Port,a);fflush(stdout);
+
 	b=write(Port,ZTV,a);
 //	tcflush(Port,TCOFLUSH);
 
@@ -469,6 +472,56 @@ printf("\nCollector STARTED sampling...");fflush(stdout);
 printf("\nCollector '%s' sampling...",((SamplingIsStopped)?("SUSPENDED"):("RESUMED")));fflush(stdout);
 						}
 					break;
+					case 252 :
+
+/*
+
+Engine :	7E080213B00000000000
+
+response came 55 message later as : 7E880253
+
+Cruise Ctrl :	7E080213800000000000
+
+response came 55 message later as : 7E880253
+
+HV :		7E280213B00000000000
+
+response came 54 message later as : 7EA80253
+
+Batt :		7E380213800000000000
+
+response came 59 message later as : 7EB80253
+
+for 7E2 :
+
+t7EA80253000000000000
+after sending B0, this is
+t7EA8045301A799000000
+
+No fault response is 0253000000000000
+
+
+no response for 7E1/7E4
+*/
+
+
+printf("\nMessage transmit request...");fflush(stdout);
+
+						InsertCharacter('d');
+//						sprintf(Message,"t7E080213800000000000\015");
+//						sprintf(Message,"t7E080213800000000000\015");
+//						sprintf(Message,"t7E280213B00000000000\015");
+						sprintf(Message,"t7E380213800000000000\015");
+						WriteToPort(Message);
+					break;
+					case 251 :
+printf("\nMessage transmit more request...");fflush(stdout);
+						InsertCharacter('m');
+//						sprintf(Message,"t7E083000000000000000\015");
+//						sprintf(Message,"t7E283000000000000000\015");
+						sprintf(Message,"t7E383000000000000000\015");
+						WriteToPort(Message);
+					break;
 					default :
 #ifdef COMM_DEBUG
 printf("\n Collector received info, character %c is to be inserted...",SharedCommMemPtr[0]);fflush(stdout);
@@ -626,6 +679,14 @@ printf("\n### WAIT FOR COLLECTOR, PLEASE!!! ###");fflush(stdout);
 			case 'z' :
 			case 'Z' :
 				SharedCommMemPtr[0]=(unsigned char)253;	// Special Signal to suspend/restart
+				kill(PidCollector,SIGUSR1);
+			break;
+			case 'd' :
+				SharedCommMemPtr[0]=(unsigned char)252;	// Special Signal to send
+				kill(PidCollector,SIGUSR1);
+			break;
+			case 'm' :
+				SharedCommMemPtr[0]=(unsigned char)251;	// Special Signal to send
 				kill(PidCollector,SIGUSR1);
 			break;
 			default :
