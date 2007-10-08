@@ -64,20 +64,31 @@ mycanscan-$(VERSION).tar.gz:
 	ln -sf `pwd` /tmp/mycanscan-make-dist-dir/mycanscan-$(VERSION)
 	(cd /tmp/mycanscan-make-dist-dir; \
 	tar zcvf mycanscan-$(VERSION)/mycanscan-$(VERSION).tar.gz \
-	mycanscan-$(VERSION)/COPYING \
-	mycanscan-$(VERSION)/README \
-	mycanscan-$(VERSION)/ChangeLog \
-	mycanscan-$(VERSION)/configure \
-	mycanscan-$(VERSION)/configure.ac \
-	mycanscan-$(VERSION)/bootstrap \
-	mycanscan-$(VERSION)/mycanscan-copyfile \
-	mycanscan-$(VERSION)/mycanscan-pastefile \
-	mycanscan-$(VERSION)/mycanscan-cutfile \
-	mycanscan-$(VERSION)/install-sh \
-	mycanscan-$(VERSION)/Makefile.in \
-	mycanscan-$(VERSION)/mycanscan.spec \
-	mycanscan-$(VERSION)/*.c \
-	mycanscan-$(VERSION)/*.h )
+    mycanscan-$(VERSION)/COPYING \
+    mycanscan-$(VERSION)/Makefile.in \
+    mycanscan-$(VERSION)/acramr_calc.c \
+    mycanscan-$(VERSION)/acramr_calc_simple.c \
+    mycanscan-$(VERSION)/acramr_rev_calc.c \
+    mycanscan-$(VERSION)/bootstrap \
+    mycanscan-$(VERSION)/canpoll.c \
+    mycanscan-$(VERSION)/canterminal.c \
+    mycanscan-$(VERSION)/cantest.c \
+    mycanscan-$(VERSION)/cleanfile.c \
+    mycanscan-$(VERSION)/configure \
+    mycanscan-$(VERSION)/configure.ac \
+    mycanscan-$(VERSION)/csv2txt.c \
+    mycanscan-$(VERSION)/indent-all \
+    mycanscan-$(VERSION)/install-sh \
+    mycanscan-$(VERSION)/canvis/fileio.c \
+    mycanscan-$(VERSION)/canvis/functions.c \
+    mycanscan-$(VERSION)/canvis/graphics.c \
+    mycanscan-$(VERSION)/canvis/indent-all \
+    mycanscan-$(VERSION)/canvis/main.c \
+    mycanscan-$(VERSION)/canvis/main.h \
+    mycanscan-$(VERSION)/graphcan/graphcan.c \
+    mycanscan-$(VERSION)/graphcan/indent-all \
+    mycanscan-$(VERSION)/graphcan/readme.txt \
+    mycanscan-$(VERSION)/graphcan/voice/*.mp3)
 	rm -rf /tmp/mycanscan-make-dist-dir
 
 
