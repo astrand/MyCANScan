@@ -1,0 +1,97 @@
+
+prefix      = @prefix@
+exec_prefix = @exec_prefix@
+bindir      = @bindir@
+datarootdir = @datarootdir@
+datadir     = @datadir@
+
+
+VERSION     = @PACKAGE_VERSION@
+CC          = @CC@
+INSTALL     = @INSTALL@
+CFLAGS      = @CFLAGS@ @X_CFLAGS@ @DEFS@
+LDFLAGS     = @LDFLAGS@ @LIBS@ @X_LIBS@ @X_EXTRA_LIBS@
+STRIP       = @STRIP@
+
+
+BINS = acramr_calc acramr_calc_simple acramr_rev_calc canpoll canterminal \
+    cantest cleanfile csv2txt canvis/canvis graphcan/graphcan
+
+
+.PHONY: all
+all: $(BINS)
+
+
+CANVIS_OBJS = canvis/fileio.o canvis/functions.o canvis/graphics.o canvis/main.o
+
+canvis/canvis: $(X11OBJ) $(CANVIS_OBJS)
+	$(CC) $(CANVIS_OBJS) $(CFLAGS) -o $@ $(X11OBJ) $(LDFLAGS) -lX11 -lpng
+
+
+GRAPHCAN_OBJS = graphcan/graphcan.o
+graphcan/graphcan: $(X11OBJ) $(GRAPHCAN_OBJS)
+	$(CC) $(GRAPHCAN_OBJS) $(CFLAGS) -o $@ $(X11OBJ) $(LDFLAGS) -lX11 -lpthread
+
+
+install: installbin 
+
+.PHONY: installbin
+installbin: $(BINS)
+	mkdir -p $(DESTDIR)$(bindir)
+	$(INSTALL) $^ $(DESTDIR)$(bindir)
+
+
+.PHONY: clean
+clean:
+	rm -f *.o *~ \
+          canvis/*.o canvis/*~ \
+          graphcan/*.o graphcan/*~ \
+          $(BINS) mycanscan-$(VERSION).tar.gz
+
+
+.PHONY: distclean
+distclean: clean
+	rm -rf autom4te.cache config.log config.status Makefile
+
+
+.PHONY: dist
+dist: mycanscan-$(VERSION).tar.gz
+
+
+.PHONY: mycanscan-$(VERSION).tar.gz
+mycanscan-$(VERSION).tar.gz: 
+	mkdir -p /tmp/mycanscan-make-dist-dir
+	ln -sf `pwd` /tmp/mycanscan-make-dist-dir/mycanscan-$(VERSION)
+	(cd /tmp/mycanscan-make-dist-dir; \
+	tar zcvf mycanscan-$(VERSION)/mycanscan-$(VERSION).tar.gz \
+	mycanscan-$(VERSION)/COPYING \
+	mycanscan-$(VERSION)/README \
+	mycanscan-$(VERSION)/ChangeLog \
+	mycanscan-$(VERSION)/configure \
+	mycanscan-$(VERSION)/configure.ac \
+	mycanscan-$(VERSION)/bootstrap \
+	mycanscan-$(VERSION)/mycanscan-copyfile \
+	mycanscan-$(VERSION)/mycanscan-pastefile \
+	mycanscan-$(VERSION)/mycanscan-cutfile \
+	mycanscan-$(VERSION)/install-sh \
+	mycanscan-$(VERSION)/Makefile.in \
+	mycanscan-$(VERSION)/mycanscan.spec \
+	mycanscan-$(VERSION)/*.c \
+	mycanscan-$(VERSION)/*.h )
+	rm -rf /tmp/mycanscan-make-dist-dir
+
+
+Makefile: Makefile.in configure
+	./config.status
+
+
+configure: configure.ac
+	./bootstrap
+
+
+.SUFFIXES:
+.SUFFIXES: .c .o
+
+.c.o:
+	$(CC) $(CFLAGS) -o $@ -c $<
+
