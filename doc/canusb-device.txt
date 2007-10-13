@@ -1,0 +1,21 @@
+
+Automatically setting up CANUSB device file on Linux
+====================================================
+If you plug the Lawicel CANUSB into a Linux system, you will typically
+get a device file called /dev/ttyUSB0 or something like that. There
+are two problems:
+
+1) The device is only accessible by root. Solution: Create
+/etc/security/console.perms.d/10-canusb.perms with:
+
+<ttyCAN>=/dev/ttyCAN
+<console>  0600 <ttyCAN>      0660 root.uucp
+
+
+2) The device name can differ. MyCanScan uses /dev/ttyCAN by
+default. Solution: Create /etc/udev/rules.d/10-canusb.rules with:
+
+# Lawicel CANUSB but also MANY OTHER DEVICES
+SYSFS{idVendor}=="0403", SYSFS{idProduct}=="6001", SYMLINK+="ttyCAN"
+
+This configuration has been tested on Fedora 7. 
