@@ -208,7 +208,7 @@ char NextStep = 2;
 
 #define	VERSION_STRING	"v9.0 by Attila Vass"
 
-#define DEVICE "/dev/ttyS0"
+#define DEVICE "/dev/ttyCAN"
 
 #ifndef	ABS
 #define	ABS(a)	(((a)<0)?(-(a)):((a)))

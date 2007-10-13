@@ -11,8 +11,8 @@ Put all the files to /home/zaurus/CAN directory
 
 Usage :
 - go to /home/zaurus/CAN directory and start graphcan
-  It will try to open the serial port at /dev/ttyS0, make sure you have set the right permissions
-  ( su; chmod a+rws /dev/ttyS0 )
+  It will try to open the serial port at /dev/ttyCAN, make sure you have set the right permissions
+  ( su; chmod a+rws /dev/ttyS0; ln -s /dev/ttyS0 /dev/ttyCAN )
 - It doesn't matter if the Prius is already sending the CAN info, if yes, graphcan just
   starts showing the data, if not, it will patiently wait for the data to be available.
 - When you power down the car, graphcan will detect it and show information on your trip.

@@ -50,7 +50,7 @@
 #define	NEWLINE_CHAR	0x0D
 
 #define	BAUD	B230400
-#define	DEVICE	"/dev/ttyUSB0"
+#define	DEVICE	"/dev/ttyCAN"
 
 
 long zeso = 0;

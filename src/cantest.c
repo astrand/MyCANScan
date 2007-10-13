@@ -21,10 +21,7 @@
 //#define       BAUD    B115200
 #define	BAUD	B230400
 
-//#define DEVICE "/dev/ttyS0"           // Normal access to serial port
-#define	DEVICE	"/dev/ttyUSB0"	// USBtoRS232 converter access
-
-
+#define	DEVICE	"/dev/ttyCAN"
 
 #include <stdio.h>
 #include <sys/time.h>

@@ -26,7 +26,7 @@ B230400
 //#define DEVICE "/dev/ttyS0"
 // Since I have a USR to Serial, I need this :
 
-#define	DEVICE	"/dev/ttyUSB0"
+#define	DEVICE	"/dev/ttyCAN"
 
 
 /* RESTORE FACTORY SETTINGS :
