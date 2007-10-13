@@ -18,8 +18,6 @@
 
 /*
 
-cc acramr_rev_calc.c -o acramr_rev_calc
-
 './acramr_rev_calc M69000760 m106F000F' produces the following output :
 
                                                                                       

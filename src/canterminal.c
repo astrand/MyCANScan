@@ -16,12 +16,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*
-
-gcc canterminal.c -o canterminal
-
-*/
-
 #define	BAUD	B115200
 /*
 B57600

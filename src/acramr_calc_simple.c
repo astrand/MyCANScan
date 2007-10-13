@@ -16,12 +16,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*
-
-gcc acramr_calc_simple.c -o acramr_calc_simple
-
-*/
-
 #include <stdio.h>
 #include <stdlib.h>
 

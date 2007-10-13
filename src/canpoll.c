@@ -27,12 +27,6 @@
 /* ( tFFF0:%02x ). These are useful when analyzing the traffic.			*/
 /*										*/
 
-/*
-
-gcc canpoll.c -o canpoll
-
-*/
-
 #include <stdio.h>
 #include <sys/time.h>
 #include <sys/resource.h>

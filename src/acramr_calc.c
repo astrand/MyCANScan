@@ -17,7 +17,6 @@
 */
 
 /*
-cc acramr_calc.c -o acramr_calc
 
 './acramr_calc 0x3cb 0x3ca 0x3c8 0x348 0x3b' produces the following output :
 

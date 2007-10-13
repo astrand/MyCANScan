@@ -17,12 +17,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*
-
-gcc canread.c -o canread
-
-*/
-
 //#define       BAUD    B57600
 //#define       BAUD    B115200
 #define	BAUD	B230400
