@@ -282,7 +282,7 @@ GetMID(int a)
 int
 GetData(int a)
 {
-    register unsigned int val = 0, b;
+    register unsigned int b;
     int Bl;
 
     if ((FileBuffer[a] > '9') || (FileBuffer[a] < '0'))
@@ -564,8 +564,7 @@ ProcessImage(void)
     float Divider = 1.0f, tv;
     unsigned char SpeedBase = 0, LastSpd = 255;
     register unsigned int InQ = Messages[MessageID].ID;
-    int PrSx = -1, PrSy = -1, PrSxT = -1, PrSyT = -1, PrDx[8] =
-	{ -1, -1, -1, -1, -1, -1, -1, -1 }, PrDy[8] = {
+    int PrSx = -1, PrSy = -1, PrDx[8] = { -1, -1, -1, -1, -1, -1, -1, -1 }, PrDy[8] = {
     -1, -1, -1, -1, -1, -1, -1, -1};
     int LastSpdX = -30;
     unsigned int Skippy = 0, scnt;

@@ -87,9 +87,8 @@ SetUpMySignals()
 int
 main(int argc, char **argv)
 {
-    char *TmpPtr = NULL;
-    int a, b, c, RetSize = -1;
-    int ow, oh, obs, mask;
+    int RetSize = -1;
+    int ow, oh, obs;
     char *ob;
 
 

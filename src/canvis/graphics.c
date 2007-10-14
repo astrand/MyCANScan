@@ -315,7 +315,7 @@ TransferFont(int fsx, int fsy, int tx, int ty, int fw, int fh, int zoom)
     register int cr = fsy, tr = fsy + fh;	// current / target row
     register int cc, sc = fsx, tc = fsx + fw;	// current / start / target column
     register int cp, sz1, sz2;	// colour pointer
-    register int WBPtr, WBpy = ty, cv;	// Pointer to workbuffer
+    register int WBPtr, WBpy = ty;	// Pointer to workbuffer
     register unsigned char Rv, Gv, Bv;
 
     if (WBpy < 0) {
@@ -421,7 +421,7 @@ TransferFontB(char *TB, int xsz, int ysz, int fsx, int fsy, int tx, int ty, int 
     register int cr = fsy, tr = fsy + fh;	// current / target row
     register int cc, sc = fsx, tc = fsx + fw;	// current / start / target column
     register int cp, sz1, sz2;	// colour pointer
-    register int WBPtr, WBpy = ty, cv;	// Pointer to workbuffer
+    register int WBPtr, WBpy = ty;	// Pointer to workbuffer
     register unsigned char Rv, Gv, Bv;
     register struct ImageBufferStructure *IB;
 
@@ -1319,7 +1319,6 @@ CreateButton(char *name, void (*ClientFunction) (void *), void *ClientData, unsi
 	     int w, int h, int (*ButtonFunction) (int, int, char, unsigned char))
 {
     ButtonStructure *TmpButton = NULL;
-    register int a, b = -1;
 
     if ((TmpButton =
 	 (ButtonStructure *) realloc((void *) Buttons,
@@ -1470,10 +1469,6 @@ HandleButtonPush(int x, int y)
 void
 HandleSystemKeys(int kmodifier, unsigned char Key)
 {
-    int a, RetSize = -1;
-    char *ob;
-    int ow, oh, obs;
-
 
 //printf("\n%d [%d]",Key,kmodifier);fflush(stdout);
 
@@ -1726,9 +1721,9 @@ UpdateImageToModified(int a)
 int
 GetHighestVisualPixmapCombination(void)
 {
-    int NumRet, a, b, NumVis, maxdpt, maxpix, selected, wd, wid;
+    int NumRet, a, b, NumVis, maxdpt, selected, wd, wid;
     XPixmapFormatValues *MyPFVInfo, *WorkWithThisPFV;
-    XVisualInfo *MyVisInfo, *WorkWithThisVisInfo, WorkWinfo;
+    XVisualInfo *MyVisInfo, *WorkWithThisVisInfo;
 
 
 //printf("\nMain_Info = %d",Main_Info);fflush(stdout);
@@ -2137,7 +2132,7 @@ MainLoop(void)
 {
     XEvent report;
     XGCValues mygcvalues;
-    register int a, b, w, h, noc;
+    register int a, b, h, noc;
     unsigned char buffer[20];
     int bufsize = 20;
     KeySym keysym;
