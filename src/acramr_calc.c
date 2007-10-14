@@ -142,7 +142,8 @@ AddToResultsBuffer(int NewValue)
 	if ((ResultsBuffer =
 	     (int *) realloc((void *) ResultsBuffer,
 			     (size_t) SizeOfResultsBuffer * sizeof(int))) == NULL) {
-	    printf("\n\nError allocating %d numbers for result buffer... Terminated...\n\n");
+	    printf("\n\nError allocating %d numbers for result buffer... Terminated...\n\n",
+		   SizeOfResultsBuffer);
 	    fflush(stdout);
 	    exit(0);
 	}
@@ -342,7 +343,7 @@ Walker(void)
 int
 main(int argc, char *argv[])
 {
-    unsigned int a = 1, c, d;
+    unsigned int a = 1;
     int b;
 
     if (argc > 1) {
