@@ -63,7 +63,7 @@ int
 main(int argc, char *argv[])
 {
     unsigned int a, b, c, d;
-    long FileL, ctr;
+    long FileL;
 
     if (argc > 1) {
 	if ((fp = fopen(argv[1], "r")) != NULL) {
