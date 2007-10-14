@@ -294,13 +294,12 @@ GetData(int a)
     ++a;
 //printf("\n");fflush(stdout);
     for (b = 0; b < Bl; b++) {
-	if (!
-	    ((FileBuffer[a + (b << 1)] >= '0') && (FileBuffer[a + (b << 1)] <= '9')
-	     || (FileBuffer[a + (b << 1)] >= 'A') && (FileBuffer[a + (b << 1)] <= 'F')))
+	if (!((FileBuffer[a + (b << 1)] >= '0') && (FileBuffer[a + (b << 1)] <= '9')
+	      || (FileBuffer[a + (b << 1)] >= 'A') && (FileBuffer[a + (b << 1)] <= 'F')))
 	    return (-1);	// Invalid...
-	if (!
-	    ((FileBuffer[a + ((b << 1) + 1)] >= '0') && (FileBuffer[a + ((b << 1) + 1)] <= '9')
-	     || (FileBuffer[a + ((b << 1) + 1)] >= 'A') && (FileBuffer[a + ((b << 1) + 1)] <= 'F')))
+	if (!((FileBuffer[a + ((b << 1) + 1)] >= '0') && (FileBuffer[a + ((b << 1) + 1)] <= '9')
+	      || (FileBuffer[a + ((b << 1) + 1)] >= 'A')
+	      && (FileBuffer[a + ((b << 1) + 1)] <= 'F')))
 	    return (-1);	// Invalid...
 	if (FileBuffer[a + (b << 1)] >= 'A')
 	    DataBytes[b] += (unsigned char) ((FileBuffer[a + (b << 1)] - 'A') + 10);
@@ -721,11 +720,10 @@ ProcessImage(void)
 	    case 0x3C8:
 		if (ShowSpeed) {
 		    if ((b = GetData(SearchPos + 4)) > 0) {
-			vl2 =
-			    (ty - 1) -
-			    (int) ((float)
-				   (((int) (DataBytes[2]) << 8) +
-				    (int) (DataBytes[3]) & 0xFFFF) * ZoomVal * SZoomVal);
+			vl2 = (ty - 1) - (int) ((float)
+						(((int) (DataBytes[2]) << 8) +
+						 (int) (DataBytes[3]) & 0xFFFF) * ZoomVal *
+						SZoomVal);
 			if (vl2 < 0)
 			    vl2 = 0;
 			vl = (int) ((float) x / Divider);
