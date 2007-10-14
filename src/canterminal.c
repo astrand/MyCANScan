@@ -55,6 +55,8 @@ B230400
 #include <stdarg.h>
 #include <string.h>
 #include <errno.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 //#define COMM_DEBUG    1
 
@@ -82,7 +84,6 @@ void
 zerotime(void)			// This could take up to a second...
 {
     struct timeval ltim;
-    register int a;
     register long b = 0;
 
 
@@ -100,7 +101,7 @@ int
 OpenAndConfigurePort(void)
 {
     struct termios newio;
-    int flag;
+    int flag = 0;
 
 #ifdef COMM_DEBUG
     printf("\nOpening port on %s.", DEVICE);
@@ -151,7 +152,7 @@ OpenAndConfigurePort(void)
 int
 WriteToPort(char *ZTV)
 {
-    register a = 0, b = 0, str = 0;
+    register int a = 0, b = 0;
 
     while (*(ZTV + a) != '\0')
 	++a;
@@ -304,7 +305,7 @@ main(int argc, char **argv)
     printf("\n... Opening port");
     fflush(stdout);
     if (OpenAndConfigurePort()) {
-	return;
+	return 1;
     }
 
     gettime();
@@ -356,4 +357,5 @@ main(int argc, char **argv)
 
     printf("\n\n");
     fflush(stdout);
+    return 0;
 }
