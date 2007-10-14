@@ -16,6 +16,6 @@ are two problems:
 default. Solution: Create /etc/udev/rules.d/10-canusb.rules with:
 
 # Lawicel CANUSB but also MANY OTHER DEVICES
-SYSFS{idVendor}=="0403", SYSFS{idProduct}=="6001", SYMLINK+="ttyCAN"
+SYSFS{idVendor}=="0403", SYSFS{idProduct}=="6001", KERNEL=="ttyUSB*", SYMLINK+="ttyCAN"
 
 This configuration has been tested on Fedora 7. 
