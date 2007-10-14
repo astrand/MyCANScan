@@ -132,7 +132,8 @@ AddToResultsBuffer(int NewValue)
 	if ((ResultsBuffer =
 	     (int *) realloc((void *) ResultsBuffer,
 			     (size_t) SizeOfResultsBuffer * sizeof(int))) == NULL) {
-	    printf("\n\nError allocating %d numbers for result buffer... Terminated...\n\n");
+	    printf("\n\nError allocating %d numbers for result buffer... Terminated...\n\n",
+		   SizeOfResultsBuffer);
 	    fflush(stdout);
 	    exit(0);
 	}
@@ -291,9 +292,6 @@ Eval(void)
 int
 main(int argc, char *argv[])
 {
-    unsigned int a = 1, c, d;
-    int b;
-
     if (argc == 3) {
 	if ((sscanf(argv[1], "M%0xd", &OriACR)) != 1) {
 	    printf("Error reading '%s'", argv[1]);
