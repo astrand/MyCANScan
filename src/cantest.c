@@ -32,6 +32,8 @@
 #include <stdarg.h>
 #include <string.h>
 #include <errno.h>
+#include <unistd.h>
+#include <stdlib.h>
 
 //#define COMM_DEBUG    1
 
@@ -61,7 +63,6 @@ void
 zerotime(void)			// This could take up to a second...
 {
     struct timeval ltim;
-    register int a;
     register long b = 0;
 
 
@@ -121,7 +122,7 @@ OpenAndConfigurePort(void)
 int
 WriteToPort(char *ZTV)
 {
-    register a = 0, b = 0, str = 0;
+    register int a = 0, b = 0;
 
     while (*(ZTV + a) != '\0')
 	++a;
@@ -370,7 +371,7 @@ main(int argc, char **argv)
     printf("\n... Opening port");
     fflush(stdout);
     if (OpenAndConfigurePort()) {
-	return;
+	return 1;
     }
 
     gettime();
@@ -539,4 +540,5 @@ main(int argc, char **argv)
 
     printf("\n\n");
     fflush(stdout);
+    return 0;
 }
