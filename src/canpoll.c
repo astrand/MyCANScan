@@ -40,6 +40,8 @@
 #include <string.h>
 #include <errno.h>
 #include <time.h>
+#include <unistd.h>
+#include <stdlib.h>
 
 //#define COMM_DEBUG    1
 //#define COLL_DEBUG    1
@@ -81,7 +83,6 @@ void
 zerotime(void)			// This could take up to a second...
 {
     struct timeval ltim;
-    register int a;
     register long b = 0;
 
 
@@ -141,7 +142,7 @@ OpenAndConfigurePort(void)
 int
 WriteToPort(char *ZTV)
 {
-    register a = 0, b = 0, str = 0;
+    register int a = 0, b = 0;
 
     while (*(ZTV + a) != '\0')
 	++a;
@@ -272,7 +273,7 @@ InsertTimeStamp(void)
     fflush(stdout);
 #endif
 
-    sprintf(Message, "tFFE0:%06d%c\0", curtime, NEWLINE_CHAR);	// My ID of 0xFFE with 0 byte indicator, but :%d is timestamp
+    sprintf(Message, "tFFE0:%06d%c\0", (int) curtime, NEWLINE_CHAR);	// My ID of 0xFFE with 0 byte indicator, but :%d is timestamp
     for (a = 0; Message[a] != '\0'; a++);
     for (d = 0, b = (AB_Cntr - 1); ((PB[b] != NEWLINE_CHAR) && (b > 0)); b--, d++);	// Let's insert it gracefully and not cut even 1 frame in half...
 
@@ -681,7 +682,7 @@ int
 RunMain(void)
 {
     struct termios oldT, newT;
-    int a, flag;
+    int a;
 
     PidMine = PidMain;
 
@@ -773,7 +774,6 @@ int
 RunCollector(void)
 {
     int to, a;
-    char *PB;
     time_t EndTime;
     unsigned int timdi = 0;
 
@@ -979,4 +979,5 @@ main(int argc, char **argv)
     }
     GoodBye();
 //printf("\nEND. (%d)\n",PidMine);fflush(stdout);
+    return 0;
 }
