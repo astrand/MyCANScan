@@ -8835,7 +8835,7 @@ void
 RunTaskInfoMain(void)
 {
     struct timespec rqst, resp;
-    unsigned char Rc, Gc;
+    unsigned char Rc = 0, Gc = 0;
     char Val;
     int a, b, c, ppos;
 
@@ -10500,7 +10500,7 @@ GetMyStringLength(char *Text, int usebignums, int zoom)
 int
 GetHighestVisualPixmapCombination(void)
 {
-    int NumRet, a, b, NumVis, maxdpt, selected, wd, wid;
+    int NumRet, a, b, NumVis, maxdpt, selected = -1, wd, wid;
     XPixmapFormatValues *MyPFVInfo, *WorkWithThisPFV;
     XVisualInfo *MyVisInfo, *WorkWithThisVisInfo;
 
@@ -10899,7 +10899,7 @@ CreateMainWindow(void)
 void
 MarkDoors(unsigned char Door)
 {
-    register int a, b, c, xofs, yofs, ptr, xs, xe;
+    register int a, b, c, xofs, yofs, ptr, xs = 0, xe;
     unsigned char hp;
     unsigned char *RedBuffer;
 
