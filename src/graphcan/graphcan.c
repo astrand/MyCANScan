@@ -9539,11 +9539,11 @@ WriteToPort(char *ZTV)
 #endif
 
 #ifdef SIMULATION
-    return;
+    return 1;
 #endif
 
     if (Port == -1)
-	return;
+	return 1;
 
     nofbytes = 0;
     startpoz = 0;
