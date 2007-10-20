@@ -8548,7 +8548,7 @@ EvaluateTouch(void)		// -20:-20 for touch-to-screen translation
     }
 }
 
-int
+void
 ResetValues(void)
 {
     RunningTask = TASK_INIT;
@@ -13651,7 +13651,7 @@ main(int argc, char **argv)
 
 #ifdef REDRAW_FONTS
     ConvertFontMap();
-    return;
+    return 0;
 #endif
 
 
@@ -13904,4 +13904,5 @@ main(int argc, char **argv)
 	}
     }
     CleanUp(1);
+    return 0;
 }
