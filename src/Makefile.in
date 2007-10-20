@@ -9,13 +9,13 @@ datadir     = @datadir@
 VERSION     = @PACKAGE_VERSION@
 CC          = @CC@
 INSTALL     = @INSTALL@
-CFLAGS      = @CFLAGS@ @X_CFLAGS@ @DEFS@ -DNON_ZAURUS
+CFLAGS      = @CFLAGS@ @X_CFLAGS@ @DEFS@ 
 LDFLAGS     = @LDFLAGS@ @LIBS@ @X_LIBS@ @X_EXTRA_LIBS@
 STRIP       = @STRIP@
 
 
 BINS = acramr_calc acramr_calc_simple acramr_rev_calc canpoll canterminal \
-    cantest cleanfile csv2txt canvis/canvis graphcan/graphcan
+    cantest cleanfile csv2txt canvis/canvis graphcan/graphcan graphcan/graphcanz
 
 
 .PHONY: all
@@ -28,9 +28,22 @@ canvis/canvis: $(X11OBJ) $(CANVIS_OBJS)
 	$(CC) $(CANVIS_OBJS) $(CFLAGS) -o $@ $(X11OBJ) $(LDFLAGS) -lX11 -lpng
 
 
+# Graphcan. Note: The default is to build both the X11 and Zaurus
+# versions, to make sure both versions always builds. 
+
+# graphcan, X11 version
 GRAPHCAN_OBJS = graphcan/graphcan.o
+graphcan/graphcan.o: graphcan/graphcan.c
+	$(CC) $(CFLAGS) -DNON_ZAURUS -o $@ -c $<
 graphcan/graphcan: $(X11OBJ) $(GRAPHCAN_OBJS)
-	$(CC) $(GRAPHCAN_OBJS) $(CFLAGS) -o $@ $(X11OBJ) $(LDFLAGS) -lX11 -lpthread
+	$(CC) $(GRAPHCAN_OBJS) $(CFLAGS) -DNON_ZAURUS -o $@ $(X11OBJ) $(LDFLAGS) -lX11 -lpthread
+
+# graphcan, Zaurus version
+GRAPHCANZ_OBJS = graphcan/graphcanz.o
+graphcan/graphcanz.o: graphcan/graphcan.c
+	$(CC) $(CFLAGS) -o $@ -c $<
+graphcan/graphcanz: $(GRAPHCANZ_OBJS)
+	$(CC) $(GRAPHCANZ_OBJS) $(CFLAGS) -o $@ $(LDFLAGS) -lpthread
 
 
 install: installbin 
