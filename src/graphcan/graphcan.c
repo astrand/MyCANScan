@@ -9575,6 +9575,85 @@ WriteToPort(char *ZTV)
     return (reva);
 }
 
+
+int
+OpenAndConfigurePort(void)
+{
+
+    struct termios newio;
+#ifdef TRACE_IT
+    TrBu[TrBuPtr] = 'O';
+    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
+	TrBuPtr = 0;
+#endif
+
+#ifdef COMM_DEBUG
+    printf("\nOpening port on %s.", DEVICE);
+    fflush(stdout);
+#endif
+    if (Port == -1) {
+	if ((Port = open(DEVICE, O_RDWR | O_NOCTTY)) < 0) {
+	    printf("\nError Opening Serialport ( %s ) : '%s'", DEVICE, strerror(errno));
+	    fflush(stdout);
+#ifdef TRACE_IT
+	    TrBu[TrBuPtr] = 'o';
+	    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
+		TrBuPtr = 0;
+#endif
+	    return (1);
+	}
+    }
+    memset(&newio, 0, sizeof(newio));	/* Clears termios struct  */
+    newio.c_cflag = CS8 | CLOCAL | CREAD;
+    newio.c_iflag = IGNPAR;
+    newio.c_oflag = 0;
+    newio.c_lflag = 0;
+    newio.c_cc[VTIME] = 0;
+    newio.c_cc[VMIN] = 0;	/* read min. one char at a time  */
+    if (cfsetispeed(&newio, BAUD) == -1) {
+	printf("Error setting serial input baud rate\n");
+	close(Port);
+	Port = -1;
+#ifdef TRACE_IT
+	TrBu[TrBuPtr] = 'o';
+	if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
+	    TrBuPtr = 0;
+#endif
+	return (1);
+    }
+    if (cfsetospeed(&newio, BAUD) == -1) {
+	printf("Error setting serial output baud rate\n");
+	close(Port);
+	Port = -1;
+#ifdef TRACE_IT
+	TrBu[TrBuPtr] = 'o';
+	if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
+	    TrBuPtr = 0;
+#endif
+	return (1);
+    }
+    tcflush(Port, TCIFLUSH);
+    if (tcsetattr(Port, TCSANOW, &newio) == -1) {
+	printf("Error setting terminal attributes\n");
+	close(Port);
+	Port = -1;
+#ifdef TRACE_IT
+	TrBu[TrBuPtr] = 'o';
+	if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
+	    TrBuPtr = 0;
+#endif
+	return (1);
+    }
+
+#ifdef TRACE_IT
+    TrBu[TrBuPtr] = 'o';
+    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
+	TrBuPtr = 0;
+#endif
+    return (0);
+}
+
+
 int
 SetUpCAN(void)
 {
@@ -11049,82 +11128,6 @@ return;
 
 }
 
-int
-OpenAndConfigurePort(void)
-{
-
-    struct termios newio;
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'O';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-	TrBuPtr = 0;
-#endif
-
-#ifdef COMM_DEBUG
-    printf("\nOpening port on %s.", DEVICE);
-    fflush(stdout);
-#endif
-    if (Port == -1) {
-	if ((Port = open(DEVICE, O_RDWR | O_NOCTTY)) < 0) {
-	    printf("\nError Opening Serialport ( %s ) : '%s'", DEVICE, strerror(errno));
-	    fflush(stdout);
-#ifdef TRACE_IT
-	    TrBu[TrBuPtr] = 'o';
-	    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-		TrBuPtr = 0;
-#endif
-	    return (1);
-	}
-    }
-    memset(&newio, 0, sizeof(newio));	/* Clears termios struct  */
-    newio.c_cflag = CS8 | CLOCAL | CREAD;
-    newio.c_iflag = IGNPAR;
-    newio.c_oflag = 0;
-    newio.c_lflag = 0;
-    newio.c_cc[VTIME] = 0;
-    newio.c_cc[VMIN] = 0;	/* read min. one char at a time  */
-    if (cfsetispeed(&newio, BAUD) == -1) {
-	printf("Error setting serial input baud rate\n");
-	close(Port);
-	Port = -1;
-#ifdef TRACE_IT
-	TrBu[TrBuPtr] = 'o';
-	if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-	    TrBuPtr = 0;
-#endif
-	return (1);
-    }
-    if (cfsetospeed(&newio, BAUD) == -1) {
-	printf("Error setting serial output baud rate\n");
-	close(Port);
-	Port = -1;
-#ifdef TRACE_IT
-	TrBu[TrBuPtr] = 'o';
-	if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-	    TrBuPtr = 0;
-#endif
-	return (1);
-    }
-    tcflush(Port, TCIFLUSH);
-    if (tcsetattr(Port, TCSANOW, &newio) == -1) {
-	printf("Error setting terminal attributes\n");
-	close(Port);
-	Port = -1;
-#ifdef TRACE_IT
-	TrBu[TrBuPtr] = 'o';
-	if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-	    TrBuPtr = 0;
-#endif
-	return (1);
-    }
-
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'o';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-	TrBuPtr = 0;
-#endif
-    return (0);
-}
 
 void
 ProcessSigIo()
