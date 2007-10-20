@@ -129,6 +129,7 @@ Working with ACR = 7960FC00   AMR = 000F016F	( M7960FC00 m000F016F )
 #include <fcntl.h>
 #include <linux/fb.h>
 #include <sys/mman.h>
+#include <pthread.h>
 
 
 
@@ -10152,8 +10153,6 @@ InitVoice(void)
 void
 CallVoice(int VCode, int Flush)
 {
-    int a;
-
     if (VoiceMode == 0)
 	return;
     if (VCode >= V_LAST)
@@ -11764,7 +11763,6 @@ void
 CopyDisplayBufferToScreen(int x, int y, int w, int h)
 {
     register unsigned short int *TmpWrk = (unsigned short *) WorkData;
-    register unsigned char *TmpChrWrk = (unsigned char *) WorkData;
     register int a, b, c, d, wx = x, wy = y, wh = (h + y), ww = (x + w);
 
 #ifdef TRACE_IT
