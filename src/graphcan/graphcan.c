@@ -10500,7 +10500,7 @@ GetMyStringLength(char *Text, int usebignums, int zoom)
 int
 GetHighestVisualPixmapCombination(void)
 {
-    int NumRet, a, b, NumVis, maxdpt, selected = -1, wd, wid;
+    int NumRet, a, b, NumVis, maxdpt, selected = 0, wd, wid;
     XPixmapFormatValues *MyPFVInfo, *WorkWithThisPFV;
     XVisualInfo *MyVisInfo, *WorkWithThisVisInfo;
 
