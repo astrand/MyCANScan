@@ -8977,7 +8977,7 @@ void
 SS_Stats(void)
 {
     int a, b, c;
-    float MPG, ThrottleV, SpeedV, TKM, TGAL;
+    float MPG, ThrottleV, TKM, TGAL;
 
     if (AccSpdCntr < 1)
 	return;
@@ -9329,7 +9329,7 @@ void
 SaveStat(void)
 {
     FILE *fp = NULL;
-    float MPG, AMPG, SpeedV;
+    float MPG, AMPG;
     int a, b, c;
 
     for (b = 0; b < 46; b++) {
@@ -9578,7 +9578,7 @@ WriteToPort(char *ZTV)
 int
 SetUpCAN(void)
 {
-    int to, a;
+    int to;
 
 #ifdef TRACE_IT
     TrBu[TrBuPtr] = 'A';
@@ -9868,8 +9868,6 @@ DumpTraceBuffer(void)
 void
 CleanUp(int vis)
 {
-    int a;
-
 #ifdef TRACE_IT
     TrBu[TrBuPtr] = 'C';
     if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
@@ -10170,7 +10168,6 @@ UpdateFuelFile(void)
 {
     FILE *fp = NULL;
     float MPG, AMPG;
-    int a, b, c;
 
     if ((fp = fopen(FUEL_FILE_NAME, "a")) == NULL)
 	return;
@@ -10217,8 +10214,8 @@ TransferFont(int fsx, int fsy, int tx, int ty, int fw, int fh, int zoom)
     register int ch;
     register int cr = fsy, tr = fsy + fh;	// current / target row
     register int cc, sc = fsx, tc = fsx + fw;	// current / start / target column
-    register int cp, sz1, sz2;	// colour pointer
-    register int WBPtr, WBpy = ty, cv;	// Pointer to workbuffer
+    register int sz1, sz2;	// colour pointer
+    register int WBPtr, WBpy = ty;	// Pointer to workbuffer
     register unsigned char Rv, Gv, Bv;
 
 #ifdef TRACE_IT
@@ -10424,9 +10421,9 @@ GetMyStringLength(char *Text, int usebignums, int zoom)
 int
 GetHighestVisualPixmapCombination(void)
 {
-    int NumRet, a, b, NumVis, maxdpt, maxpix, selected, wd, wid;
+    int NumRet, a, b, NumVis, maxdpt, selected, wd, wid;
     XPixmapFormatValues *MyPFVInfo, *WorkWithThisPFV;
-    XVisualInfo *MyVisInfo, *WorkWithThisVisInfo, WorkWinfo;
+    XVisualInfo *MyVisInfo, *WorkWithThisVisInfo;
 
 // First Let's see, what visuals does the system support...
 
@@ -10567,12 +10564,6 @@ XMainLoop(void)
 {
     XEvent report;
     XGCValues mygcvalues;
-    register int a, b, w, h, noc;
-    unsigned char buffer[20];
-    int bufsize = 20;
-    KeySym keysym;
-    XComposeStatus compose;
-    unsigned char *bp;
 
     while ((XEventsQueued(WorkDisplay, QueuedAfterFlush)) != 0) {
 	XNextEvent(WorkDisplay, &report);
@@ -10613,7 +10604,6 @@ CreateMainWindow(void)
 {
     XSizeHints *s_h;
     XTextProperty winname, iconame;
-    int xpos;
 
     if ((WorkDisplay = XOpenDisplay(NULL)) == NULL) {
 	if ((WorkDisplay = XOpenDisplay(":0")) == NULL) {
@@ -10831,7 +10821,7 @@ void
 MarkDoors(unsigned char Door)
 {
     register int a, b, c, xofs, yofs, ptr, xs, xe;
-    unsigned char cv, hp;
+    unsigned char hp;
     unsigned char *RedBuffer;
 
     switch (Door) {
@@ -10910,9 +10900,8 @@ MarkDoors(unsigned char Door)
 void
 ShowPrius(void)			// DoorStatus = 0x00 - All Closed    0x04 - Rear    0x40 - Passenger   0x80 - Driver
 {
+    unsigned char cv;
     register int a, b, c;
-    unsigned char cv, hp;
-    unsigned char *RedBuffer;
 
     for (b = 0; b < HEIGHT; b++) {
 	c = b * WIDTH;
@@ -11006,8 +10995,6 @@ ClearDisplayBuffer(void)
 void
 SetUpPicture(void)
 {
-    int a, b, c;
-
 #ifdef TRACE_IT
     TrBu[TrBuPtr] = 'Y';
     if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
@@ -11386,7 +11373,7 @@ IntReXSigCatch(int sig)
 void
 AnalyseHighCANMessages(int mid, int Position)
 {
-    register unsigned char CV, CV1, CV2;
+    register unsigned char CV;
     register unsigned int B;
 
 #ifdef TRACE_IT
@@ -11711,7 +11698,6 @@ void
 CopyDisplayBufferToScreen(int x, int y, int w, int h)
 {
     register unsigned short *TmpWrk = (unsigned short *) WorkData;
-    register unsigned char *TmpChrWrk = (unsigned char *) WorkData;
     register int a, b, c, d, wx = x, wy = y, wh = (h + y), ww = w;
 
     if (!WorkWindowInitialized)
@@ -12221,7 +12207,7 @@ void
 UpdateGG(void)			// 11.9 Gal / 45 Liter ( 11.904762 Gal )
 {
     register int x, y, ty, c, ty1;
-    unsigned char Rv, Gv, PGG;
+    unsigned char PGG;
     float Value, MPG, Galls;
 
 #ifdef TRACE_IT
@@ -13654,7 +13640,7 @@ FastPoll(void)
 int
 main(int argc, char **argv)
 {
-    int a, b, c, d, e;
+    int a, b, c;
     unsigned char FVoiceMode = 0;
 #ifdef TRAFFIC_PROFILE
     float fv;
