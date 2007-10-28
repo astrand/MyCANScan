@@ -156,18 +156,18 @@ char NextStep = 2;
 #define FUEL_FILE_NAME			"/home/zaurus/CAN/FuelData_sim.txt"
 #define	USE_KEYBOARD		1
 
-#else
+#else // SIMULATION
 
 #define	STAT_FILE_NAME			"/home/zaurus/CAN/PriusData.txt"
 #define FUEL_FILE_NAME			"/home/zaurus/CAN/FuelData.txt"
 #define	USE_VOICE_ANNOUNCEMENT		1
 //#define       USE_KEYBOARD            1
 
-#endif
+#endif // SIMULATION
 
 #define	FORCE_PATH			"/home/zaurus/CAN"
 
-#else
+#else // NON_ZAURUS
 
 #define	STAT_FILE_NAME			"./PriusData_sim.txt"
 #define FUEL_FILE_NAME			"./FuelData_sim.txt"
@@ -176,7 +176,7 @@ char NextStep = 2;
 #define	USE_KEYBOARD		1
 #define	FORCE_PATH			"./"
 
-#endif
+#endif // NON_ZAURUS
 
 //#define       COMM_DEBUG              1
 //#define       REDRAW_FONTS            1
@@ -201,7 +201,7 @@ char NextStep = 2;
 
 #ifndef	ABS
 #define	ABS(a)	(((a)<0)?(-(a)):((a)))
-#endif
+#endif // ABS
 
 #define	WIDTH	640
 #define	HEIGHT	480
