@@ -15,7 +15,7 @@ STRIP       = @STRIP@
 
 
 BINS = acramr_calc acramr_calc_simple acramr_rev_calc canpoll canterminal \
-    cantest cleanfile csv2txt canvis/canvis graphcan
+    cantest cleanfile csv2txt canvis/canvis graphcan/graphcan graphcan/graphcanz
 
 
 .PHONY: all
