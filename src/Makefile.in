@@ -15,7 +15,7 @@ STRIP       = @STRIP@
 
 
 BINS = acramr_calc acramr_calc_simple acramr_rev_calc canpoll canterminal \
-    cantest cleanfile csv2txt canvis/canvis graphcan/graphcan graphcan/graphcanz
+    cantest cleanfile csv2txt canvis/canvis graphcan
 
 
 .PHONY: all
@@ -30,6 +30,8 @@ canvis/canvis: $(X11OBJ) $(CANVIS_OBJS)
 
 # Graphcan. Note: The default is to build both the X11 and Zaurus
 # versions, to make sure both versions always builds. 
+.PHONY: graphcan
+graphcan: graphcan/graphcan graphcan/graphcanz
 
 # graphcan, X11 version
 GRAPHCAN_OBJS = graphcan/graphcan.o
