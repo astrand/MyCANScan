@@ -34,7 +34,9 @@ canvis/canvis: $(X11OBJ) $(CANVIS_OBJS)
 graphcan: graphcan/graphcan graphcan/graphcanz
 
 # graphcan, X11 version
-GRAPHCAN_OBJS = graphcan/graphcan.o graphcan/fonts.o
+GRAPHCAN_OBJS = graphcan/graphcan.o graphcan/fonts.o graphcan/images.o
+graphcan/images.o: graphcan/images.c
+	$(CC) $(CFLAGS) -Igraphcan -o $@ -c $<
 graphcan/fonts.o: graphcan/fonts.c graphcan/fonts.h
 	$(CC) $(CFLAGS) -Igraphcan -o $@ -c $<
 graphcan/graphcan.o: graphcan/graphcan.c
@@ -43,7 +45,9 @@ graphcan/graphcan: $(X11OBJ) $(GRAPHCAN_OBJS)
 	$(CC) $(GRAPHCAN_OBJS) $(CFLAGS) -DNON_ZAURUS -o $@ $(X11OBJ) $(LDFLAGS) -lX11 -lpthread
 
 # graphcan, Zaurus version
-GRAPHCANZ_OBJS = graphcan/graphcanz.o graphcan/fontsz.o
+GRAPHCANZ_OBJS = graphcan/graphcanz.o graphcan/fontsz.o graphcan/imagesz.o
+graphcan/imagesz.o: graphcan/images.c
+	$(CC) $(CFLAGS) -Igraphcan -o $@ -c $<
 graphcan/fontsz.o: graphcan/fonts.c graphcan/fonts.h
 	$(CC) $(CFLAGS) -Igraphcan -o $@ -c $<
 graphcan/graphcanz.o: graphcan/graphcan.c
@@ -105,6 +109,10 @@ mycanscan-$(VERSION).tar.gz:
     mycanscan-$(VERSION)/canvis/main.c \
     mycanscan-$(VERSION)/canvis/main.h \
     mycanscan-$(VERSION)/graphcan/graphcan.c \
+    mycanscan-$(VERSION)/graphcan/fonts.c \
+    mycanscan-$(VERSION)/graphcan/fonts.h \
+    mycanscan-$(VERSION)/graphcan/images.c \
+    mycanscan-$(VERSION)/graphcan/images.h \
     mycanscan-$(VERSION)/graphcan/indent-all \
     mycanscan-$(VERSION)/graphcan/readme.txt \
     mycanscan-$(VERSION)/graphcan/voice/*.mp3)
