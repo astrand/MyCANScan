@@ -34,14 +34,18 @@ canvis/canvis: $(X11OBJ) $(CANVIS_OBJS)
 graphcan: graphcan/graphcan graphcan/graphcanz
 
 # graphcan, X11 version
-GRAPHCAN_OBJS = graphcan/graphcan.o
+GRAPHCAN_OBJS = graphcan/graphcan.o graphcan/fonts.o
+graphcan/fonts.o: graphcan/fonts.c graphcan/fonts.h
+	$(CC) $(CFLAGS) -Igraphcan -o $@ -c $<
 graphcan/graphcan.o: graphcan/graphcan.c
 	$(CC) $(CFLAGS) -DNON_ZAURUS -o $@ -c $<
 graphcan/graphcan: $(X11OBJ) $(GRAPHCAN_OBJS)
 	$(CC) $(GRAPHCAN_OBJS) $(CFLAGS) -DNON_ZAURUS -o $@ $(X11OBJ) $(LDFLAGS) -lX11 -lpthread
 
 # graphcan, Zaurus version
-GRAPHCANZ_OBJS = graphcan/graphcanz.o
+GRAPHCANZ_OBJS = graphcan/graphcanz.o graphcan/fontsz.o
+graphcan/fontsz.o: graphcan/fonts.c graphcan/fonts.h
+	$(CC) $(CFLAGS) -Igraphcan -o $@ -c $<
 graphcan/graphcanz.o: graphcan/graphcan.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 graphcan/graphcanz: $(GRAPHCANZ_OBJS)
