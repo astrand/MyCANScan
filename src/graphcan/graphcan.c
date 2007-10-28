@@ -13318,7 +13318,6 @@ FastPoll(void)
 
 
     if (Simulation) {
-    int b;
     unsigned char CV1;
 
     AccumulatedCurrent = (long) ((rand() & 0xFFFF) - 0x7FFF);
