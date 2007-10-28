@@ -152,14 +152,14 @@ char NextStep = 2;
 
 #ifdef SIMULATION
 
-#define	STAT_FILE_NAME			"/home/zaurus/CAN/PriusData_sim.txt"
-#define FUEL_FILE_NAME			"/home/zaurus/CAN/FuelData_sim.txt"
+#define	STAT_FILE_NAME			"./PriusData_sim.txt"
+#define FUEL_FILE_NAME			"./FuelData_sim.txt"
 #define	USE_KEYBOARD		1
 
 #else // SIMULATION
 
-#define	STAT_FILE_NAME			"/home/zaurus/CAN/PriusData.txt"
-#define FUEL_FILE_NAME			"/home/zaurus/CAN/FuelData.txt"
+#define	STAT_FILE_NAME			"./PriusData.txt"
+#define FUEL_FILE_NAME			"./FuelData.txt"
 #define	USE_VOICE_ANNOUNCEMENT		1
 //#define       USE_KEYBOARD            1
 
