@@ -146,34 +146,21 @@ char NextStep = 2;
 /*   APPLICATION DEPENDENT DATA   */
 /**********************************/
 
-//#define       SIMULATION              1
+#define	STAT_FILE_NAME_SIM		"./PriusData_sim.txt"
+#define FUEL_FILE_NAME_SIM		"./FuelData_sim.txt"
+#define	STAT_FILE_NAME			"./PriusData.txt"
+#define FUEL_FILE_NAME			"./FuelData.txt"
 
 #ifndef NON_ZAURUS
 
-#ifdef SIMULATION
-
-#define	STAT_FILE_NAME			"./PriusData_sim.txt"
-#define FUEL_FILE_NAME			"./FuelData_sim.txt"
-#define	USE_KEYBOARD		1
-
-#else // SIMULATION
-
-#define	STAT_FILE_NAME			"./PriusData.txt"
-#define FUEL_FILE_NAME			"./FuelData.txt"
 #define	USE_VOICE_ANNOUNCEMENT		1
 //#define       USE_KEYBOARD            1
-
-#endif // SIMULATION
-
 #define	FORCE_PATH			"/home/zaurus/CAN"
 
 #else // NON_ZAURUS
 
-#define	STAT_FILE_NAME			"./PriusData_sim.txt"
-#define FUEL_FILE_NAME			"./FuelData_sim.txt"
 #define	USE_KEYBOARD		1
 //      #define USE_VOICE_ANNOUNCEMENT          1
-#define	USE_KEYBOARD		1
 #define	FORCE_PATH			"./"
 
 #endif // NON_ZAURUS
@@ -226,6 +213,8 @@ enum
 { TASK_INIT = 0, TASK_INFO, TASK_SCREENSAVER, TASK_RUNNING };
 
 
+char *stat_file_name = STAT_FILE_NAME;
+char *fuel_file_name = FUEL_FILE_NAME;
 char *WorkData = NULL;
 struct ImageBufferStructure
 {
@@ -267,7 +256,7 @@ unsigned char InstrumentsDimmed = 0;
 unsigned char CollectCurrent = 0, TrafficCtr = 0, TrafficSubCtr = 0;
 unsigned char MinMaxCurrentDisplay = 0, MinMaxkWDisplay = 0;
 unsigned char DoorOpenCnt = 0, NoTrafficYet = 1, FirstTimeSOC = 1, FirstTimeGas = 1, VoiceMode =
-    1, ForcePath = 0, SI_Measurements = 0;
+    1, ForcePath = 0, SI_Measurements = 0, Simulation = 0;
 unsigned char EngBlckTmpCnt = 1, EngBlckTmp = 0;
 unsigned char TempValue = 0;	// Temperature
 unsigned char CATReqCtr = 0;
@@ -9200,8 +9189,8 @@ LoadStat(void)
 	PutMyString(Message, ((WIDTH - 10 - c) >> 1), 9, 0, 3);
 	CopyDisplayBufferToScreen(0, 0, (WIDTH - 10), 46);
 
-	if ((fp = fopen(STAT_FILE_NAME, "r")) == NULL) {
-//                      printf("\n\nERROR : Can not open file '%s' for reading...",STAT_FILE_NAME);fflush(stdout);
+	if ((fp = fopen(stat_file_name, "r")) == NULL) {
+//                      printf("\n\nERROR : Can not open file '%s' for reading...",stat_file_name);fflush(stdout);
 	    for (b = 0; b < 46; b++) {
 		c = b * WIDTH;
 		for (a = 0; a < (WIDTH - 10); a++) {
@@ -9374,8 +9363,8 @@ SaveStat(void)
 	return;
     }
 
-    if ((fp = fopen(STAT_FILE_NAME, "w")) == NULL) {
-	printf("\n\nERROR : Can not open file '%s' for writing...", STAT_FILE_NAME);
+    if ((fp = fopen(stat_file_name, "w")) == NULL) {
+	printf("\n\nERROR : Can not open file '%s' for writing...", stat_file_name);
 	fflush(stdout);
 	for (b = 0; b < 46; b++) {
 	    c = b * WIDTH;
@@ -9527,9 +9516,9 @@ WriteToPort(char *ZTV)
 	TrBuPtr = 0;
 #endif
 
-#ifdef SIMULATION
-    return 1;
-#endif
+    if (Simulation) {
+	return 1;
+    }
 
     if (Port == -1)
 	return 1;
@@ -9672,10 +9661,10 @@ SetUpCAN(void)
     Serial[4] = '\0';
     IBCP = 0;
 
-#ifdef SIMULATION
-    Port = 0;
-    return (1);
-#endif
+    if (Simulation) {
+	Port = 0;
+	return 1;
+    }
 
 
 //printf("\nCalling OACPort");fflush(stdout);
@@ -9949,8 +9938,7 @@ CleanUp(int vis)
 	TrBuPtr = 0;
 #endif
 
-#ifndef SIMULATION
-    if (Port >= 0) {
+    if (!Simulation && Port >= 0) {
 	sprintf(Message, "C\015");	// Close the CAN channel
 	if (WriteToPort(Message)) {
 	    printf("\nError writing to port : Close CAN channel");
@@ -9959,8 +9947,6 @@ CleanUp(int vis)
 	close(Port);
 	Port = -1;
     }
-#endif
-
 
 #ifdef TRACE_IT
     TrBu[TrBuPtr] = '2';
@@ -10235,7 +10221,7 @@ UpdateFuelFile(void)
     FILE *fp = NULL;
     float MPG, AMPG;
 
-    if ((fp = fopen(FUEL_FILE_NAME, "a")) == NULL)
+    if ((fp = fopen(fuel_file_name, "a")) == NULL)
 	return;
 
     AMPG = TripGallonValue;
@@ -13331,7 +13317,7 @@ FastPoll(void)
     unsigned char CV;
 
 
-#ifdef SIMULATION
+    if (Simulation) {
     int b;
     unsigned char CV1;
 
@@ -13362,7 +13348,7 @@ FastPoll(void)
     UpdateDriveMode();		// 0x40, 0x80, 0x00, 
     CopyDisplayBufferToScreen((EV_XE - 20), EV_YS, BAR_WIDTH, (EV_YE - EV_YS + 1));
     return;
-#endif
+    }
 
 #ifdef TRACE_IT
     TrBu[TrBuPtr] = '<';
@@ -13379,14 +13365,13 @@ FastPoll(void)
     ++NofNInv;
 #endif
 
-
-#ifdef SIMULATION
-    sprintf(IB + IBCP,
-	    "t03B502E400BFE5\nt12080000000010130450\nt3486000100000052\nt3C8504280000FC\nt3CA5004D210040\nt3CB76664007E131141\nt3CD5000000BE93\nt52C2238A\nt57F768301000000000\nt5A426323\nt5296A70000854000\nt5B6364C100\n");
-    cp = 231 - 26 - 12;
-#else
-    cp = read(Port, IB + IBCP, (IBS - IBCP));
-#endif
+    if (Simulation) {
+	sprintf(IB + IBCP,
+		"t03B502E400BFE5\nt12080000000010130450\nt3486000100000052\nt3C8504280000FC\nt3CA5004D210040\nt3CB76664007E131141\nt3CD5000000BE93\nt52C2238A\nt57F768301000000000\nt5A426323\nt5296A70000854000\nt5B6364C100\n");
+	cp = 231 - 26 - 12;
+    } else {
+	cp = read(Port, IB + IBCP, (IBS - IBCP));
+    }
 
 
     if (cp <= 0) {
@@ -13661,6 +13646,11 @@ main(int argc, char **argv)
 	    case 's':
 		SI_Measurements = 1;
 		break;
+	    case 'o':
+		Simulation = 1;
+		stat_file_name = STAT_FILE_NAME_SIM;
+		fuel_file_name = FUEL_FILE_NAME_SIM;
+		break;
 	    case '-':
 	    case 'h':
 	    case '?':
@@ -13669,6 +13659,7 @@ main(int argc, char **argv)
 		printf("\n\tv - Turn OFF voice mode");
 		printf("\n\tf - Take sound samples and player from %s directory", FORCE_PATH);
 		printf("\n\ts - Use SI measurements ( km/h etc.)");
+		printf("\n\to - Offline Simulation mode");
 		printf("\n\nTouching the 1st vertical quarter of the screen :");
 		printf("\n    Switch Voice On/Off.");
 		printf("\n 2nd and 3rd quarter of the screen :");
