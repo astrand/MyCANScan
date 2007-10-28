@@ -182,7 +182,7 @@ char NextStep = 2;
 #define	SPDSCALER			((double)(16000.0))
 #define	SPDSCALER_MILE			((double)(10000.0))
 
-#define	VERSION_STRING	"v9.0 by Attila Vass"
+#define	VERSION_STRING	"v" PACKAGE_VERSION " by Attila Vass & Peter Astrand"
 
 #define DEVICE "/dev/ttyCAN"
 
