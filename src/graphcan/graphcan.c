@@ -19,18 +19,6 @@
 
 /*
 
-HOW TO COMPILE :
-
-For the Zaurus :
-
-gcc graphcan.c -o graphcan -lpthread
-
-
-For X11/Linux :
-
-gcc graphcan.c -o graphcanl -DNON_ZAURUS -L/usr/X11R6/lib -lX11 -lpthread
-
-
 MPG -> L/100km         10 mpg = 16km/3.78l  =>  1.6km/G 1.6km/3.78l => 0.42328f
 
 
