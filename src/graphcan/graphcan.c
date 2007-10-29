@@ -278,7 +278,6 @@ unsigned int Info_Brakes = 0, Info_Brakes_Cnt = 0;
 #endif
 int ScrSv_NumberOfTimes = 1;
 int PreviousRPMValue = 0xFFFF;
-//int           PreviousCurrentValue=0xFFFF;
 unsigned int TimeElapsed = 0;
 unsigned long CollCurr = 0, CollVolt = 0;
 unsigned int CollCntr = 0, CollTime = 0;
@@ -293,8 +292,6 @@ unsigned char LastRegenBrake = 0;
 #endif
 char LastRegenStopReason = 'U';
 unsigned char NofTrafficBytesZero = 0;
-
-//float         SpeedScalerV=1100.0f;
 
 #ifdef TRAFFIC_PROFILE
 unsigned int NofInv = 0, NofNInv = 0;
@@ -605,7 +602,6 @@ ResetValues(void)
     FSRCntr = 1;
     LatestRPM = 0;
     FirstGasReading = 1;
-//      GasGauge=0x7F;
     MaxCurrent = 0;
     MinCurrent = 0;
     MinMaxCurrentDisplay = 0;
@@ -629,7 +625,6 @@ ResetValues(void)
     NeedSynced = 1;
     ScrSv_NumberOfTimes = 1;
     PreviousRPMValue = 0xFFFF;
-//      PreviousCurrentValue=0xFFFF;
     ValueSwitch = 0;
     LightValue = 0;
     InstrumentsDimmed = 0;
@@ -1154,11 +1149,9 @@ CopyDataToMemoryCard(void)
 void
 ScreenSaver(void)
 {
-//int   a,b,tx,ty;
     int c;
 
     if (--ScrSv_NumberOfTimes < 1) {
-//              ReadRawMopedFile();
 	SS_Stats();
 	ScrSv_NumberOfTimes = 300;
 	c = GetMyStringLength(VERSION_STRING, 0, 2);
@@ -3854,21 +3847,6 @@ UpdateCurrent(void)		// 31/s
 	    }
 	}
     }
-
-#if 0
-    if (PreviousCurrentValue == Value) {
-#ifdef TRACE_IT
-	TrBu[TrBuPtr] = 'e';
-	if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-	    TrBuPtr = 0;
-	TrBu[TrBuPtr] = '1';
-	if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-	    TrBuPtr = 0;
-#endif
-	return;
-    }
-    PreviousCurrentValue = Value;
-#endif
 
 //printf(" => %x",V);fflush(stdout);
 
