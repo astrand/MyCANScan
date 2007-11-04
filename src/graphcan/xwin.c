@@ -1,3 +1,21 @@
+/*
+    CAN data visualizer for the '04 Toyota Prius on a Sharp SL-C700
+    X11 user interface code
+    Copyright (C) 2004-2005 Attila Vass
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -5,6 +23,7 @@
 #include <X11/keysym.h>
 #include <X11/Xutil.h>
 #include "images.h"
+#include "ui.h"
 
 // FIXME: eliminate/move as many as possible
 Window WorkWindow = 0;
@@ -232,8 +251,7 @@ CopyDisplayBufferToScreen(int x, int y, int w, int h)
 
 
 
-void
-XMainLoop(void)
+void ui_main_loop()
 {
     XEvent report;
     XGCValues mygcvalues;
@@ -269,8 +287,7 @@ XMainLoop(void)
     }				/* while */
 }
 
-int
-CreateMainWindow(void)
+int ui_create_window()
 {
     XSizeHints *s_h;
     XTextProperty winname, iconame;
@@ -337,7 +354,7 @@ CreateMainWindow(void)
     XSelectInput(WorkDisplay, WorkWindow, ExposureMask);
     XMapWindow(WorkDisplay, WorkWindow);
 
-    XMainLoop();
+    ui_main_loop();
 
     return (0);
 }

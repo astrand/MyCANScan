@@ -118,6 +118,7 @@ Working with ACR = 7960FC00   AMR = 000F016F	( M7960FC00 m000F016F )
 #include <linux/fb.h>
 #include <sys/mman.h>
 #include <pthread.h>
+#include "ui.h"
 
 
 /**********************************/
@@ -2452,8 +2453,7 @@ GetMyStringLength(char *Text, int usebignums, int zoom)
 
 #ifndef NON_ZAURUS
 
-int
-CreateMainWindow(void)
+int ui_create_window()
 {
     int c;
 
@@ -5326,7 +5326,7 @@ main(int argc, char **argv)
     }
 
     SetUpMySignals();
-    if (CreateMainWindow())
+    if (ui_create_window())
 	return (0);
 
     DefineButtons();
@@ -5504,7 +5504,7 @@ main(int argc, char **argv)
 #endif
 
 #ifdef NON_ZAURUS
-	    XMainLoop();
+	    ui_main_loop();
 #endif
 
 	}
