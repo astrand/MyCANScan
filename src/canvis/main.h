@@ -135,3 +135,7 @@ extern int MiscellaneousKey(int modi,char key);
 extern void RGB_to_HSV(unsigned char R, unsigned char G, unsigned char B, float * H, float * S, float * V);
 extern void HSV_to_RGB(float H, float S, float V, unsigned char * R, unsigned char * G, unsigned char * B);
 #endif
+
+#if defined (__cplusplus) && (!(defined (__CPLUSLIBS)))
+}
+#endif
