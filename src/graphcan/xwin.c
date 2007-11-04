@@ -1,7 +1,9 @@
 /*
-    CAN data visualizer for the '04 Toyota Prius on a Sharp SL-C700
+    CAN data visualizer for the Toyota Prius
     X11 user interface code
-    Copyright (C) 2004-2005 Attila Vass
+
+    Copyright 2004-2005 Attila Vass
+    Copyright 2007 Peter Åstrand <astrand@lysator.liu.se>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
