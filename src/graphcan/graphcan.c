@@ -23,42 +23,6 @@
 
 MPG -> L/100km         10 mpg = 16km/3.78l  =>  1.6km/G 1.6km/3.78l => 0.42328f
 
-
-[0x30] 0x3B 0x39 0x120 0x348 0x3C8 0x3CA 0x3CB 0x3CD 0x529 0x52C 0x57F 0x5A4 0x5B6
-
-[030 : Brake]
-03B : - EM Current
-120 - Drive Mode
-348 : - ICE Throttle + ICE torque
-3C8 : - ICE RPM
-3C9
-3CA : - Speed
-3CB : - SOC
-3CD : - Battery Voltage
-3CF
-520
-521
-526
-527
-528
-529 : - EV Mode
-52C : - ICE temp
-540 - Shift Lever
-553
-554
-56D
-57F : - Lights
-591
-5A4 : - Gas Gauge
-5B2
-5B6 : - Doors
-5C8 - Cruise
-5CC -
-5D4 -
-5EC
-5ED
-5F8
-
 DEFAULT :
 Working with ACR = 07202000   AMR = 004FDFEF
 0x03B 0x120 0x348 0x34F 0x3C8 0x3C9 0x3CA 0x3CB 0x3CD 0x3CF 0x520 0x521 0x526 0x527 0x528 0x529
