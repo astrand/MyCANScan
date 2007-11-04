@@ -1,5 +1,5 @@
 #!/bin/bash
-indent -i4 -br -l100 -npcs \
+indent -i4 -br -l100 -npcs -nut \
     *.c \
     graphcan/*.c graphcan/*.h \
     canvis/*.c canvis/*.h
