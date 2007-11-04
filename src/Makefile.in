@@ -47,7 +47,9 @@ graphcan/graphcan: $(X11OBJ) $(GRAPHCAN_OBJS)
 	$(CC) $(GRAPHCAN_OBJS) $(CFLAGS) -DNON_ZAURUS -o $@ $(X11OBJ) $(LDFLAGS) -lX11 -lpthread
 
 # graphcan, Zaurus version
-GRAPHCANZ_OBJS = graphcan/graphcanz.o graphcan/fontsz.o graphcan/imagesz.o
+GRAPHCANZ_OBJS = graphcan/graphcanz.o graphcan/fontsz.o graphcan/imagesz.o graphcan/zaurus.o
+graphcan/zaurus.o: graphcan/zaurus.c
+	$(CC) $(CFLAGS) -Igraphcan -o $@ -c $<
 graphcan/imagesz.o: graphcan/images.c
 	$(CC) $(CFLAGS) -Igraphcan -o $@ -c $<
 graphcan/fontsz.o: graphcan/fonts.c graphcan/fonts.h

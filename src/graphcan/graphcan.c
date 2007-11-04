@@ -117,8 +117,6 @@ Working with ACR = 7960FC00   AMR = 000F016F	( M7960FC00 m000F016F )
 #include <errno.h>
 #include <math.h>
 #include <fcntl.h>
-#include <linux/fb.h>
-#include <sys/mman.h>
 #include <pthread.h>
 #include "ui.h"
 
@@ -170,24 +168,9 @@ Working with ACR = 7960FC00   AMR = 000F016F	( M7960FC00 m000F016F )
 #define	ABS(a)	(((a)<0)?(-(a)):((a)))
 #endif // ABS
 
-#define	WIDTH	640
-#define	HEIGHT	480
-
 #define	BKG_R	((unsigned char)0x00)
 #define	BKG_G	((unsigned char)0x00)
 #define	BKG_B	((unsigned char)0x00)
-
-/*
-
-Zaurus bytes :
-
-char	:	1
-int	:	4
-long	:	4
-float	:	4
-double	:	8
-
-*/
 
 enum
 { TASK_INIT = 0, TASK_INFO, TASK_SCREENSAVER, TASK_RUNNING };
@@ -288,16 +271,9 @@ unsigned char IC_Message[8];
 struct termios oldT, newT;
 #endif
 
-int fbfd = -1;
 #ifdef USE_TOUCHSCREEN
 int touch_screen_fd = -1;
 #endif
-
-struct fb_var_screeninfo vinfo;
-struct fb_fix_screeninfo finfo;
-long int screensize = 0;
-char *fbp = 0;
-
 
 #ifdef TRACE_IT
 
@@ -316,7 +292,7 @@ extern fontmetrics fonts[];
 SetUpCAN			A
 UpdateSOC			B
 CleanUp				C
-CopyDisplayBufferToScreen	D
+UICopyDisplayBufferToScreen	D
 UpdateCurrent			E
 TransferFont			F
 UpdateGG			G
@@ -342,12 +318,6 @@ FastPoll			<>
 AnalyseHighCANMessages		-+
 */
 
-#define	XOFFS	0
-#define	YOFFS	0
-#define	LLENGTH	960
-#define	BBPX	16
-#define	BBPXSH	2
-
 unsigned char MaxCurrentValues[50][9];  // for every 2 km/h value record max generated current in Amps, also 40/45/50/55/60/65/70/75/80%
 
 typedef struct ButtonStructure
@@ -360,7 +330,6 @@ typedef struct ButtonStructure
     unsigned char UserData;
 } ButtonStructure;
 
-void CopyDisplayBufferToScreen(int x, int y, int w, int h);
 void PutMyString(char *Text, int x, int y, int usebignums, int zoom);
 int GetMyStringLength(char *Text, int usebignums, int zoom);
 void IntReXSigCatch(int);
@@ -522,7 +491,7 @@ DrawInfoScreen(void)
         sprintf(Message, "mil-tank: %3.1f", (TripKilometers * 0.625f));
     PutMyString(Message, 30, 240, 1, 2);
 
-    CopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
+    UICopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
 }
 
 void
@@ -875,7 +844,7 @@ RunTaskInfoMain(void)
                         ++c;
                     }
                 }
-                CopyDisplayBufferToScreen(0, 0, 20, 20);
+                UICopyDisplayBufferToScreen(0, 0, 20, 20);
             }
 //printf(",");fflush(stdout);
         }
@@ -926,7 +895,7 @@ RunTaskInfoMain(void)
                 c = GetMyStringLength(Message, 1, 3);
                 PutMyString(Message, (320 - (c >> 1)), 280, 1, 3);
             }
-            CopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
+            UICopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
             sleep(3);
             break;
         case 13:               // Exit
@@ -948,7 +917,7 @@ RunTaskInfoMain(void)
                 c = GetMyStringLength(Message, 1, 3);
                 PutMyString(Message, (320 - (c >> 1)), 340, 1, 3);
             }
-            CopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
+            UICopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
             sleep(2);
             return;
             break;
@@ -1088,27 +1057,6 @@ SS_Stats(void)
     PutMyString(Message, (320 - (c >> 1)), 86, 0, 3);
 }
 
-#define	FL_IOCTL_STEP_CONTRAST	100
-void
-AdjustBackLight(void)
-{
-    int bl = 6;
-    int fd;
-
-#ifdef NON_ZAURUS
-    return;
-#endif
-    if (InstrumentsDimmed)
-        bl = 1;
-
-    if ((fd = open("/dev/fl", O_WRONLY)) <= 0) {
-        printf("\nError opening '/dev/fl'...");
-        fflush(stdout);
-        return;
-    }
-    ioctl(fd, FL_IOCTL_STEP_CONTRAST, bl);
-    close(fd);
-}
 
 #define	COPY_COMMAND	"su -c 'cp PriusData.txt FuelData.txt /mnt/card;umount /mnt/card'"
 int
@@ -1137,7 +1085,7 @@ ScreenSaver(void)
         ScrSv_NumberOfTimes = 300;
         c = GetMyStringLength(VERSION_STRING, 0, 2);
         PutMyString(VERSION_STRING, ((WIDTH >> 1) - c), 450, 0, 2);
-        CopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
+        UICopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
     }
     if (TouchedX != -1) {
         if ((TouchedX == 17) && (TouchedY == 17)) {
@@ -1154,7 +1102,7 @@ ScreenSaver(void)
             TouchedX = -1;
             TouchedY = -1;
         }
-        CopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
+        UICopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
     }
     sleep(1);
 
@@ -1176,7 +1124,7 @@ ScreenSaver(void)
         }
     }
 
-    CopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
+    UICopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
 
 #endif
 
@@ -1202,7 +1150,7 @@ LoadStat(void)
         sprintf(Message, "Loading...");
         c = GetMyStringLength(Message, 1, 3);
         PutMyString(Message, ((WIDTH - 10 - c) >> 1), 9, 0, 3);
-        CopyDisplayBufferToScreen(0, 0, (WIDTH - 10), 46);
+        UICopyDisplayBufferToScreen(0, 0, (WIDTH - 10), 46);
 
         if ((fp = fopen(stat_file_name, "r")) == NULL) {
 //                      printf("\n\nERROR : Can not open file '%s' for reading...",stat_file_name);fflush(stdout);
@@ -1218,7 +1166,7 @@ LoadStat(void)
             sprintf(Message, "Loading Failed...");
             c = GetMyStringLength(Message, 1, 3);
             PutMyString(Message, ((WIDTH - 10 - c) >> 1), 9, 0, 3);
-            CopyDisplayBufferToScreen(0, 0, (WIDTH - 10), 46);
+            UICopyDisplayBufferToScreen(0, 0, (WIDTH - 10), 46);
             sleep(3);
             --Go;
         }
@@ -1286,7 +1234,7 @@ LoadStat(void)
                 sprintf(Message, "INVALID DATA while loading...");
                 c = GetMyStringLength(Message, 1, 2);
                 PutMyString(Message, ((WIDTH - 10 - c) >> 1), 9, 0, 2);
-                CopyDisplayBufferToScreen(0, 0, (WIDTH - 10), 46);
+                UICopyDisplayBufferToScreen(0, 0, (WIDTH - 10), 46);
                 sleep(3);
                 --Go;
             }
@@ -1307,7 +1255,7 @@ LoadStat(void)
     sprintf(Message, "Loading... OK.");
     c = GetMyStringLength(Message, 1, 3);
     PutMyString(Message, ((WIDTH - 10 - c) >> 1), 9, 0, 3);
-    CopyDisplayBufferToScreen(0, 0, (WIDTH - 10), 46);
+    UICopyDisplayBufferToScreen(0, 0, (WIDTH - 10), 46);
 
 #if 0
     printf("Accumulated KMPG = %1.6f\n", MeasuredKMPG);
@@ -1337,7 +1285,7 @@ SaveStat(void)
     sprintf(Message, "Saving...");
     c = GetMyStringLength(Message, 1, 3);
     PutMyString(Message, ((WIDTH - 10 - c) >> 1), 9, 0, 3);
-    CopyDisplayBufferToScreen(0, 0, (WIDTH - 10), 46);
+    UICopyDisplayBufferToScreen(0, 0, (WIDTH - 10), 46);
 
     if ((DistanceTravelled < 0.001f) && (AccRpm < 0.001f)) {
         for (b = 0; b < 46; b++) {
@@ -1352,7 +1300,7 @@ SaveStat(void)
         sprintf(Message, "Not Saved... Unnecessary...");
         c = GetMyStringLength(Message, 1, 2);
         PutMyString(Message, ((WIDTH - 10 - c) >> 1), 9, 0, 2);
-        CopyDisplayBufferToScreen(0, 0, (WIDTH - 10), 46);
+        UICopyDisplayBufferToScreen(0, 0, (WIDTH - 10), 46);
         sleep(1);
         return;
     }
@@ -1373,7 +1321,7 @@ SaveStat(void)
         sprintf(Message, "Not Saved... INVALID DATA...");
         c = GetMyStringLength(Message, 1, 2);
         PutMyString(Message, ((WIDTH - 10 - c) >> 1), 9, 0, 2);
-        CopyDisplayBufferToScreen(0, 0, (WIDTH - 10), 46);
+        UICopyDisplayBufferToScreen(0, 0, (WIDTH - 10), 46);
         sleep(3);
         return;
     }
@@ -1393,7 +1341,7 @@ SaveStat(void)
         sprintf(Message, "Saving... FAILED");
         c = GetMyStringLength(Message, 1, 3);
         PutMyString(Message, ((WIDTH - 10 - c) >> 1), 9, 0, 3);
-        CopyDisplayBufferToScreen(0, 0, (WIDTH - 10), 46);
+        UICopyDisplayBufferToScreen(0, 0, (WIDTH - 10), 46);
         sleep(3);
         return;
     }
@@ -1516,7 +1464,7 @@ SaveStat(void)
     sprintf(Message, "Saving... Ok.");
     c = GetMyStringLength(Message, 1, 3);
     PutMyString(Message, ((WIDTH - 10 - c) >> 1), 9, 0, 3);
-    CopyDisplayBufferToScreen(0, 0, (WIDTH - 10), 46);
+    UICopyDisplayBufferToScreen(0, 0, (WIDTH - 10), 46);
 }
 
 int
@@ -1910,6 +1858,8 @@ DumpTraceBuffer(void)
 void
 CleanUp(int vis)
 {
+    UICleanUp(vis);
+
 #ifdef TRACE_IT
     TrBu[TrBuPtr] = 'C';
     if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
@@ -1965,16 +1915,6 @@ CleanUp(int vis)
     if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
         TrBuPtr = 0;
 #endif
-    if (fbfd != -1) {
-        munmap(fbp, screensize);
-#ifdef TRACE_IT
-        TrBu[TrBuPtr] = '6';
-        if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-            TrBuPtr = 0;
-#endif
-        close(fbfd);
-        fbfd = -1;
-    }
 
 #ifdef USE_TOUCHSCREEN
     if (touch_screen_fd >= 0)
@@ -2453,152 +2393,6 @@ GetMyStringLength(char *Text, int usebignums, int zoom)
     return (px);
 }
 
-#ifndef NON_ZAURUS
-
-int
-ui_create_window()
-{
-    int c;
-
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'M';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
-    fbfd = open("/dev/fb0", O_RDWR);    // Open the file for reading and writing
-    if (!fbfd) {
-        printf("Error: cannot open framebuffer device.\n");
-        close(fbfd);
-#ifdef TRACE_IT
-        TrBu[TrBuPtr] = 'm';
-        if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-            TrBuPtr = 0;
-#endif
-        return (-1);
-    }
-
-
-    if (ioctl(fbfd, FBIOGET_FSCREENINFO, &finfo))       // Get fixed screen information
-    {
-        printf("Error reading framebuffer fixed information.\n");
-#ifdef TRACE_IT
-        TrBu[TrBuPtr] = 'm';
-        if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-            TrBuPtr = 0;
-#endif
-        close(fbfd);
-        return (-2);
-    }
-
-
-    if (ioctl(fbfd, FBIOGET_VSCREENINFO, &vinfo))       // Get variable screen information
-    {
-        printf("Error reading framebuffer variable information.\n");
-        close(fbfd);
-#ifdef TRACE_IT
-        TrBu[TrBuPtr] = 'm';
-        if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-            TrBuPtr = 0;
-#endif
-        return (-3);
-    }
-
-//      if((vinfo.xres!=WIDTH)||(vinfo.yres!=HEIGHT)||(vinfo.bits_per_pixel!=BBPX)||(vinfo.xoffset!=XOFFS)||(vinfo.yoffset!=YOFFS)||(finfo.line_length!=LLENGTH))
-    if ((vinfo.xres != HEIGHT) || (vinfo.yres != WIDTH) || (vinfo.bits_per_pixel != BBPX)
-        || (vinfo.xoffset != XOFFS) || (vinfo.yoffset != YOFFS) || (finfo.line_length != LLENGTH)) {
-        printf("\nError, screen does not match optimized parameters :");
-        printf("%dx%d, %dbpp offs:%d:%d  llng:%d\n", vinfo.xres, vinfo.yres, vinfo.bits_per_pixel,
-               vinfo.xoffset, vinfo.yoffset, finfo.line_length);
-        close(fbfd);
-#ifdef TRACE_IT
-        TrBu[TrBuPtr] = 'm';
-        if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-            TrBuPtr = 0;
-#endif
-        return (-4);
-    }
-
-
-    screensize = (WIDTH * HEIGHT * BBPXSH);     // Figure out the size of the screen in bytes
-
-    // Map the device to memory
-    fbp = (char *) mmap(0, screensize, PROT_READ | PROT_WRITE, MAP_SHARED, fbfd, 0);
-    if ((int) fbp == -1) {
-        printf("Error: failed to map framebuffer device to memory.\n");
-        close(fbfd);
-#ifdef TRACE_IT
-        TrBu[TrBuPtr] = 'm';
-        if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-            TrBuPtr = 0;
-#endif
-        return (-5);
-    }
-
-    if ((WorkData = (char *) malloc(BBPXSH * WIDTH * HEIGHT)) == NULL) {
-        printf("Error: failed to allocate Workdata buffer.\n");
-        munmap(fbp, screensize);
-        close(fbfd);
-#ifdef TRACE_IT
-        TrBu[TrBuPtr] = 'm';
-        if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-            TrBuPtr = 0;
-#endif
-        return (-6);
-    }
-
-    if ((ImageBuffer =
-         (struct ImageBufferStructure *) malloc(sizeof(struct ImageBufferStructure) * WIDTH *
-                                                HEIGHT)) == NULL) {
-        printf("Error: failed to allocate ImageBuffer..\n");
-        free((void *) WorkData);
-        munmap(fbp, screensize);
-        close(fbfd);
-#ifdef TRACE_IT
-        TrBu[TrBuPtr] = 'm';
-        if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-            TrBuPtr = 0;
-#endif
-        return (-7);
-    }
-
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'm';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
-
-// NOW SET UP TOUCHSCREEN               45:45  560:45  45:445   560:445
-
-#ifdef USE_TOUCHSCREEN
-    if ((touch_screen_fd = open("/dev/sharp_ts", O_RDONLY | O_NONBLOCK)) == -1) // |O_NONBLOCK
-    {
-        printf("Can not open Touchscreen Device...\n\n");
-        fflush(stdout);
-        return (-1);
-    }
-
-//printf("Touchscreen = %d",touch_screen_fd);fflush(stdout);
-    c = 0;
-    if (fcntl(touch_screen_fd, F_SETOWN, getpid()) >= 0) {
-#if 0
-        if (fcntl(touch_screen_fd, F_SETFL, O_NONBLOCK) < 0) {
-            printf("\nError with O_NONBLOCK SIGIO for TouchScreen...");
-            fflush(stdout);
-        }
-#endif
-        if (fcntl(touch_screen_fd, F_SETFL, FASYNC) < 0) {
-            printf("\nError with FASYNC SIGIO for TouchScreen...");
-            fflush(stdout);
-        }
-    }
-
-#endif
-
-    return (0);
-}
-
-#endif
-
 
 void
 MarkDoors(unsigned char Door)
@@ -2727,7 +2521,7 @@ ShowPrius(void)                 // DoorStatus = 0x00 - All Closed    0x04 - Rear
     if (DoorStatus & 0x4)
         MarkDoors(3);
 
-    CopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
+    UICopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
 }
 
 void
@@ -2784,7 +2578,7 @@ SetUpPicture(void)
         TrBuPtr = 0;
 #endif
     ClearDisplayBuffer();
-    CopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
+    UICopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
 #ifdef TRACE_IT
     TrBu[TrBuPtr] = 'y';
     if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
@@ -2926,7 +2720,7 @@ ProcessSigIo()
         if (FD_ISSET(touch_screen_fd, &fdset)) {
             if ((c = read(touch_screen_fd, BUFF, 8)) == 8) {
                 ScrTouched = 3;
-//                              CopyDisplayBufferToScreen(0,0,WIDTH,HEIGHT);
+//                              UICopyDisplayBufferToScreen(0,0,WIDTH,HEIGHT);
 
                 x = ((int) (BUFF[5] * 256) + (int) (BUFF[4]));
                 y = (480 - ((int) (BUFF[3] * 256) + (int) (BUFF[2])));  // 45:45  560:45  45:445   560:445
@@ -3198,7 +2992,7 @@ UpdateSpeedComputations(void)
     c = GetMyStringLength(Message, 0, 2);
     ClearDisplayBufferArea(RPM_XS, 456, BAR_WIDTH, 25);
     PutMyString(Message, (((RPM_XS + (BAR_WIDTH >> 1)) - (c >> 1)) - 20), 457, 0, 2);
-    CopyDisplayBufferToScreen(RPM_XS, 456, BAR_WIDTH, 25);
+    UICopyDisplayBufferToScreen(RPM_XS, 456, BAR_WIDTH, 25);
     NofTrafficBytes = 0;
 
 #ifdef MORE_DATA
@@ -3206,7 +3000,7 @@ UpdateSpeedComputations(void)
     c = GetMyStringLength(Message, 0, 2);
     ClearDisplayBufferArea(RPM_XS, TEMP_YE + 1, BAR_WIDTH, 18);
     PutMyString(Message, ((RPM_XS + (BAR_WIDTH >> 1)) - (c >> 1)), (TEMP_YE + 2), 0, 2);
-    CopyDisplayBufferToScreen(RPM_XS, TEMP_YE, BAR_WIDTH, 20);
+    UICopyDisplayBufferToScreen(RPM_XS, TEMP_YE, BAR_WIDTH, 20);
 #endif
 
     if (Decel) {
@@ -3320,8 +3114,8 @@ UpdateSpeedComputations(void)
         c = 118;
     PutMyString(Message, (118 - c), 26, 0, 2);
 
-    CopyDisplayBufferToScreen(0, 0, (WIDTH - 6), 46);
-    CopyDisplayBufferToScreen(231, 456, 180, 21);
+    UICopyDisplayBufferToScreen(0, 0, (WIDTH - 6), 46);
+    UICopyDisplayBufferToScreen(231, 456, 180, 21);
 
     ThrottleV = TripGallonValue;
     if (AccRpm > 0.0f) {
@@ -3399,54 +3193,6 @@ StopCurrentCollection(char src)
     Info_Brakes_Cnt = 0;
 #endif
 }
-
-#ifndef NON_ZAURUS
-
-void
-CopyDisplayBufferToScreen(int x, int y, int w, int h)
-{
-    register unsigned short int *TmpWrk = (unsigned short *) WorkData;
-    register int a, b, c, d, wx = x, wy = y, wh = (h + y), ww = (x + w);
-
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'D';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
-
-    for (b = wy; b < wh; b++) {
-        c = wx + b * WIDTH;
-        for (a = wx; a < ww; a++) {
-            TmpWrk[c] =
-                (((unsigned short) (ImageBuffer[c].
-                                    R & 0xF8) << 8) | ((unsigned short) (ImageBuffer[c].
-                                                                         G & 0xFC) << 3) |
-                 ((unsigned short) (ImageBuffer[c].B & 0xF8) >> 3));
-            ++c;
-        }
-    }
-
-    for (b = wy; b < wh; b++)   // Actual Copy to screen
-    {
-//              c=b*LLENGTH+wx*BBPXSH;          // since YOFFS/XOFFS is 0
-
-        c = ((HEIGHT - 1) - b) * BBPXSH + (wx * LLENGTH);
-        d = wx + b * WIDTH;
-        for (a = wx; a < ww; a++) {
-            *((unsigned short int *) (fbp + c)) = TmpWrk[d];
-            c += LLENGTH;
-            ++d;
-        }
-    }
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'd';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
-
-}
-
-#endif
 
 //#define       BAR_WIDTH       180
 //#define       BAR_SPACING     17
@@ -3643,7 +3389,7 @@ UpdateCurrent(void)             // 31/s
         PutMyString(Message, (CURRENT_XS + ((BAR_WIDTH - c) >> 1)), (CURRENT_YS + 280), 0, 2);
     }
 
-    CopyDisplayBufferToScreen(CURRENT_XS, CURRENT_YS, BAR_WIDTH, (CURRENT_YE - CURRENT_YS + 1));
+    UICopyDisplayBufferToScreen(CURRENT_XS, CURRENT_YS, BAR_WIDTH, (CURRENT_YE - CURRENT_YS + 1));
 
 #ifdef TRACE_IT
     TrBu[TrBuPtr] = 'e';
@@ -3773,7 +3519,7 @@ UpdateSOC(void)                 //   150-128-110-104-98-90   95-103-109-115-133
     PutMyString(Message, (SOC_XS + ((BAR_WIDTH - c) >> 1)),
                 (((SOC_YE - SOC_YS) >> 1) + SOC_YS + 60), 0, 2);
 
-    CopyDisplayBufferToScreen(SOC_XS, SOC_YS, BAR_WIDTH, (SOC_YE - SOC_YS + 1));
+    UICopyDisplayBufferToScreen(SOC_XS, SOC_YS, BAR_WIDTH, (SOC_YE - SOC_YS + 1));
 #ifdef TRACE_IT
     TrBu[TrBuPtr] = 'b';
     if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
@@ -3943,7 +3689,7 @@ UpdateGG(void)                  // 11.9 Gal / 45 Liter ( 11.904762 Gal )
     c = GetMyStringLength(Message, 0, 1);
     PutMyString(Message, ((GG_XS + ((BAR_WIDTH - c) >> 1)) + 2), (GG_TINFO + 2), 0, 1);
 
-    CopyDisplayBufferToScreen(GG_XS, GG_YS, BAR_WIDTH, (GG_YE - GG_YS + 1));
+    UICopyDisplayBufferToScreen(GG_XS, GG_YS, BAR_WIDTH, (GG_YE - GG_YS + 1));
 #ifdef TRACE_IT
     TrBu[TrBuPtr] = 'g';
     if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
@@ -4047,7 +3793,7 @@ UpdateRpm(void)
     c = GetMyStringLength(Message, 0, 3);
     PutMyString(Message, (RPM_XS + ((BAR_WIDTH - c) >> 1)), (((RPM_YE - RPM_YS) >> 1) + RPM_YS), 0,
                 3);
-    CopyDisplayBufferToScreen(RPM_XS, RPM_YS, BAR_WIDTH, (RPM_YE - RPM_YS + 1));
+    UICopyDisplayBufferToScreen(RPM_XS, RPM_YS, BAR_WIDTH, (RPM_YE - RPM_YS + 1));
 #ifdef TRACE_IT
     TrBu[TrBuPtr] = 'r';
     if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
@@ -4205,7 +3951,7 @@ UpdateTemp(void)
     c = GetMyStringLength(Message, 0, 3);
     PutMyString(Message, (TEMP_XS + ((BAR_WIDTH - c) >> 1)),
                 (((TEMP_YE - TEMP_YS_1) >> 1) + TEMP_YS_1 + 10), 0, 3);
-    CopyDisplayBufferToScreen(TEMP_XS, TEMP_YS_1, BAR_WIDTH, (TEMP_YE - TEMP_YS_1 + 1));
+    UICopyDisplayBufferToScreen(TEMP_XS, TEMP_YS_1, BAR_WIDTH, (TEMP_YE - TEMP_YS_1 + 1));
 #ifdef TRACE_IT
     TrBu[TrBuPtr] = 'j';
     if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
@@ -4371,7 +4117,7 @@ UpdateCatTemp(void)
     c = GetMyStringLength(Message, 0, 3);
     PutMyString(Message, (TEMP_XS + ((BAR_WIDTH - c) >> 1)),
                 (((TEMP_YE_1 - TEMP_YS) >> 1) + TEMP_YS), 0, 3);
-    CopyDisplayBufferToScreen(TEMP_XS, TEMP_YS, BAR_WIDTH, (TEMP_YE_1 - TEMP_YS + 1));
+    UICopyDisplayBufferToScreen(TEMP_XS, TEMP_YS, BAR_WIDTH, (TEMP_YE_1 - TEMP_YS + 1));
 #ifdef TRACE_IT
     TrBu[TrBuPtr] = 'k';
     if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
@@ -4476,7 +4222,7 @@ UpdateDriveMode(void)
             ++d;
         }
     }
-    CopyDisplayBufferToScreen(EV_XS, EV_YS, EV_WIDTH, (EV_YE - EV_YS + 1));
+    UICopyDisplayBufferToScreen(EV_XS, EV_YS, EV_WIDTH, (EV_YE - EV_YS + 1));
 
 #ifdef TRACE_IT
     TrBu[TrBuPtr] = 'v';
@@ -4519,7 +4265,7 @@ PutExtraInfo(void)
     c = GetMyStringLength(Message, 0, 3);
     PutMyString(Message, (EI_XS + ((BAR_WIDTH - c) >> 1)), (EI_YS + 5), 0, 3);
 
-    CopyDisplayBufferToScreen(EI_XS, EI_YS, BAR_WIDTH, (EI_HG + 1));
+    UICopyDisplayBufferToScreen(EI_XS, EI_YS, BAR_WIDTH, (EI_HG + 1));
 }
 
 
@@ -4602,7 +4348,7 @@ OldUpdateDriveMode(void)
             ++d;
         }
     }
-    CopyDisplayBufferToScreen(EV_XS, EV_YS, BAR_WIDTH, (EV_YE - EV_YS + 1));
+    UICopyDisplayBufferToScreen(EV_XS, EV_YS, BAR_WIDTH, (EV_YE - EV_YS + 1));
 #ifdef TRACE_IT
     TrBu[TrBuPtr] = 'v';
     if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
@@ -4737,7 +4483,7 @@ AnalyseLights(int Position)
         CV &= 1;
         if (InstrumentsDimmed != CV) {
             InstrumentsDimmed = CV;
-            AdjustBackLight();
+            UIAdjustBacklight(InstrumentsDimmed);
         }
     }
 }
@@ -4778,7 +4524,7 @@ AnalyseDoors(int Position)
                 UpdateGG();
                 UpdateTemp();
                 UpdateSOC();
-                CopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
+                UICopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
             }
         }
     }
@@ -4833,7 +4579,7 @@ AnalyseSpeed(int Position)
             UpdateGG();
             UpdateTemp();
             UpdateSOC();
-            CopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
+            UICopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
         }
     }
 }
@@ -4999,7 +4745,7 @@ FastPoll(void)
         CV1 <<= (rand() & 0x3);
         EVMode = CV1;
         UpdateDriveMode();      // 0x40, 0x80, 0x00, 
-        CopyDisplayBufferToScreen((EV_XE - 20), EV_YS, BAR_WIDTH, (EV_YE - EV_YS + 1));
+        UICopyDisplayBufferToScreen((EV_XE - 20), EV_YS, BAR_WIDTH, (EV_YE - EV_YS + 1));
         return;
     }
 
@@ -5056,8 +4802,8 @@ FastPoll(void)
         ImageBuffer[ml].B = 0;
         ml += WIDTH;
     }
-    CopyDisplayBufferToScreen((SOC_XS + TrafficCtr + (TrafficSubCtr * 29)), (GG_YE + 4), 1,
-                              ((SOC_YS - 4) - (GG_YE + 4) + 1));
+    UICopyDisplayBufferToScreen((SOC_XS + TrafficCtr + (TrafficSubCtr * 29)), (GG_YE + 4), 1,
+                                ((SOC_YS - 4) - (GG_YE + 4) + 1));
 
     if (TrafficSubCtr) {
         if (TrafficCtr == 0)
@@ -5079,8 +4825,8 @@ FastPoll(void)
         ImageBuffer[ml].B = 0;
         ml += WIDTH;
     }
-    CopyDisplayBufferToScreen((SOC_XS + TrafficCtr + ((1 - TrafficSubCtr) * 29)), (GG_YE + 4), 1,
-                              ((SOC_YS - 4) - (GG_YE + 4) + 1));
+    UICopyDisplayBufferToScreen((SOC_XS + TrafficCtr + ((1 - TrafficSubCtr) * 29)), (GG_YE + 4), 1,
+                                ((SOC_YS - 4) - (GG_YE + 4) + 1));
 
     NofTrafficBytes += (unsigned int) cp;
 
@@ -5355,7 +5101,7 @@ main(int argc, char **argv)
 
     while (RealQuit == 0) {
         RunningTask = TASK_INIT;
-        AdjustBackLight();
+        UIAdjustBacklight(InstrumentsDimmed);
         NoTrafficYet = 1;
 #ifdef USE_VOICE_ANNOUNCEMENT
         InitVoice();
@@ -5372,7 +5118,7 @@ main(int argc, char **argv)
         PutMyString(Message, 20, 150, 0, 6);
         c = GetMyStringLength(VERSION_STRING, 0, 2) + 10;
         PutMyString(VERSION_STRING, (WIDTH - c), 450, 0, 2);
-        CopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
+        UICopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
         c = 1;
 
         while (c) {
@@ -5380,12 +5126,12 @@ main(int argc, char **argv)
                 ClearDisplayBuffer();
                 sprintf(Message, "CAN is not ready!");
                 PutMyString(Message, 20, 150, 0, 6);
-                CopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
+                UICopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
                 if ((ProcessGo == 0) || (RealQuit == 1)) {
                     ClearDisplayBuffer();
                     sprintf(Message, "Quit detected, exit.");
                     PutMyString(Message, 20, 20, 0, 6);
-                    CopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
+                    UICopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
                     CleanUp(0);
                     printf("\nExited...\n");
                     fflush(stdout);
@@ -5401,7 +5147,7 @@ main(int argc, char **argv)
                 ClearDisplayBuffer();
                 sprintf(Message, "Initializing CAN...");
                 PutMyString(Message, 20, 150, 0, 6);
-                CopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
+                UICopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
             }
             else
                 c = 0;
@@ -5414,7 +5160,7 @@ main(int argc, char **argv)
         ClearDisplayBuffer();
         UpdateDriveMode();
         UpdateGG();
-        CopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
+        UICopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
         alarm(2);
 
         StartTime = time(NULL);
@@ -5467,7 +5213,7 @@ main(int argc, char **argv)
                         if (!DoorStatus)
                             UpdateGG();
                         FSRCntr = FULLSCREEN_REFRESH_RATE;
-                        CopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
+                        UICopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
                     }
                 }
                 NeedSynced = 0;

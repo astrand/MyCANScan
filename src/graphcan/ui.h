@@ -18,6 +18,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#define	WIDTH	640
+#define	HEIGHT	480
 
 int ui_create_window();
 void ui_main_loop();
+void UIAdjustBacklight(unsigned char dimmed);
+void UICopyDisplayBufferToScreen(int x, int y, int w, int h);
+void UICleanUp(int vis);

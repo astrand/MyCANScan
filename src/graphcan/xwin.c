@@ -43,12 +43,9 @@ char NextStep = 2;
 
 extern char *WorkData;
 extern struct ImageBufferStructure *ImageBuffer;
-#define	WIDTH	640
-#define	HEIGHT	480
 
 
-
-int
+static int
 GetHighestVisualPixmapCombination(void)
 {
     int NumRet, a, b, NumVis, maxdpt, selected = 0, wd, wid;
@@ -191,7 +188,7 @@ GetHighestVisualPixmapCombination(void)
 
 
 void
-CopyDisplayBufferToScreen(int x, int y, int w, int h)
+UICopyDisplayBufferToScreen(int x, int y, int w, int h)
 {
     register unsigned short *TmpWrk = (unsigned short *) WorkData;
     register int a, b, c, d, wx = x, wy = y, wh = (h + y), ww = w;
@@ -281,7 +278,7 @@ ui_main_loop()
 
 //PutMyString("Alma Helloho ilinoise Alaska",30,260,0,2);
 
-                CopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
+                UICopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
             }
             break;
         default:
@@ -361,4 +358,14 @@ ui_create_window()
     ui_main_loop();
 
     return (0);
+}
+
+void
+UIAdjustBacklight(unsigned char dimmed)
+{
+}
+
+void
+UICleanUp(int vis)
+{
 }
