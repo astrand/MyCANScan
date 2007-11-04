@@ -1,0 +1,10 @@
+Unsorted Sharp Zaurus information
+=================================
+
+Data type sizes:
+
+char	:	1
+int	:	4
+long	:	4
+float	:	4
+double	:	8
