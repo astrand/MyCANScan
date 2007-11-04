@@ -251,7 +251,7 @@ UICopyDisplayBufferToScreen(int x, int y, int w, int h)
 
 
 void
-ui_main_loop()
+UIMainLoop()
 {
     XEvent report;
     XGCValues mygcvalues;
@@ -288,7 +288,7 @@ ui_main_loop()
 }
 
 int
-ui_create_window()
+UICreateWindow()
 {
     XSizeHints *s_h;
     XTextProperty winname, iconame;
@@ -355,7 +355,7 @@ ui_create_window()
     XSelectInput(WorkDisplay, WorkWindow, ExposureMask);
     XMapWindow(WorkDisplay, WorkWindow);
 
-    ui_main_loop();
+    UIMainLoop();
 
     return (0);
 }

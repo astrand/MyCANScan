@@ -5076,7 +5076,7 @@ main(int argc, char **argv)
     }
 
     SetUpMySignals();
-    if (ui_create_window())
+    if (UICreateWindow())
         return (0);
 
     DefineButtons();
@@ -5254,7 +5254,7 @@ main(int argc, char **argv)
 #endif
 
 #ifdef NON_ZAURUS
-            ui_main_loop();
+            UIMainLoop();
 #endif
 
         }

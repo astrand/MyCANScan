@@ -67,7 +67,7 @@ UIAdjustBacklight(unsigned char dimmed)
 
 
 int
-ui_create_window()
+UICreateWindow()
 {
     int c;
 

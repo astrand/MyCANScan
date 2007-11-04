@@ -21,8 +21,8 @@
 #define	WIDTH	640
 #define	HEIGHT	480
 
-int ui_create_window();
-void ui_main_loop();
+int UICreateWindow();
+void UIMainLoop();
 void UIAdjustBacklight(unsigned char dimmed);
 void UICopyDisplayBufferToScreen(int x, int y, int w, int h);
 void UICleanUp(int vis);
