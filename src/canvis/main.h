@@ -81,9 +81,9 @@ extern "C"
 #define KM_CTRL		2
 #define	KM_ALT		4
     enum
-    { SK_F1 =
-            210, SK_F2, SK_F3, SK_F4, SK_F5, SK_F6, SK_F7, SK_F8, SK_F9, SK_F10, SK_F11, SK_F12,
-            SK_UPAR, SK_DNAR, SK_LFAR, SK_RIAR, SK_HOME, SK_PGUP, SK_PGDN, SK_END };
+    { SK_F1 = 210, SK_F2, SK_F3, SK_F4, SK_F5, SK_F6, SK_F7, SK_F8, SK_F9, SK_F10, SK_F11, SK_F12,
+        SK_UPAR, SK_DNAR, SK_LFAR, SK_RIAR, SK_HOME, SK_PGUP, SK_PGDN, SK_END
+    };
 
 #define	BKG_R	((unsigned char)0x00)
 #define	BKG_G	((unsigned char)0x00)
