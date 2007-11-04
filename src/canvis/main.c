@@ -36,7 +36,7 @@ void
 IntReXSigCatch(int sig)
 {
     if (signal(sig, SIG_IGN) == BADSIG)
-	return;
+        return;
     switch (sig) {
 //              case SIGPWR     : 
     case SIGHUP:
@@ -48,8 +48,8 @@ IntReXSigCatch(int sig)
     case SIGPIPE:
     case SIGINT:
     case SIGTERM:
-	CleanUp();
-	exit(-1);
+        CleanUp();
+        exit(-1);
     }
 }
 
@@ -60,13 +60,13 @@ SetReXSig(int sig, void (*fcn) ())
 
     ssr = signal(sig, SIG_IGN);
     if (ssr == BADSIG)
-	return;
+        return;
     else if (ssr == SIG_IGN)
-	return;
+        return;
     else if (ssr != SIG_DFL)
-	return;
+        return;
     if (signal(sig, fcn) == BADSIG)
-	return;
+        return;
 }
 
 void
@@ -95,39 +95,39 @@ main(int argc, char **argv)
 //      SetUpMySignals();
 
     if (argc == 1) {
-	printf("\nPlease provide filename to analyze...\n\n");
-	fflush(stdout);
-	return (0);
+        printf("\nPlease provide filename to analyze...\n\n");
+        fflush(stdout);
+        return (0);
     }
 
     if (argc > 2)
-	Main_Info = 1;
+        Main_Info = 1;
 
     ob = NULL;
     CreateMainWindow();
 
     for (ow = 0; ((ow < 255) && (argv[1][ow] != '\0')); ow++)
-	CommandLineBuffer[ow] = argv[1][ow];
+        CommandLineBuffer[ow] = argv[1][ow];
 
     ob = (char *) CreatePicture(&ow, &oh, &obs);
     if (ob != NULL) {
-	if ((RetSize = InitializeNextImageStructure()) == -1) {
-	    printf("\n\nCan not allocate next image structure... ?! whaaat?!!!");
-	    fflush(stdout);
-	    return;
-	}
-	MyImages[RetSize].OriginalBuffer = ob;
-	MyImages[RetSize].OriginalWidth = ow;
-	MyImages[RetSize].OriginalHeight = oh;
-	MyImages[RetSize].OriginalBufferSize = obs;
-	MyImages[RetSize].Name[0] = '%';
-	UpdateImageToOriginal(RetSize);
-	SelectedImage = RetSize;
-	MainLoop();
+        if ((RetSize = InitializeNextImageStructure()) == -1) {
+            printf("\n\nCan not allocate next image structure... ?! whaaat?!!!");
+            fflush(stdout);
+            return;
+        }
+        MyImages[RetSize].OriginalBuffer = ob;
+        MyImages[RetSize].OriginalWidth = ow;
+        MyImages[RetSize].OriginalHeight = oh;
+        MyImages[RetSize].OriginalBufferSize = obs;
+        MyImages[RetSize].Name[0] = '%';
+        UpdateImageToOriginal(RetSize);
+        SelectedImage = RetSize;
+        MainLoop();
     }
     else {
-	printf("\nError creating Picture");
-	fflush(stdout);
+        printf("\nError creating Picture");
+        fflush(stdout);
     }
     CleanUp();
 

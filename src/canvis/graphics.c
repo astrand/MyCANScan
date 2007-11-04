@@ -27,7 +27,7 @@
 #include <X11/cursorfont.h>
 
 
-#define	GRAPHICS_C	1	// for main.h
+#define	GRAPHICS_C	1       // for main.h
 
 //#define       DEBUG_BUFFERS   1
 //#define       DEBUG_MESSAGES  1
@@ -92,7 +92,7 @@ int NumberOfButtons = 0;
 int ActiveButton = -1;
 int SelectedImage = -1, PreviousSelectedImage = -1;
 unsigned char ButtonPressed = 0;
-int DrawTarget = 0;		// 0=WorkBuffer, 1=DisplayBuffer;
+int DrawTarget = 0;             // 0=WorkBuffer, 1=DisplayBuffer;
 
 unsigned int InternalKeyModifiers = 0;
 unsigned char KeyModifiers = 0;
@@ -290,85 +290,85 @@ CleanUp(void)
 {
 //      if(WorkImage!=NULL) XDestroyImage(WorkImage);
     if (WorkPixmap != (Pixmap) 0)
-	XFreePixmap(WorkDisplay, WorkPixmap);
+        XFreePixmap(WorkDisplay, WorkPixmap);
     if (WorkCursor != 0)
-	XFreeCursor(WorkDisplay, WorkCursor);
+        XFreeCursor(WorkDisplay, WorkCursor);
     if (WorkPixmapGC != NULL)
-	XFreeGC(WorkDisplay, WorkPixmapGC);
+        XFreeGC(WorkDisplay, WorkPixmapGC);
     if (WorkWindowGC != NULL)
-	XFreeGC(WorkDisplay, WorkWindowGC);
+        XFreeGC(WorkDisplay, WorkWindowGC);
     if ((WorkWindow != 0) && (WorkDisplay != NULL))
-	XDestroyWindow(WorkDisplay, WorkWindow);
+        XDestroyWindow(WorkDisplay, WorkWindow);
     if (WorkDisplay != NULL)
-	XCloseDisplay(WorkDisplay);
+        XCloseDisplay(WorkDisplay);
     if (ImageBuffer != NULL)
-	free((void *) ImageBuffer);
+        free((void *) ImageBuffer);
     if (WorkData != NULL)
-	free((void *) WorkData);
+        free((void *) WorkData);
 }
 
 
 void
 TransferFont(int fsx, int fsy, int tx, int ty, int fw, int fh, int zoom)
 {
-    register char *FRPtr, ch;	// current row's string ptr
-    register int cr = fsy, tr = fsy + fh;	// current / target row
-    register int cc, sc = fsx, tc = fsx + fw;	// current / start / target column
-    register int cp, sz1, sz2;	// colour pointer
-    register int WBPtr, WBpy = ty;	// Pointer to workbuffer
+    register char *FRPtr, ch;   // current row's string ptr
+    register int cr = fsy, tr = fsy + fh;       // current / target row
+    register int cc, sc = fsx, tc = fsx + fw;   // current / start / target column
+    register int cp, sz1, sz2;  // colour pointer
+    register int WBPtr, WBpy = ty;      // Pointer to workbuffer
     register unsigned char Rv, Gv, Bv;
 
     if (WBpy < 0) {
-	cr -= WBpy;
-	WBpy = 0;
-    }				// don't copy if out of screen (y<0)
+        cr -= WBpy;
+        WBpy = 0;
+    }                           // don't copy if out of screen (y<0)
     if (tx < 0) {
-	sc = fsx - tx;
-	tx = 0;
+        sc = fsx - tx;
+        tx = 0;
     }
 
     if (DrawTarget) {
-	if ((WBpy + (fh * zoom)) >= DisplayHeight)
-	    tr = fsy + (DisplayHeight - WBpy);	// don't copy if out of screen (y>width)
-	if ((tx + (fw * zoom)) >= DisplayWidth)
-	    tc -= (tx + (fw * zoom) - DisplayWidth);
+        if ((WBpy + (fh * zoom)) >= DisplayHeight)
+            tr = fsy + (DisplayHeight - WBpy);  // don't copy if out of screen (y>width)
+        if ((tx + (fw * zoom)) >= DisplayWidth)
+            tc -= (tx + (fw * zoom) - DisplayWidth);
     }
     else {
-	if ((WBpy + (fh * zoom)) >= WorkHeight)
-	    tr = fsy + (WorkHeight - WBpy);	// don't copy if out of screen (y>width)
-	if ((tx + (fw * zoom)) >= WorkWidth)
-	    tc -= (tx + (fw * zoom) - WorkWidth);
+        if ((WBpy + (fh * zoom)) >= WorkHeight)
+            tr = fsy + (WorkHeight - WBpy);     // don't copy if out of screen (y>width)
+        if ((tx + (fw * zoom)) >= WorkWidth)
+            tc -= (tx + (fw * zoom) - WorkWidth);
     }
 
-    while (cr < tr)		// raw...
+    while (cr < tr)             // raw...
     {
-	FRPtr = Font_Map[cr];	// ptr to string within font map...
-	for (sz2 = 0; sz2 < zoom; sz2++) {
-	    for (cc = sc; cc < tc; cc++)	// column
-	    {
-		ch = FRPtr[cc];
-		for (sz1 = 0; sz1 < zoom; sz1++) {
-		    WBPtr = (tx + sz1 + ((cc - sc) * zoom) + (WBpy + sz2) * DisplayWidth);
-		    if (WBPtr >= 0) {
-			for (cp = 0; cp < FONTMAP_COLORS; cp++) {
-			    if (Font_Color[cp].letter == ch) {
-				Rv = (unsigned char) ABS((int) ImageBuffer[WBPtr].R -
-							 (int) Font_Color[cp].Color);
-				Gv = (unsigned char) ABS((int) ImageBuffer[WBPtr].G -
-							 (int) Font_Color[cp].Color);
-				Bv = (unsigned char) ABS((int) ImageBuffer[WBPtr].B -
-							 (int) Font_Color[cp].Color);
-				ImageBuffer[WBPtr].R = Rv;
-				ImageBuffer[WBPtr].G = Gv;
-				ImageBuffer[WBPtr].B = Bv;
-			    }
-			}
-		    }
-		}
-	    }
-	}
-	WBpy += zoom;
-	cr++;
+        FRPtr = Font_Map[cr];   // ptr to string within font map...
+        for (sz2 = 0; sz2 < zoom; sz2++) {
+            for (cc = sc; cc < tc; cc++)        // column
+            {
+                ch = FRPtr[cc];
+                for (sz1 = 0; sz1 < zoom; sz1++) {
+                    WBPtr = (tx + sz1 + ((cc - sc) * zoom) + (WBpy + sz2) * DisplayWidth);
+                    if (WBPtr >= 0) {
+                        for (cp = 0; cp < FONTMAP_COLORS; cp++) {
+                            if (Font_Color[cp].letter == ch) {
+                                Rv = (unsigned char) ABS((int) ImageBuffer[WBPtr].R -
+                                                         (int) Font_Color[cp].Color);
+                                Gv = (unsigned char) ABS((int) ImageBuffer[WBPtr].G -
+                                                         (int) Font_Color[cp].Color);
+                                Bv = (unsigned char) ABS((int) ImageBuffer[WBPtr].B -
+                                                         (int) Font_Color[cp].Color);
+                                ImageBuffer[WBPtr].R = Rv;
+                                ImageBuffer[WBPtr].G = Gv;
+                                ImageBuffer[WBPtr].B = Bv;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        WBpy += zoom;
+        cr++;
     }
 }
 
@@ -378,97 +378,97 @@ PutMyString(char *Text, int x, int y, int usebignums, int zoom)
     int a = 0, b, px = x, notfound;
 
     while (Text[a] != '\0') {
-	notfound = 1;
-	if (usebignums) {
-	    b = 0;
-	    while ((bignumbers[b].letter != Text[a]) && (bignumbers[b].x >= 0))
-		++b;
-	    if (bignumbers[b].x >= 0) {
-		TransferFont(bignumbers[b].x, bignumbers[b].y, px, y - 2, bignumbers[b].width,
-			     bignumbers[b].height, zoom);
-		px += bignumbers[b].width * zoom;
-		notfound = 0;
-	    }
-	}
-	if (notfound) {
-	    b = 0;
-	    while ((fonts[b].letter != Text[a]) && (fonts[b].x >= 0))
-		++b;
-	    if (fonts[b].x >= 0) {
-		if ((fonts[b].letter >= '0') && (fonts[b].letter <= '9'))
-		    TransferFont(fonts[b].x, fonts[b].y, px, y - 1, fonts[b].width, fonts[b].height,
-				 zoom);
-		else {
-		    if ((fonts[b].letter == '%') && (!usebignums))
-			TransferFont(fonts[b].x, fonts[b].y, px, y - 2, fonts[b].width,
-				     fonts[b].height, zoom);
-		    else
-			TransferFont(fonts[b].x, fonts[b].y, px, y, fonts[b].width, fonts[b].height,
-				     zoom);
-		}
-		px += fonts[b].width * zoom;
-	    }
-	}
-	++a;
+        notfound = 1;
+        if (usebignums) {
+            b = 0;
+            while ((bignumbers[b].letter != Text[a]) && (bignumbers[b].x >= 0))
+                ++b;
+            if (bignumbers[b].x >= 0) {
+                TransferFont(bignumbers[b].x, bignumbers[b].y, px, y - 2, bignumbers[b].width,
+                             bignumbers[b].height, zoom);
+                px += bignumbers[b].width * zoom;
+                notfound = 0;
+            }
+        }
+        if (notfound) {
+            b = 0;
+            while ((fonts[b].letter != Text[a]) && (fonts[b].x >= 0))
+                ++b;
+            if (fonts[b].x >= 0) {
+                if ((fonts[b].letter >= '0') && (fonts[b].letter <= '9'))
+                    TransferFont(fonts[b].x, fonts[b].y, px, y - 1, fonts[b].width, fonts[b].height,
+                                 zoom);
+                else {
+                    if ((fonts[b].letter == '%') && (!usebignums))
+                        TransferFont(fonts[b].x, fonts[b].y, px, y - 2, fonts[b].width,
+                                     fonts[b].height, zoom);
+                    else
+                        TransferFont(fonts[b].x, fonts[b].y, px, y, fonts[b].width, fonts[b].height,
+                                     zoom);
+                }
+                px += fonts[b].width * zoom;
+            }
+        }
+        ++a;
     }
 }
 
 void
 TransferFontB(char *TB, int xsz, int ysz, int fsx, int fsy, int tx, int ty, int fw, int fh,
-	      int zoom)
+              int zoom)
 {
-    register char *FRPtr, ch;	// current row's string ptr
-    register int cr = fsy, tr = fsy + fh;	// current / target row
-    register int cc, sc = fsx, tc = fsx + fw;	// current / start / target column
-    register int cp, sz1, sz2;	// colour pointer
-    register int WBPtr, WBpy = ty;	// Pointer to workbuffer
+    register char *FRPtr, ch;   // current row's string ptr
+    register int cr = fsy, tr = fsy + fh;       // current / target row
+    register int cc, sc = fsx, tc = fsx + fw;   // current / start / target column
+    register int cp, sz1, sz2;  // colour pointer
+    register int WBPtr, WBpy = ty;      // Pointer to workbuffer
     register unsigned char Rv, Gv, Bv;
     register struct ImageBufferStructure *IB;
 
     IB = (struct ImageBufferStructure *) TB;
     if (WBpy < 0) {
-	cr -= WBpy;
-	WBpy = 0;
-    }				// don't copy if out of screen (y<0)
+        cr -= WBpy;
+        WBpy = 0;
+    }                           // don't copy if out of screen (y<0)
     if (tx < 0) {
-	sc = fsx - tx;
-	tx = 0;
+        sc = fsx - tx;
+        tx = 0;
     }
 
     if ((WBpy + (fh * zoom)) >= ysz)
-	tr = fsy + (ysz - WBpy);	// don't copy if out of screen (y>width)
+        tr = fsy + (ysz - WBpy);        // don't copy if out of screen (y>width)
     if ((tx + (fw * zoom)) >= xsz)
-	tc -= (tx + (fw * zoom) - xsz);
+        tc -= (tx + (fw * zoom) - xsz);
 
-    while (cr < tr)		// raw...
+    while (cr < tr)             // raw...
     {
-	FRPtr = Font_Map[cr];	// ptr to string within font map...
-	for (sz2 = 0; sz2 < zoom; sz2++) {
-	    for (cc = sc; cc < tc; cc++)	// column
-	    {
-		ch = FRPtr[cc];
-		for (sz1 = 0; sz1 < zoom; sz1++) {
-		    WBPtr = (tx + sz1 + ((cc - sc) * zoom) + (WBpy + sz2) * xsz);
-		    if (WBPtr >= 0) {
-			for (cp = 0; cp < FONTMAP_COLORS; cp++) {
-			    if (Font_Color[cp].letter == ch) {
-				Rv = (unsigned char) ABS((int) IB[WBPtr].R -
-							 (int) Font_Color[cp].Color);
-				Gv = (unsigned char) ABS((int) IB[WBPtr].G -
-							 (int) Font_Color[cp].Color);
-				Bv = (unsigned char) ABS((int) IB[WBPtr].B -
-							 (int) Font_Color[cp].Color);
-				IB[WBPtr].R = Rv;
-				IB[WBPtr].G = Gv;
-				IB[WBPtr].B = Bv;
-			    }
-			}
-		    }
-		}
-	    }
-	}
-	WBpy += zoom;
-	cr++;
+        FRPtr = Font_Map[cr];   // ptr to string within font map...
+        for (sz2 = 0; sz2 < zoom; sz2++) {
+            for (cc = sc; cc < tc; cc++)        // column
+            {
+                ch = FRPtr[cc];
+                for (sz1 = 0; sz1 < zoom; sz1++) {
+                    WBPtr = (tx + sz1 + ((cc - sc) * zoom) + (WBpy + sz2) * xsz);
+                    if (WBPtr >= 0) {
+                        for (cp = 0; cp < FONTMAP_COLORS; cp++) {
+                            if (Font_Color[cp].letter == ch) {
+                                Rv = (unsigned char) ABS((int) IB[WBPtr].R -
+                                                         (int) Font_Color[cp].Color);
+                                Gv = (unsigned char) ABS((int) IB[WBPtr].G -
+                                                         (int) Font_Color[cp].Color);
+                                Bv = (unsigned char) ABS((int) IB[WBPtr].B -
+                                                         (int) Font_Color[cp].Color);
+                                IB[WBPtr].R = Rv;
+                                IB[WBPtr].G = Gv;
+                                IB[WBPtr].B = Bv;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        WBpy += zoom;
+        cr++;
     }
 }
 
@@ -478,38 +478,38 @@ PutMyStringB(char *TB, int xsz, int ysz, char *Text, int x, int y, int usebignum
     int a = 0, b, px = x, notfound;
 
     while (Text[a] != '\0') {
-	notfound = 1;
-	if (usebignums) {
-	    b = 0;
-	    while ((bignumbers[b].letter != Text[a]) && (bignumbers[b].x >= 0))
-		++b;
-	    if (bignumbers[b].x >= 0) {
-		TransferFontB(TB, xsz, ysz, bignumbers[b].x, bignumbers[b].y, px, y - 2,
-			      bignumbers[b].width, bignumbers[b].height, zoom);
-		px += bignumbers[b].width * zoom;
-		notfound = 0;
-	    }
-	}
-	if (notfound) {
-	    b = 0;
-	    while ((fonts[b].letter != Text[a]) && (fonts[b].x >= 0))
-		++b;
-	    if (fonts[b].x >= 0) {
-		if ((fonts[b].letter >= '0') && (fonts[b].letter <= '9'))
-		    TransferFontB(TB, xsz, ysz, fonts[b].x, fonts[b].y, px, y - 1, fonts[b].width,
-				  fonts[b].height, zoom);
-		else {
-		    if ((fonts[b].letter == '%') && (!usebignums))
-			TransferFontB(TB, xsz, ysz, fonts[b].x, fonts[b].y, px, y - 2,
-				      fonts[b].width, fonts[b].height, zoom);
-		    else
-			TransferFontB(TB, xsz, ysz, fonts[b].x, fonts[b].y, px, y, fonts[b].width,
-				      fonts[b].height, zoom);
-		}
-		px += fonts[b].width * zoom;
-	    }
-	}
-	++a;
+        notfound = 1;
+        if (usebignums) {
+            b = 0;
+            while ((bignumbers[b].letter != Text[a]) && (bignumbers[b].x >= 0))
+                ++b;
+            if (bignumbers[b].x >= 0) {
+                TransferFontB(TB, xsz, ysz, bignumbers[b].x, bignumbers[b].y, px, y - 2,
+                              bignumbers[b].width, bignumbers[b].height, zoom);
+                px += bignumbers[b].width * zoom;
+                notfound = 0;
+            }
+        }
+        if (notfound) {
+            b = 0;
+            while ((fonts[b].letter != Text[a]) && (fonts[b].x >= 0))
+                ++b;
+            if (fonts[b].x >= 0) {
+                if ((fonts[b].letter >= '0') && (fonts[b].letter <= '9'))
+                    TransferFontB(TB, xsz, ysz, fonts[b].x, fonts[b].y, px, y - 1, fonts[b].width,
+                                  fonts[b].height, zoom);
+                else {
+                    if ((fonts[b].letter == '%') && (!usebignums))
+                        TransferFontB(TB, xsz, ysz, fonts[b].x, fonts[b].y, px, y - 2,
+                                      fonts[b].width, fonts[b].height, zoom);
+                    else
+                        TransferFontB(TB, xsz, ysz, fonts[b].x, fonts[b].y, px, y, fonts[b].width,
+                                      fonts[b].height, zoom);
+                }
+                px += fonts[b].width * zoom;
+            }
+        }
+        ++a;
     }
 }
 
@@ -519,24 +519,24 @@ GetMyStringLength(char *Text, int usebignums, int zoom)
     int a = 0, b, px = 0, notfound;
 
     while (Text[a] != '\0') {
-	notfound = 1;
-	if (usebignums) {
-	    b = 0;
-	    while ((bignumbers[b].letter != Text[a]) && (bignumbers[b].x >= 0))
-		++b;
-	    if (bignumbers[b].x >= 0) {
-		px += bignumbers[b].width * zoom;
-		notfound = 0;
-	    }
-	}
-	if (notfound) {
-	    b = 0;
-	    while ((fonts[b].letter != Text[a]) && (fonts[b].x >= 0))
-		++b;
-	    if (fonts[b].x >= 0)
-		px += fonts[b].width * zoom;
-	}
-	++a;
+        notfound = 1;
+        if (usebignums) {
+            b = 0;
+            while ((bignumbers[b].letter != Text[a]) && (bignumbers[b].x >= 0))
+                ++b;
+            if (bignumbers[b].x >= 0) {
+                px += bignumbers[b].width * zoom;
+                notfound = 0;
+            }
+        }
+        if (notfound) {
+            b = 0;
+            while ((fonts[b].letter != Text[a]) && (fonts[b].x >= 0))
+                ++b;
+            if (fonts[b].x >= 0)
+                px += fonts[b].width * zoom;
+        }
+        ++a;
     }
     return (px);
 }
@@ -553,20 +553,20 @@ GR_GetPixel(int x, int y, unsigned char *GRv_BckR, unsigned char *GRv_BckG, unsi
     register int c;
 
     if (DrawTarget) {
-	if ((x < 0) || (x >= DisplayWidth) || (y < 0) || (y >= DisplayHeight)) {
-	    *GRv_BckR = 0;
-	    *GRv_BckG = 0;
-	    *GRv_BckB = 0;
-	    return;
-	}
+        if ((x < 0) || (x >= DisplayWidth) || (y < 0) || (y >= DisplayHeight)) {
+            *GRv_BckR = 0;
+            *GRv_BckG = 0;
+            *GRv_BckB = 0;
+            return;
+        }
     }
     else {
-	if ((x < 0) || (x >= WorkWidth) || (y < 0) || (y >= WorkHeight)) {
-	    *GRv_BckR = 0;
-	    *GRv_BckG = 0;
-	    *GRv_BckB = 0;
-	    return;
-	}
+        if ((x < 0) || (x >= WorkWidth) || (y < 0) || (y >= WorkHeight)) {
+            *GRv_BckR = 0;
+            *GRv_BckG = 0;
+            *GRv_BckB = 0;
+            return;
+        }
     }
     c = x + y * DisplayWidth;
     *GRv_BckR = ImageBuffer[c].R;
@@ -580,12 +580,12 @@ GR_PutPixel(int x, int y, unsigned char GRv_BckR, unsigned char GRv_BckG, unsign
     register int c;
 
     if (DrawTarget) {
-	if ((x < 0) || (x >= DisplayWidth) || (y < 0) || (y >= DisplayHeight))
-	    return;
+        if ((x < 0) || (x >= DisplayWidth) || (y < 0) || (y >= DisplayHeight))
+            return;
     }
     else {
-	if ((x < 0) || (x >= WorkWidth) || (y < 0) || (y >= WorkHeight))
-	    return;
+        if ((x < 0) || (x >= WorkWidth) || (y < 0) || (y >= WorkHeight))
+            return;
     }
     c = x + y * DisplayWidth;
     ImageBuffer[c].R = GRv_BckR;
@@ -594,7 +594,7 @@ GR_PutPixel(int x, int y, unsigned char GRv_BckR, unsigned char GRv_BckG, unsign
 }
 
 void
-GR_DrawLine(int gx1, int gy1, int gx2, int gy2, int mode, unsigned char GRv_FwdR, unsigned char GRv_FwdG, unsigned char GRv_FwdB)	// mode : 0-put 1-antialias 2-negate
+GR_DrawLine(int gx1, int gy1, int gx2, int gy2, int mode, unsigned char GRv_FwdR, unsigned char GRv_FwdG, unsigned char GRv_FwdB)       // mode : 0-put 1-antialias 2-negate
 {
     register int x1 = gx1, y1 = gy1, x2 = gx2, y2 = gy2;
     register unsigned int a = 0, nofs;
@@ -605,150 +605,150 @@ GR_DrawLine(int gx1, int gy1, int gx2, int gy2, int mode, unsigned char GRv_FwdR
 
 #ifdef DEBUG_GRAPHOPS
     printf("\nGR_DrawLine(%d,%d,%d,%d, %d, %03d,%03d,%03d)", gx1, gy1, gx2, gy2, mode, GRv_FwdR,
-	   GRv_FwdG, GRv_FwdB);
+           GRv_FwdG, GRv_FwdB);
     fflush(stdout);
 #endif
 
     if (x2 < x1) {
-	a = x2;
-	x2 = x1;
-	x1 = (int) a;
-	a = y2;
-	y2 = y1;
-	y1 = (int) a;
+        a = x2;
+        x2 = x1;
+        x1 = (int) a;
+        a = y2;
+        y2 = y1;
+        y1 = (int) a;
     }
     if (y1 > y2)
-	ybgr = 0;
+        ybgr = 0;
     else
-	ybgr = 1;
+        ybgr = 1;
 
     if (ABS((x2 - x1)) > ABS((y2 - y1))) {
-	xs = ((x2 >= x1) ? (1.0) : (-1.0));
-	ys = (float) (y2 - y1) / (float) (ABS((x2 - x1)));
-	nofs = ABS((x2 - x1));
-	hnt = 0;
+        xs = ((x2 >= x1) ? (1.0) : (-1.0));
+        ys = (float) (y2 - y1) / (float) (ABS((x2 - x1)));
+        nofs = ABS((x2 - x1));
+        hnt = 0;
     }
     else {
-	xs = (float) (x2 - x1) / (float) (ABS((y2 - y1)));
-	ys = ((y2 >= y1) ? (1.0) : (-1.0));
-	nofs = ABS((y2 - y1));
-	hnt = 1;
+        xs = (float) (x2 - x1) / (float) (ABS((y2 - y1)));
+        ys = ((y2 >= y1) ? (1.0) : (-1.0));
+        nofs = ABS((y2 - y1));
+        hnt = 1;
     }
     x = (float) x1, y = (float) y1;
     a = 0;
 
-    if ((mode == 1) && ((x1 == x2) || (y1 == y2)))	// no antialiasing necessarry
-	mode = 0;
+    if ((mode == 1) && ((x1 == x2) || (y1 == y2)))      // no antialiasing necessarry
+        mode = 0;
     switch (mode) {
     case 0:
-	do {
-	    GR_PutPixel((int) x, (int) y, GRv_FwdR, GRv_FwdG, GRv_FwdB);
-	    x += xs;
-	    y += ys;
-	    ++a;
-	} while (a <= nofs);
-	break;
-    case 1:			// antialias
-	do {
-	    if (!hnt)		// step in x
-	    {
-		if (CHNK(y) >= (float) 0.5) {
-		    GR_GetPixel((int) x, (int) (y + 1), &GRv_BckR, &GRv_BckG, &GRv_BckB);
-		    mr = (unsigned char) ((((float) GRv_BckR - (float) GRv_FwdR) * (1 - CHNK(y))) +
-					  GRv_FwdR);
-		    mg = (unsigned char) ((((float) GRv_BckG - (float) GRv_FwdG) * (1 - CHNK(y))) +
-					  GRv_FwdG);
-		    mb = (unsigned char) ((((float) GRv_BckB - (float) GRv_FwdB) * (1 - CHNK(y))) +
-					  GRv_FwdB);
-		    GR_PutPixel((int) x, (int) (y + 1), mr, mg, mb);
-		    mr = (unsigned char) ((((float) GRv_BckR - (float) GRv_FwdR) * CHNK(y)) +
-					  GRv_FwdR);
-		    mg = (unsigned char) ((((float) GRv_BckG - (float) GRv_FwdG) * CHNK(y)) +
-					  GRv_FwdG);
-		    mb = (unsigned char) ((((float) GRv_BckB - (float) GRv_FwdB) * CHNK(y)) +
-					  GRv_FwdB);
-		    if (ybgr)
-			GR_PutPixel((int) x, (int) (y + ((ys < 0) ? (2) : (0))), mr, mg, mb);
-		    else
-			GR_PutPixel((int) x, (int) (y + ((ys < 0) ? (0) : (1))), mr, mg, mb);
-		}
-		else {
-		    GR_GetPixel((int) x, (int) (y + 1), &GRv_BckR, &GRv_BckG, &GRv_BckB);
-		    mr = (unsigned char) ((((float) GRv_BckR - (float) GRv_FwdR) * (1 - CHNK(y))) +
-					  GRv_FwdR);
-		    mg = (unsigned char) ((((float) GRv_BckG - (float) GRv_FwdG) * (1 - CHNK(y))) +
-					  GRv_FwdG);
-		    mb = (unsigned char) ((((float) GRv_BckB - (float) GRv_FwdB) * (1 - CHNK(y))) +
-					  GRv_FwdB);
-		    GR_PutPixel((int) x, (int) (y + 1), mr, mg, mb);
-		    mr = (unsigned char) ((((float) GRv_BckR - (float) GRv_FwdR) * CHNK(y)) +
-					  GRv_FwdR);
-		    mg = (unsigned char) ((((float) GRv_BckG - (float) GRv_FwdG) * CHNK(y)) +
-					  GRv_FwdG);
-		    mb = (unsigned char) ((((float) GRv_BckB - (float) GRv_FwdB) * CHNK(y)) +
-					  GRv_FwdB);
-		    GR_PutPixel((int) x, (int) y, mr, mg, mb);
-		}
-	    }
-	    else {
-		if (CHNK(x) >= (float) 0.5) {
-		    mr = (unsigned char) ((((float) GRv_BckR - (float) GRv_FwdR) * (1 - CHNK(x))) +
-					  GRv_FwdR);
-		    mg = (unsigned char) ((((float) GRv_BckG - (float) GRv_FwdG) * (1 - CHNK(x))) +
-					  GRv_FwdG);
-		    mb = (unsigned char) ((((float) GRv_BckB - (float) GRv_FwdB) * (1 - CHNK(x))) +
-					  GRv_FwdB);
-		    GR_PutPixel((int) (x + ((xs < 0) ? (-1) : (1))), (int) y, mr, mg, mb);
-		    mr = (unsigned char) ((((float) GRv_BckR - (float) GRv_FwdR) * CHNK(x)) +
-					  GRv_FwdR);
-		    mg = (unsigned char) ((((float) GRv_BckG - (float) GRv_FwdG) * CHNK(x)) +
-					  GRv_FwdG);
-		    mb = (unsigned char) ((((float) GRv_BckB - (float) GRv_FwdB) * CHNK(x)) +
-					  GRv_FwdB);
-		    GR_PutPixel((int) x, (int) y, mr, mg, mb);
-		}
-		else {
-		    mr = (unsigned char) ((((float) GRv_BckR - (float) GRv_FwdR) * (1 - CHNK(x))) +
-					  GRv_FwdR);
-		    mg = (unsigned char) ((((float) GRv_BckG - (float) GRv_FwdG) * (1 - CHNK(x))) +
-					  GRv_FwdG);
-		    mb = (unsigned char) ((((float) GRv_BckB - (float) GRv_FwdB) * (1 - CHNK(x))) +
-					  GRv_FwdB);
-		    GR_PutPixel((int) (x + ((xs < 0) ? (-1) : (1))), (int) y, mr, mg, mb);
-		    mr = (unsigned char) ((((float) GRv_BckR - (float) GRv_FwdR) * CHNK(x)) +
-					  GRv_FwdR);
-		    mg = (unsigned char) ((((float) GRv_BckG - (float) GRv_FwdG) * CHNK(x)) +
-					  GRv_FwdG);
-		    mb = (unsigned char) ((((float) GRv_BckB - (float) GRv_FwdB) * CHNK(x)) +
-					  GRv_FwdB);
-		    GR_PutPixel((int) x, (int) y, mr, mg, mb);
-		}
-	    }
-	    x += xs;
-	    y += ys;
-	    ++a;
-	} while (a <= nofs);
-	break;
+        do {
+            GR_PutPixel((int) x, (int) y, GRv_FwdR, GRv_FwdG, GRv_FwdB);
+            x += xs;
+            y += ys;
+            ++a;
+        } while (a <= nofs);
+        break;
+    case 1:                    // antialias
+        do {
+            if (!hnt)           // step in x
+            {
+                if (CHNK(y) >= (float) 0.5) {
+                    GR_GetPixel((int) x, (int) (y + 1), &GRv_BckR, &GRv_BckG, &GRv_BckB);
+                    mr = (unsigned char) ((((float) GRv_BckR - (float) GRv_FwdR) * (1 - CHNK(y))) +
+                                          GRv_FwdR);
+                    mg = (unsigned char) ((((float) GRv_BckG - (float) GRv_FwdG) * (1 - CHNK(y))) +
+                                          GRv_FwdG);
+                    mb = (unsigned char) ((((float) GRv_BckB - (float) GRv_FwdB) * (1 - CHNK(y))) +
+                                          GRv_FwdB);
+                    GR_PutPixel((int) x, (int) (y + 1), mr, mg, mb);
+                    mr = (unsigned char) ((((float) GRv_BckR - (float) GRv_FwdR) * CHNK(y)) +
+                                          GRv_FwdR);
+                    mg = (unsigned char) ((((float) GRv_BckG - (float) GRv_FwdG) * CHNK(y)) +
+                                          GRv_FwdG);
+                    mb = (unsigned char) ((((float) GRv_BckB - (float) GRv_FwdB) * CHNK(y)) +
+                                          GRv_FwdB);
+                    if (ybgr)
+                        GR_PutPixel((int) x, (int) (y + ((ys < 0) ? (2) : (0))), mr, mg, mb);
+                    else
+                        GR_PutPixel((int) x, (int) (y + ((ys < 0) ? (0) : (1))), mr, mg, mb);
+                }
+                else {
+                    GR_GetPixel((int) x, (int) (y + 1), &GRv_BckR, &GRv_BckG, &GRv_BckB);
+                    mr = (unsigned char) ((((float) GRv_BckR - (float) GRv_FwdR) * (1 - CHNK(y))) +
+                                          GRv_FwdR);
+                    mg = (unsigned char) ((((float) GRv_BckG - (float) GRv_FwdG) * (1 - CHNK(y))) +
+                                          GRv_FwdG);
+                    mb = (unsigned char) ((((float) GRv_BckB - (float) GRv_FwdB) * (1 - CHNK(y))) +
+                                          GRv_FwdB);
+                    GR_PutPixel((int) x, (int) (y + 1), mr, mg, mb);
+                    mr = (unsigned char) ((((float) GRv_BckR - (float) GRv_FwdR) * CHNK(y)) +
+                                          GRv_FwdR);
+                    mg = (unsigned char) ((((float) GRv_BckG - (float) GRv_FwdG) * CHNK(y)) +
+                                          GRv_FwdG);
+                    mb = (unsigned char) ((((float) GRv_BckB - (float) GRv_FwdB) * CHNK(y)) +
+                                          GRv_FwdB);
+                    GR_PutPixel((int) x, (int) y, mr, mg, mb);
+                }
+            }
+            else {
+                if (CHNK(x) >= (float) 0.5) {
+                    mr = (unsigned char) ((((float) GRv_BckR - (float) GRv_FwdR) * (1 - CHNK(x))) +
+                                          GRv_FwdR);
+                    mg = (unsigned char) ((((float) GRv_BckG - (float) GRv_FwdG) * (1 - CHNK(x))) +
+                                          GRv_FwdG);
+                    mb = (unsigned char) ((((float) GRv_BckB - (float) GRv_FwdB) * (1 - CHNK(x))) +
+                                          GRv_FwdB);
+                    GR_PutPixel((int) (x + ((xs < 0) ? (-1) : (1))), (int) y, mr, mg, mb);
+                    mr = (unsigned char) ((((float) GRv_BckR - (float) GRv_FwdR) * CHNK(x)) +
+                                          GRv_FwdR);
+                    mg = (unsigned char) ((((float) GRv_BckG - (float) GRv_FwdG) * CHNK(x)) +
+                                          GRv_FwdG);
+                    mb = (unsigned char) ((((float) GRv_BckB - (float) GRv_FwdB) * CHNK(x)) +
+                                          GRv_FwdB);
+                    GR_PutPixel((int) x, (int) y, mr, mg, mb);
+                }
+                else {
+                    mr = (unsigned char) ((((float) GRv_BckR - (float) GRv_FwdR) * (1 - CHNK(x))) +
+                                          GRv_FwdR);
+                    mg = (unsigned char) ((((float) GRv_BckG - (float) GRv_FwdG) * (1 - CHNK(x))) +
+                                          GRv_FwdG);
+                    mb = (unsigned char) ((((float) GRv_BckB - (float) GRv_FwdB) * (1 - CHNK(x))) +
+                                          GRv_FwdB);
+                    GR_PutPixel((int) (x + ((xs < 0) ? (-1) : (1))), (int) y, mr, mg, mb);
+                    mr = (unsigned char) ((((float) GRv_BckR - (float) GRv_FwdR) * CHNK(x)) +
+                                          GRv_FwdR);
+                    mg = (unsigned char) ((((float) GRv_BckG - (float) GRv_FwdG) * CHNK(x)) +
+                                          GRv_FwdG);
+                    mb = (unsigned char) ((((float) GRv_BckB - (float) GRv_FwdB) * CHNK(x)) +
+                                          GRv_FwdB);
+                    GR_PutPixel((int) x, (int) y, mr, mg, mb);
+                }
+            }
+            x += xs;
+            y += ys;
+            ++a;
+        } while (a <= nofs);
+        break;
     case 2:
-	do {
-	    GR_GetPixel((int) x, (int) y, &GRv_BckR, &GRv_BckG, &GRv_BckB);
-	    GR_PutPixel((int) x, (int) y, (unsigned char) (255 - GRv_BckR),
-			(unsigned char) (255 - GRv_BckG), (unsigned char) (255 - GRv_BckB));
-	    x += xs;
-	    y += ys;
-	    ++a;
-	} while (a <= nofs);
-	break;
+        do {
+            GR_GetPixel((int) x, (int) y, &GRv_BckR, &GRv_BckG, &GRv_BckB);
+            GR_PutPixel((int) x, (int) y, (unsigned char) (255 - GRv_BckR),
+                        (unsigned char) (255 - GRv_BckG), (unsigned char) (255 - GRv_BckB));
+            x += xs;
+            y += ys;
+            ++a;
+        } while (a <= nofs);
+        break;
     }
 }
 
 void
-GR_DrawRectangle(int gx1, int gy1, int gx2, int gy2, int mode, unsigned char GRv_FwdR, unsigned char GRv_FwdG, unsigned char GRv_FwdB)	// mode : 0-put 1-antialias 2-negate
+GR_DrawRectangle(int gx1, int gy1, int gx2, int gy2, int mode, unsigned char GRv_FwdR, unsigned char GRv_FwdG, unsigned char GRv_FwdB)  // mode : 0-put 1-antialias 2-negate
 {
 
 #ifdef DEBUG_GRAPHOPS
     printf("\nGR_DrawRectangle(%d,%d,%d,%d, %d, %03d,%03d,%03d)", gx1, gy1, gx2, gy2, mode,
-	   GRv_FwdR, GRv_FwdG, GRv_FwdB);
+           GRv_FwdR, GRv_FwdG, GRv_FwdB);
     fflush(stdout);
 #endif
 
@@ -759,12 +759,12 @@ GR_DrawRectangle(int gx1, int gy1, int gx2, int gy2, int mode, unsigned char GRv
 }
 
 void
-GR_DrawFillRectangle(int gx1, int gy1, int gx2, int gy2, int mode, unsigned char GRv_FwdR, unsigned char GRv_FwdG, unsigned char GRv_FwdB)	// mode : 0-put 1-antialias 2-negate
+GR_DrawFillRectangle(int gx1, int gy1, int gx2, int gy2, int mode, unsigned char GRv_FwdR, unsigned char GRv_FwdG, unsigned char GRv_FwdB)      // mode : 0-put 1-antialias 2-negate
 {
     register int ty;
 
     for (ty = gy1; ty < gy2; ty++)
-	GR_DrawLine(gx1, ty, gx2, ty, mode, GRv_FwdR, GRv_FwdG, GRv_FwdB);
+        GR_DrawLine(gx1, ty, gx2, ty, mode, GRv_FwdR, GRv_FwdG, GRv_FwdB);
 }
 
 void
@@ -778,13 +778,13 @@ ClearWorkBuffer(void)
 #endif
 
     for (b = 0; b < WorkHeight; b++) {
-	c = a + b * DisplayWidth;
-	for (a = 0; a < WorkWidth; a++) {
-	    c = a + b * DisplayWidth;
-	    ImageBuffer[c].R = BKG_R;
-	    ImageBuffer[c].G = BKG_G;
-	    ImageBuffer[c].B = BKG_B;
-	}
+        c = a + b * DisplayWidth;
+        for (a = 0; a < WorkWidth; a++) {
+            c = a + b * DisplayWidth;
+            ImageBuffer[c].R = BKG_R;
+            ImageBuffer[c].G = BKG_G;
+            ImageBuffer[c].B = BKG_B;
+        }
     }
 
 #ifdef DEBUG_BUFFERS
@@ -800,28 +800,28 @@ ReDrawWorkBuffer(int x, int y, int w, int h)
     register int a, b, c, wx = x, wy = y, wh = h, ww = w;
 
     if (wx < 0) {
-	if ((ww -= (0 - wx)) <= 0)
-	    return;		// nothing to draw...
-	wx = 0;
+        if ((ww -= (0 - wx)) <= 0)
+            return;             // nothing to draw...
+        wx = 0;
     }
     if (wx >= DisplayWidth)
-	return;
+        return;
     if (wy < 0) {
-	if ((wh -= (0 - wy)) <= 0)
-	    return;
-	wy = 0;
+        if ((wh -= (0 - wy)) <= 0)
+            return;
+        wy = 0;
     }
 
     wy += wh;
     wx += ww;
-    for (b = wy; b < wh; b++)	// clear
+    for (b = wy; b < wh; b++)   // clear
     {
-	c = a + b * DisplayWidth;
-	for (a = wx; a < ww; a++) {
-	    ImageBuffer[c].R = BKG_R;
-	    ImageBuffer[c].G = BKG_G;
-	    ImageBuffer[c++].B = BKG_B;
-	}
+        c = a + b * DisplayWidth;
+        for (a = wx; a < ww; a++) {
+            ImageBuffer[c].R = BKG_R;
+            ImageBuffer[c].G = BKG_G;
+            ImageBuffer[c++].B = BKG_B;
+        }
     }
 }
 
@@ -836,12 +836,12 @@ ClearDisplayBuffer(void)
 #endif
 
     for (b = 0; b < DisplayHeight; b++) {
-	for (a = 0; a < DisplayWidth; a++) {
-	    c = a + b * DisplayWidth;
-	    ImageBuffer[c].R = BKG_R;
-	    ImageBuffer[c].G = BKG_G;
-	    ImageBuffer[c].B = BKG_B;
-	}
+        for (a = 0; a < DisplayWidth; a++) {
+            c = a + b * DisplayWidth;
+            ImageBuffer[c].R = BKG_R;
+            ImageBuffer[c].G = BKG_G;
+            ImageBuffer[c].B = BKG_B;
+        }
     }
 
 #ifdef DEBUG_BUFFERS
@@ -865,76 +865,76 @@ CopyWorkBufferToScreen(void)
 
     switch (WorkBitsPerRGB) {
     case 8:
-	for (b = 0; b < WorkHeight; b++)
-	    for (a = 0; a < WorkWidth; a++) {
-		c = a + b * DisplayWidth;
-		TmpChrWrk[c] =
-		    (char) ((ImageBuffer[c].
-			     R >> WorkRedNumberOfShifts) << WorkRedNumberOfUpShifts) |
-		    ((ImageBuffer[c].
-		      G >> WorkGreenNumberOfShifts) << WorkGreenNumberOfUpShifts) |
-		    ((ImageBuffer[c].B >> WorkBlueNumberOfShifts) << WorkBlueNumberOfUpShifts);
-	    }
-	break;
+        for (b = 0; b < WorkHeight; b++)
+            for (a = 0; a < WorkWidth; a++) {
+                c = a + b * DisplayWidth;
+                TmpChrWrk[c] =
+                    (char) ((ImageBuffer[c].
+                             R >> WorkRedNumberOfShifts) << WorkRedNumberOfUpShifts) |
+                    ((ImageBuffer[c].
+                      G >> WorkGreenNumberOfShifts) << WorkGreenNumberOfUpShifts) |
+                    ((ImageBuffer[c].B >> WorkBlueNumberOfShifts) << WorkBlueNumberOfUpShifts);
+            }
+        break;
     case 16:
-	for (b = 0; b < WorkHeight; b++)
-	    for (a = 0; a < WorkWidth; a++) {
-		c = a + b * DisplayWidth;
-		TmpWrk[c] =
-		    ((ImageBuffer[c].
-		      R >> WorkRedNumberOfShifts) << WorkRedNumberOfUpShifts) | ((ImageBuffer[c].
-										  G >>
-										  WorkGreenNumberOfShifts)
-										 <<
-										 WorkGreenNumberOfUpShifts)
-		    | ((ImageBuffer[c].B >> WorkBlueNumberOfShifts) << WorkBlueNumberOfUpShifts);
+        for (b = 0; b < WorkHeight; b++)
+            for (a = 0; a < WorkWidth; a++) {
+                c = a + b * DisplayWidth;
+                TmpWrk[c] =
+                    ((ImageBuffer[c].
+                      R >> WorkRedNumberOfShifts) << WorkRedNumberOfUpShifts) | ((ImageBuffer[c].
+                                                                                  G >>
+                                                                                  WorkGreenNumberOfShifts)
+                                                                                 <<
+                                                                                 WorkGreenNumberOfUpShifts)
+                    | ((ImageBuffer[c].B >> WorkBlueNumberOfShifts) << WorkBlueNumberOfUpShifts);
 
 #if 0
-		if (b == 0)
-		    printf("%d=[%04x:%04x:%04x = %04x]  ", a,
-			   ((ImageBuffer[c].R >> WorkRedNumberOfShifts) << WorkRedNumberOfUpShifts),
-			   ((ImageBuffer[c].
-			     G >> WorkGreenNumberOfShifts) << WorkGreenNumberOfUpShifts),
-			   ((ImageBuffer[c].
-			     B >> WorkBlueNumberOfShifts) << WorkBlueNumberOfUpShifts), TmpWrk[c]);
-		fflush(stdout);
+                if (b == 0)
+                    printf("%d=[%04x:%04x:%04x = %04x]  ", a,
+                           ((ImageBuffer[c].R >> WorkRedNumberOfShifts) << WorkRedNumberOfUpShifts),
+                           ((ImageBuffer[c].
+                             G >> WorkGreenNumberOfShifts) << WorkGreenNumberOfUpShifts),
+                           ((ImageBuffer[c].
+                             B >> WorkBlueNumberOfShifts) << WorkBlueNumberOfUpShifts), TmpWrk[c]);
+                fflush(stdout);
 #endif
 
-	    }
-	break;
+            }
+        break;
     case 24:
 // I did this based on the VMware Linux station running under Windows2000
 // Format is 2 pixels on 3 shorts : ggbb|BBrr|RRGG (rgb is the first pixel, RGB is the second pixel)  
-	for (b = 0; b < WorkHeight; b++)
-	    for (a = 0; a < WorkWidth; a++) {
-		c = a + b * DisplayWidth;
-		if (a % 2) {
-		    d = (c * 3) >> 1;
-		    TmpWrk[d++] |= ((ImageBuffer[c].B << 8) & 0xFF00);
-		    TmpWrk[d] = ImageBuffer[c].G | (ImageBuffer[c].R << 8);
-		}
-		else {
-		    d = (c * 3) >> 1;
-		    TmpWrk[d++] = ImageBuffer[c].B | (ImageBuffer[c].G << 8);
-		    TmpWrk[d++] = ImageBuffer[c].R;
-		}
+        for (b = 0; b < WorkHeight; b++)
+            for (a = 0; a < WorkWidth; a++) {
+                c = a + b * DisplayWidth;
+                if (a % 2) {
+                    d = (c * 3) >> 1;
+                    TmpWrk[d++] |= ((ImageBuffer[c].B << 8) & 0xFF00);
+                    TmpWrk[d] = ImageBuffer[c].G | (ImageBuffer[c].R << 8);
+                }
+                else {
+                    d = (c * 3) >> 1;
+                    TmpWrk[d++] = ImageBuffer[c].B | (ImageBuffer[c].G << 8);
+                    TmpWrk[d++] = ImageBuffer[c].R;
+                }
 
-	    }
-	break;
+            }
+        break;
     case 32:
-	for (b = 0; b < WorkHeight; b++)
-	    for (a = 0; a < WorkWidth; a++) {
-		c = a + b * DisplayWidth;
-		d = c << 1;
+        for (b = 0; b < WorkHeight; b++)
+            for (a = 0; a < WorkWidth; a++) {
+                c = a + b * DisplayWidth;
+                d = c << 1;
 #ifdef SWAP_RGB
-		TmpWrk[d++] = ImageBuffer[c].B | (ImageBuffer[c].G << 8);
-		TmpWrk[d] = ImageBuffer[c].R;
+                TmpWrk[d++] = ImageBuffer[c].B | (ImageBuffer[c].G << 8);
+                TmpWrk[d] = ImageBuffer[c].R;
 #else
-		TmpWrk[d++] = ImageBuffer[c].R | (ImageBuffer[c].G << 8);
-		TmpWrk[d] = ImageBuffer[c].B;
+                TmpWrk[d++] = ImageBuffer[c].R | (ImageBuffer[c].G << 8);
+                TmpWrk[d] = ImageBuffer[c].B;
 #endif
-	    }
-	break;
+            }
+        break;
     }
     XPutImage(WorkDisplay, WorkPixmap, WorkPixmapGC, WorkImage, 0, 0, 0, 0, WorkWidth, WorkHeight);
     XCopyArea(WorkDisplay, WorkPixmap, WorkWindow, WorkWindowGC, 0, 0, WorkWidth, WorkHeight, 0, 0);
@@ -964,81 +964,81 @@ CopyDisplayBufferToScreen(int x, int y, int w, int h)
     wh = DisplayHeight;
 
     if (wx < 0) {
-	if ((ww -= (0 - wx)) <= 0)
-	    return;		// nothing to draw...
-	wx = 0;
+        if ((ww -= (0 - wx)) <= 0)
+            return;             // nothing to draw...
+        wx = 0;
     }
     if (wx >= DisplayWidth)
-	return;
+        return;
     if (wy < 0) {
-	if ((wh -= (0 - wy)) <= 0)
-	    return;
-	wy = 0;
+        if ((wh -= (0 - wy)) <= 0)
+            return;
+        wy = 0;
     }
 
     if (wh >= DisplayHeight)
-	wh = DisplayHeight - 1;
+        wh = DisplayHeight - 1;
     if (ww >= DisplayWidth)
-	ww = DisplayWidth - 1;
+        ww = DisplayWidth - 1;
 
     switch (WorkBitsPerRGB) {
     case 8:
-	for (b = wy; b < wh; b++)
-	    for (a = wx; a < ww; a++) {
-		c = a + b * DisplayWidth;
-		TmpChrWrk[c] =
-		    (char) ((ImageBuffer[c].
-			     R >> WorkRedNumberOfShifts) << WorkRedNumberOfUpShifts) |
-		    ((ImageBuffer[c].
-		      G >> WorkGreenNumberOfShifts) << WorkGreenNumberOfUpShifts) |
-		    ((ImageBuffer[c].B >> WorkBlueNumberOfShifts) << WorkBlueNumberOfUpShifts);
-	    }
-	break;
+        for (b = wy; b < wh; b++)
+            for (a = wx; a < ww; a++) {
+                c = a + b * DisplayWidth;
+                TmpChrWrk[c] =
+                    (char) ((ImageBuffer[c].
+                             R >> WorkRedNumberOfShifts) << WorkRedNumberOfUpShifts) |
+                    ((ImageBuffer[c].
+                      G >> WorkGreenNumberOfShifts) << WorkGreenNumberOfUpShifts) |
+                    ((ImageBuffer[c].B >> WorkBlueNumberOfShifts) << WorkBlueNumberOfUpShifts);
+            }
+        break;
     case 16:
-	for (b = wy; b < wh; b++)
-	    for (a = wx; a < ww; a++) {
-		c = a + b * DisplayWidth;
-		TmpWrk[c] =
-		    ((ImageBuffer[c].
-		      R >> WorkRedNumberOfShifts) << WorkRedNumberOfUpShifts) | ((ImageBuffer[c].
-										  G >>
-										  WorkGreenNumberOfShifts)
-										 <<
-										 WorkGreenNumberOfUpShifts)
-		    | ((ImageBuffer[c].B >> WorkBlueNumberOfShifts) << WorkBlueNumberOfUpShifts);
-	    }
-	break;
+        for (b = wy; b < wh; b++)
+            for (a = wx; a < ww; a++) {
+                c = a + b * DisplayWidth;
+                TmpWrk[c] =
+                    ((ImageBuffer[c].
+                      R >> WorkRedNumberOfShifts) << WorkRedNumberOfUpShifts) | ((ImageBuffer[c].
+                                                                                  G >>
+                                                                                  WorkGreenNumberOfShifts)
+                                                                                 <<
+                                                                                 WorkGreenNumberOfUpShifts)
+                    | ((ImageBuffer[c].B >> WorkBlueNumberOfShifts) << WorkBlueNumberOfUpShifts);
+            }
+        break;
     case 24:
-	for (b = wy; b < wh; b++)
-	    for (a = wx; a < ww; a++) {
-		c = a + b * DisplayWidth;
-		if (a % 2) {
-		    d = (c * 3) >> 1;
-		    TmpWrk[d++] |= ((ImageBuffer[c].B << 8) & 0xFF00);
-		    TmpWrk[d] = ImageBuffer[c].G | (ImageBuffer[c].R << 8);
-		}
-		else {
-		    d = (c * 3) >> 1;
-		    TmpWrk[d++] = ImageBuffer[c].B | (ImageBuffer[c].G << 8);
-		    TmpWrk[d++] = ImageBuffer[c].R;
-		}
+        for (b = wy; b < wh; b++)
+            for (a = wx; a < ww; a++) {
+                c = a + b * DisplayWidth;
+                if (a % 2) {
+                    d = (c * 3) >> 1;
+                    TmpWrk[d++] |= ((ImageBuffer[c].B << 8) & 0xFF00);
+                    TmpWrk[d] = ImageBuffer[c].G | (ImageBuffer[c].R << 8);
+                }
+                else {
+                    d = (c * 3) >> 1;
+                    TmpWrk[d++] = ImageBuffer[c].B | (ImageBuffer[c].G << 8);
+                    TmpWrk[d++] = ImageBuffer[c].R;
+                }
 
-	    }
-	break;
+            }
+        break;
     case 32:
-	for (b = wy; b < wh; b++)
-	    for (a = wx; a < ww; a++) {
-		c = a + b * DisplayWidth;
-		d = c << 1;
+        for (b = wy; b < wh; b++)
+            for (a = wx; a < ww; a++) {
+                c = a + b * DisplayWidth;
+                d = c << 1;
 #ifdef SWAP_RGB
-		TmpWrk[d++] = ImageBuffer[c].B | (ImageBuffer[c].G << 8);
-		TmpWrk[d] = ImageBuffer[c].R;
+                TmpWrk[d++] = ImageBuffer[c].B | (ImageBuffer[c].G << 8);
+                TmpWrk[d] = ImageBuffer[c].R;
 #else
-		TmpWrk[d++] = ImageBuffer[c].R | (ImageBuffer[c].G << 8);
-		TmpWrk[d] = ImageBuffer[c].B;
+                TmpWrk[d++] = ImageBuffer[c].R | (ImageBuffer[c].G << 8);
+                TmpWrk[d] = ImageBuffer[c].B;
 #endif
-	    }
-	break;
+            }
+        break;
     }
 
 //      for(b=0;b<DisplayWidth*6;b++) {TmpWrk[b*3]=0x0000;TmpWrk[b*3+1]=0x0000;TmpWrk[b*3+2]=0x0000;}
@@ -1068,62 +1068,62 @@ CopyDisplayBufferRectangleToScreen(int x1, int y1, int x2, int y2)
 
     switch (WorkBitsPerRGB) {
     case 8:
-	for (b = y1; b < ty; b++)
-	    for (a = x1; a < tx; a++) {
-		c = a + b * DisplayWidth;
-		TmpChrWrk[c] =
-		    (char) ((ImageBuffer[c].
-			     R >> WorkRedNumberOfShifts) << WorkRedNumberOfUpShifts) |
-		    ((ImageBuffer[c].
-		      G >> WorkGreenNumberOfShifts) << WorkGreenNumberOfUpShifts) |
-		    ((ImageBuffer[c].B >> WorkBlueNumberOfShifts) << WorkBlueNumberOfUpShifts);
-	    }
-	break;
+        for (b = y1; b < ty; b++)
+            for (a = x1; a < tx; a++) {
+                c = a + b * DisplayWidth;
+                TmpChrWrk[c] =
+                    (char) ((ImageBuffer[c].
+                             R >> WorkRedNumberOfShifts) << WorkRedNumberOfUpShifts) |
+                    ((ImageBuffer[c].
+                      G >> WorkGreenNumberOfShifts) << WorkGreenNumberOfUpShifts) |
+                    ((ImageBuffer[c].B >> WorkBlueNumberOfShifts) << WorkBlueNumberOfUpShifts);
+            }
+        break;
     case 16:
-	for (b = y1; b < ty; b++)
-	    for (a = x1; a < tx; a++) {
-		c = a + b * DisplayWidth;
-		TmpWrk[c] =
-		    ((ImageBuffer[c].
-		      R >> WorkRedNumberOfShifts) << WorkRedNumberOfUpShifts) | ((ImageBuffer[c].
-										  G >>
-										  WorkGreenNumberOfShifts)
-										 <<
-										 WorkGreenNumberOfUpShifts)
-		    | ((ImageBuffer[c].B >> WorkBlueNumberOfShifts) << WorkBlueNumberOfUpShifts);
-	    }
-	break;
+        for (b = y1; b < ty; b++)
+            for (a = x1; a < tx; a++) {
+                c = a + b * DisplayWidth;
+                TmpWrk[c] =
+                    ((ImageBuffer[c].
+                      R >> WorkRedNumberOfShifts) << WorkRedNumberOfUpShifts) | ((ImageBuffer[c].
+                                                                                  G >>
+                                                                                  WorkGreenNumberOfShifts)
+                                                                                 <<
+                                                                                 WorkGreenNumberOfUpShifts)
+                    | ((ImageBuffer[c].B >> WorkBlueNumberOfShifts) << WorkBlueNumberOfUpShifts);
+            }
+        break;
     case 24:
-	for (b = y1; b < ty; b++)
-	    for (a = x1; a < tx; a++) {
-		c = a + b * DisplayWidth;
-		if (a % 2) {
-		    d = (c * 3) >> 1;
-		    TmpWrk[d++] |= ((ImageBuffer[c].B << 8) & 0xFF00);
-		    TmpWrk[d] = ImageBuffer[c].G | (ImageBuffer[c].R << 8);
-		}
-		else {
-		    d = (c * 3) >> 1;
-		    TmpWrk[d++] = ImageBuffer[c].B | (ImageBuffer[c].G << 8);
-		    TmpWrk[d++] = ImageBuffer[c].R;
-		}
+        for (b = y1; b < ty; b++)
+            for (a = x1; a < tx; a++) {
+                c = a + b * DisplayWidth;
+                if (a % 2) {
+                    d = (c * 3) >> 1;
+                    TmpWrk[d++] |= ((ImageBuffer[c].B << 8) & 0xFF00);
+                    TmpWrk[d] = ImageBuffer[c].G | (ImageBuffer[c].R << 8);
+                }
+                else {
+                    d = (c * 3) >> 1;
+                    TmpWrk[d++] = ImageBuffer[c].B | (ImageBuffer[c].G << 8);
+                    TmpWrk[d++] = ImageBuffer[c].R;
+                }
 
-	    }
-	break;
+            }
+        break;
     case 32:
-	for (b = y1; b < ty; b++)
-	    for (a = x1; a < tx; a++) {
-		c = a + b * DisplayWidth;
-		d = c << 1;
+        for (b = y1; b < ty; b++)
+            for (a = x1; a < tx; a++) {
+                c = a + b * DisplayWidth;
+                d = c << 1;
 #ifdef SWAP_RGB
-		TmpWrk[d++] = ImageBuffer[c].B | (ImageBuffer[c].G << 8);
-		TmpWrk[d] = ImageBuffer[c].R;
+                TmpWrk[d++] = ImageBuffer[c].B | (ImageBuffer[c].G << 8);
+                TmpWrk[d] = ImageBuffer[c].R;
 #else
-		TmpWrk[d++] = ImageBuffer[c].R | (ImageBuffer[c].G << 8);
-		TmpWrk[d] = ImageBuffer[c].B;
+                TmpWrk[d++] = ImageBuffer[c].R | (ImageBuffer[c].G << 8);
+                TmpWrk[d] = ImageBuffer[c].B;
 #endif
-	    }
-	break;
+            }
+        break;
     }
     XPutImage(WorkDisplay, WorkPixmap, WorkPixmapGC, WorkImage, x1, y1, x1, y1, x2 - x1, y2 - y1);
     XCopyArea(WorkDisplay, WorkPixmap, WorkWindow, WorkWindowGC, x1, y1, x2 - x1, y2 - y1, x1, y1);
@@ -1133,12 +1133,12 @@ CopyDisplayBufferRectangleToScreen(int x1, int y1, int x2, int y2)
 void
 CopyImageToWorkBuffer(int ctr)
 {
-    register int ssx, ssy, wpx, wpy, cw, cc, Sbp, Tbp;	// (s)creen(s)tartx/y (w)ork(p)icturexy (c)urrent(w)idth(c)omponent
-    register float wsx, wsy;	// (w)ork(s)creenx/y  
-    register int iwsx, iwsy, ww, wh, fx, fy;	// (i)ntegerpartof(w)ork(s)creenx/y  (w)ork(w)idth (w)ork(h)eight (f)irst block xy
-    register int zct, zctx, zcty, wx, wy;	// zct = counter on zoom (pixel-size) (w)orkx/y for zooming
-    register int ppsx, ppsy, ppex, ppey;	// Picture's Physical (s)tart/(e)nd x/y
-    register int poslsx, poslsy, poslex, posley;	// Picture's OnScreen Logical (s)tart/(e)nd x/y (zoom included)
+    register int ssx, ssy, wpx, wpy, cw, cc, Sbp, Tbp;  // (s)creen(s)tartx/y (w)ork(p)icturexy (c)urrent(w)idth(c)omponent
+    register float wsx, wsy;    // (w)ork(s)creenx/y  
+    register int iwsx, iwsy, ww, wh, fx, fy;    // (i)ntegerpartof(w)ork(s)creenx/y  (w)ork(w)idth (w)ork(h)eight (f)irst block xy
+    register int zct, zctx, zcty, wx, wy;       // zct = counter on zoom (pixel-size) (w)orkx/y for zooming
+    register int ppsx, ppsy, ppex, ppey;        // Picture's Physical (s)tart/(e)nd x/y
+    register int poslsx, poslsy, poslex, posley;        // Picture's OnScreen Logical (s)tart/(e)nd x/y (zoom included)
     register char *TmpCPtr, frx, fry, nofade = 0, masko;
     register float ZoomFactor, FadeFactor, tr, tg, tb;
 
@@ -1148,7 +1148,7 @@ CopyImageToWorkBuffer(int ctr)
 #endif
 
     if (MyImages[ctr].Buffer == NULL)
-	return;
+        return;
 
     masko = (char) MyImages[SelectedImage].Mask;
     ww = WorkWidth;
@@ -1157,7 +1157,7 @@ CopyImageToWorkBuffer(int ctr)
     cc = MyImages[ctr].NumOfComponent;
     ZoomFactor = MyImages[ctr].ZoomFactor;
     if ((FadeFactor = MyImages[ctr].FadeFactor) > (float) 0.95)
-	nofade = 1;
+        nofade = 1;
     zct = (int) (ZoomFactor + (float) 0.9999);
     fx = zct;
     fy = zct;
@@ -1166,113 +1166,113 @@ CopyImageToWorkBuffer(int ctr)
     ppex = MyImages[ctr].X + (int) ((float) MyImages[ctr].Width * ZoomFactor);
     ppey = MyImages[ctr].Y + (int) ((float) MyImages[ctr].Height * ZoomFactor);
 
-    if ((ppsx > ww) || (ppex < 0) || (ppey < 0) || (ppsy > wh))	// not on logical screen
-	return;
+    if ((ppsx > ww) || (ppex < 0) || (ppey < 0) || (ppsy > wh)) // not on logical screen
+        return;
     if ((ssx = MyImages[ctr].X) < 0) {
-	fx = zct + ((ssx + (int) ((float) ((int) ((float) ssx / ZoomFactor)) * ZoomFactor)) % zct);	// first cell x size on zoom for smooth zoom
-	ssx = 0;
+        fx = zct + ((ssx + (int) ((float) ((int) ((float) ssx / ZoomFactor)) * ZoomFactor)) % zct);     // first cell x size on zoom for smooth zoom
+        ssx = 0;
     }
     if ((ssy = MyImages[ctr].Y) < 0) {
-	fy = zct + ((ssy + (int) ((float) ((int) ((float) ssy / ZoomFactor)) * ZoomFactor)) % zct);	// first cell y size on zoom for smooth zoom
-	ssy = 0;
+        fy = zct + ((ssy + (int) ((float) ((int) ((float) ssy / ZoomFactor)) * ZoomFactor)) % zct);     // first cell y size on zoom for smooth zoom
+        ssy = 0;
     }
 
     if ((poslsx = (int) ((float) (0 - MyImages[ctr].X) / ZoomFactor)) < 0)
-	poslsx = 0;
+        poslsx = 0;
     if ((poslsy = (int) ((float) (0 - MyImages[ctr].Y) / ZoomFactor)) < 0)
-	poslsy = 0;
+        poslsy = 0;
 
     if ((poslex = (int) ((float) (ww - MyImages[ctr].X) / ZoomFactor) + 1) > MyImages[ctr].Width)
-	poslex = MyImages[ctr].Width;
+        poslex = MyImages[ctr].Width;
     if ((posley = (int) ((float) (wh - MyImages[ctr].Y) / ZoomFactor) + 1) > MyImages[ctr].Height)
-	posley = MyImages[ctr].Height;
+        posley = MyImages[ctr].Height;
 
     TmpCPtr = MyImages[ctr].Buffer;
 
     if (Verbose) {
-	printf("\n%d. image = %d:%d %dx%d [%d] Zoom=%1.4f [%d]  ssx=%d ssy=%d", ctr,
-	       MyImages[ctr].X, MyImages[ctr].Y, MyImages[ctr].Width, MyImages[ctr].Height,
-	       MyImages[ctr].NumOfComponent, ZoomFactor, zct, ssx, ssy);
-	fflush(stdout);
-	printf("\n\t ppos = %d:%d - %d:%d spos = %d:%d - %d:%d  [%08x -> %08x]\n", ppsx, ppsy, ppex,
-	       ppey, poslsx, poslsy, poslex, posley, TmpCPtr, ImageBuffer);
-	fflush(stdout);
+        printf("\n%d. image = %d:%d %dx%d [%d] Zoom=%1.4f [%d]  ssx=%d ssy=%d", ctr,
+               MyImages[ctr].X, MyImages[ctr].Y, MyImages[ctr].Width, MyImages[ctr].Height,
+               MyImages[ctr].NumOfComponent, ZoomFactor, zct, ssx, ssy);
+        fflush(stdout);
+        printf("\n\t ppos = %d:%d - %d:%d spos = %d:%d - %d:%d  [%08x -> %08x]\n", ppsx, ppsy, ppex,
+               ppey, poslsx, poslsy, poslex, posley, TmpCPtr, ImageBuffer);
+        fflush(stdout);
     }
 
     for (wsy = (float) ssy, wpy = poslsy, fry = 1; wpy < posley; wpy++, wsy += ZoomFactor) {
-	Sbp = (poslsx + wpy * cw) * cc;
-	if (!fry) {
-	    iwsy = (int) wsy + fy - zct;
-	    zcty = zct;
-	}
-	else {
-	    iwsy = (int) wsy;
-	    zcty = fy;
-	}
-	for (wsx = (float) ssx, wpx = poslsx, frx = 1; wpx < poslex; wpx++, wsx += ZoomFactor) {
-	    if (!frx) {
-		iwsx = (int) wsx + fx - zct;
-		zctx = zct;
-	    }
-	    else {
-		iwsx = (int) wsx;
-		zctx = fx;
-	    }
-	    for (wy = 0; wy < zcty; wy++) {
-		for (wx = 0; wx < zct; wx++) {
-		    if (((iwsx + wx) < ww) && ((iwsy + wy) < wh)) {
-			Tbp = iwsx + wx + ((iwsy + wy) * WorkWidth);
+        Sbp = (poslsx + wpy * cw) * cc;
+        if (!fry) {
+            iwsy = (int) wsy + fy - zct;
+            zcty = zct;
+        }
+        else {
+            iwsy = (int) wsy;
+            zcty = fy;
+        }
+        for (wsx = (float) ssx, wpx = poslsx, frx = 1; wpx < poslex; wpx++, wsx += ZoomFactor) {
+            if (!frx) {
+                iwsx = (int) wsx + fx - zct;
+                zctx = zct;
+            }
+            else {
+                iwsx = (int) wsx;
+                zctx = fx;
+            }
+            for (wy = 0; wy < zcty; wy++) {
+                for (wx = 0; wx < zct; wx++) {
+                    if (((iwsx + wx) < ww) && ((iwsy + wy) < wh)) {
+                        Tbp = iwsx + wx + ((iwsy + wy) * WorkWidth);
 //printf("\n %d:%d [%d:%d] => [%d:%d]",Sbp,Tbp,wpx,wpy,iwsx+wx,(int)wsy+wy);fflush(stdout);
-			if (nofade) {
-			    if (masko & M_RED)
-				ImageBuffer[Tbp].R = TmpCPtr[Sbp];
-			    else
-				ImageBuffer[Tbp].R = 0;
-			    if (masko & M_GREEN)
-				ImageBuffer[Tbp].G = TmpCPtr[Sbp + 1];
-			    else
-				ImageBuffer[Tbp].G = 0;
-			    if (masko & M_BLUE)
-				ImageBuffer[Tbp].B = TmpCPtr[Sbp + 2];
-			    else
-				ImageBuffer[Tbp].B = 0;
-			}
-			else {
-			    if (masko & M_RED)
-				tr = (float) ((unsigned char) ImageBuffer[Tbp].R);
-			    else
-				tr = 0.0f;
-			    if (masko & M_GREEN)
-				tg = (float) ((unsigned char) ImageBuffer[Tbp].G);
-			    else
-				tg = 0.0f;
-			    if (masko & M_BLUE)
-				tb = (float) ((unsigned char) ImageBuffer[Tbp].B);
-			    else
-				tb = 0.0f;
-			    ImageBuffer[Tbp].R =
-				(unsigned char) ((tr * (1.0f - FadeFactor)) +
-						 ((float) ((unsigned char) TmpCPtr[Sbp]) *
-						  FadeFactor));
-			    ImageBuffer[Tbp].G =
-				(unsigned char) ((tg * (1.0f - FadeFactor)) +
-						 ((float) ((unsigned char) TmpCPtr[Sbp + 1]) *
-						  FadeFactor));
-			    ImageBuffer[Tbp].B =
-				(unsigned char) ((tb * (1.0f - FadeFactor)) +
-						 ((float) ((unsigned char) TmpCPtr[Sbp + 2]) *
-						  FadeFactor));
+                        if (nofade) {
+                            if (masko & M_RED)
+                                ImageBuffer[Tbp].R = TmpCPtr[Sbp];
+                            else
+                                ImageBuffer[Tbp].R = 0;
+                            if (masko & M_GREEN)
+                                ImageBuffer[Tbp].G = TmpCPtr[Sbp + 1];
+                            else
+                                ImageBuffer[Tbp].G = 0;
+                            if (masko & M_BLUE)
+                                ImageBuffer[Tbp].B = TmpCPtr[Sbp + 2];
+                            else
+                                ImageBuffer[Tbp].B = 0;
+                        }
+                        else {
+                            if (masko & M_RED)
+                                tr = (float) ((unsigned char) ImageBuffer[Tbp].R);
+                            else
+                                tr = 0.0f;
+                            if (masko & M_GREEN)
+                                tg = (float) ((unsigned char) ImageBuffer[Tbp].G);
+                            else
+                                tg = 0.0f;
+                            if (masko & M_BLUE)
+                                tb = (float) ((unsigned char) ImageBuffer[Tbp].B);
+                            else
+                                tb = 0.0f;
+                            ImageBuffer[Tbp].R =
+                                (unsigned char) ((tr * (1.0f - FadeFactor)) +
+                                                 ((float) ((unsigned char) TmpCPtr[Sbp]) *
+                                                  FadeFactor));
+                            ImageBuffer[Tbp].G =
+                                (unsigned char) ((tg * (1.0f - FadeFactor)) +
+                                                 ((float) ((unsigned char) TmpCPtr[Sbp + 1]) *
+                                                  FadeFactor));
+                            ImageBuffer[Tbp].B =
+                                (unsigned char) ((tb * (1.0f - FadeFactor)) +
+                                                 ((float) ((unsigned char) TmpCPtr[Sbp + 2]) *
+                                                  FadeFactor));
 
 //printf("\n%d:%d:%d %d:%d:%d %1.2f => %d:%d:%d  [%1.2f]",(unsigned char)tr,(unsigned char)tg,(unsigned char)tb,(unsigned char)TmpCPtr[Sbp],(unsigned char)TmpCPtr[Sbp+1],(unsigned char)TmpCPtr[Sbp+2],FadeFactor,(unsigned char)ImageBuffer[Tbp].R,(unsigned char)ImageBuffer[Tbp].G,(unsigned char)ImageBuffer[Tbp].B,((float)TmpCPtr[Sbp]*FadeFactor));fflush(stdout);
 
-			}
-		    }
-		}
-	    }
-	    Sbp += cc;
-	    frx = 0;
-	}
-	fry = 0;
+                        }
+                    }
+                }
+            }
+            Sbp += cc;
+            frx = 0;
+        }
+        fry = 0;
     }
 
 #ifdef DEBUG_BUFFERS
@@ -1290,23 +1290,23 @@ CopyImagesToWorkBuffer(void)
     DrawTarget = 0;
 
     if (Verbose) {
-	printf("\nWorkArea = %dx%d, Number of Images = %d", WorkWidth, WorkHeight, NumberOfImages);
-	fflush(stdout);
+        printf("\nWorkArea = %dx%d, Number of Images = %d", WorkWidth, WorkHeight, NumberOfImages);
+        fflush(stdout);
     }
 
     for (ctr = 0; ctr < NumberOfImages; ctr++) {
-	if (ctr != SelectedImage)
-	    CopyImageToWorkBuffer(ctr);
+        if (ctr != SelectedImage)
+            CopyImageToWorkBuffer(ctr);
     }
 
     if (SelectedImage != -1) {
-	CopyImageToWorkBuffer(SelectedImage);
-	GR_DrawRectangle(MyImages[SelectedImage].X - 1, MyImages[SelectedImage].Y - 1,
-			 (int) ((float) MyImages[SelectedImage].Width *
-				MyImages[SelectedImage].ZoomFactor) + MyImages[SelectedImage].X,
-			 (int) ((float) MyImages[SelectedImage].Height *
-				MyImages[SelectedImage].ZoomFactor) + MyImages[SelectedImage].Y, 0,
-			 255, 0, 0);
+        CopyImageToWorkBuffer(SelectedImage);
+        GR_DrawRectangle(MyImages[SelectedImage].X - 1, MyImages[SelectedImage].Y - 1,
+                         (int) ((float) MyImages[SelectedImage].Width *
+                                MyImages[SelectedImage].ZoomFactor) + MyImages[SelectedImage].X,
+                         (int) ((float) MyImages[SelectedImage].Height *
+                                MyImages[SelectedImage].ZoomFactor) + MyImages[SelectedImage].Y, 0,
+                         255, 0, 0);
     }
 }
 
@@ -1315,32 +1315,32 @@ CopyImagesToWorkBuffer(void)
 
 int
 CreateButton(char *name, void (*ClientFunction) (void *), void *ClientData, unsigned char AccChr,
-	     int (*ClientKeyFunction) (int, char), unsigned char ImageManipulate, int x, int y,
-	     int w, int h, int (*ButtonFunction) (int, int, char, unsigned char))
+             int (*ClientKeyFunction) (int, char), unsigned char ImageManipulate, int x, int y,
+             int w, int h, int (*ButtonFunction) (int, int, char, unsigned char))
 {
     ButtonStructure *TmpButton = NULL;
 
     if ((TmpButton =
-	 (ButtonStructure *) realloc((void *) Buttons,
-				     (size_t) (sizeof(struct ButtonStructure) *
-					       (NumberOfButtons + 1)))) == NULL) {
-	printf("\nError with Adding button!!!");
-	fflush(stdout);
-	return (1);
+         (ButtonStructure *) realloc((void *) Buttons,
+                                     (size_t) (sizeof(struct ButtonStructure) *
+                                               (NumberOfButtons + 1)))) == NULL) {
+        printf("\nError with Adding button!!!");
+        fflush(stdout);
+        return (1);
     }
     Buttons = TmpButton;
     sprintf(Buttons[NumberOfButtons].name, "%s", name);
     Buttons[NumberOfButtons].x = x;
     Buttons[NumberOfButtons].y = y;
     if (w != 0)
-	Buttons[NumberOfButtons].w = w;
+        Buttons[NumberOfButtons].w = w;
     else
-	Buttons[NumberOfButtons].w =
-	    GetMyStringLength(Buttons[NumberOfButtons].name, 0, 1) + (DEF_BUT_HOR_PAD << 1);
+        Buttons[NumberOfButtons].w =
+            GetMyStringLength(Buttons[NumberOfButtons].name, 0, 1) + (DEF_BUT_HOR_PAD << 1);
     if (h != 0)
-	Buttons[NumberOfButtons].h = h;
+        Buttons[NumberOfButtons].h = h;
     else
-	Buttons[NumberOfButtons].h = 10 + (DEF_BUT_VER_PAD << 1);
+        Buttons[NumberOfButtons].h = 10 + (DEF_BUT_VER_PAD << 1);
     Buttons[NumberOfButtons].PushFunction = ClientFunction;
     Buttons[NumberOfButtons].ButtonFunction = ButtonFunction;
     Buttons[NumberOfButtons].PushClientData = ClientData;
@@ -1377,23 +1377,23 @@ DrawButtons(void)
     GR_DrawRectangle(-1, -1, WorkWidth + 1, WorkHeight + 1, 1, 0x50, 0xFF, 0xA0);
 
     for (a = 0; a < NumberOfButtons; a++) {
-	if (ActiveButton == a) {
-	    GR_DrawRectangle(Buttons[a].x, Buttons[a].y, Buttons[a].x + Buttons[a].w,
-			     Buttons[a].y + Buttons[a].h, 1, Bts_R, Bts_G, Bts_B);
-	    GR_DrawRectangle(Buttons[a].x + 1, Buttons[a].y + 1, Buttons[a].x + Buttons[a].w - 1,
-			     Buttons[a].y + Buttons[a].h - 1, 1, Bts2_R, Bts2_G, Bts2_B);
-	}
-	else {
-	    GR_DrawRectangle(Buttons[a].x, Buttons[a].y, Buttons[a].x + Buttons[a].w,
-			     Buttons[a].y + Buttons[a].h, 1, Bt_R, Bt_G, Bt_B);
-	    GR_DrawRectangle(Buttons[a].x + 1, Buttons[a].y + 1, Buttons[a].x + Buttons[a].w - 1,
-			     Buttons[a].y + Buttons[a].h - 1, 1, Bt_R, Bt_G, Bt_B);
-	}
-	GR_DrawFillRectangle(Buttons[a].x + 2, Buttons[a].y + 2, Buttons[a].x + Buttons[a].w - 2,
-			     Buttons[a].y + Buttons[a].h - 2, 0, Bt_BgR, Bt_BgG, Bt_BgB);
-	b = GetMyStringLength(Buttons[a].name, 0, 1);
-	PutMyString(Buttons[a].name, Buttons[a].x + DEF_BUT_HOR_PAD,
-		    Buttons[a].y + DEF_BUT_VER_PAD + 1, 0, 1);
+        if (ActiveButton == a) {
+            GR_DrawRectangle(Buttons[a].x, Buttons[a].y, Buttons[a].x + Buttons[a].w,
+                             Buttons[a].y + Buttons[a].h, 1, Bts_R, Bts_G, Bts_B);
+            GR_DrawRectangle(Buttons[a].x + 1, Buttons[a].y + 1, Buttons[a].x + Buttons[a].w - 1,
+                             Buttons[a].y + Buttons[a].h - 1, 1, Bts2_R, Bts2_G, Bts2_B);
+        }
+        else {
+            GR_DrawRectangle(Buttons[a].x, Buttons[a].y, Buttons[a].x + Buttons[a].w,
+                             Buttons[a].y + Buttons[a].h, 1, Bt_R, Bt_G, Bt_B);
+            GR_DrawRectangle(Buttons[a].x + 1, Buttons[a].y + 1, Buttons[a].x + Buttons[a].w - 1,
+                             Buttons[a].y + Buttons[a].h - 1, 1, Bt_R, Bt_G, Bt_B);
+        }
+        GR_DrawFillRectangle(Buttons[a].x + 2, Buttons[a].y + 2, Buttons[a].x + Buttons[a].w - 2,
+                             Buttons[a].y + Buttons[a].h - 2, 0, Bt_BgR, Bt_BgG, Bt_BgB);
+        b = GetMyStringLength(Buttons[a].name, 0, 1);
+        PutMyString(Buttons[a].name, Buttons[a].x + DEF_BUT_HOR_PAD,
+                    Buttons[a].y + DEF_BUT_VER_PAD + 1, 0, 1);
     }
 }
 
@@ -1405,63 +1405,63 @@ HandleButtonPush(int x, int y)
     DrawTarget = 1;
 
     for (a = 0; a < NumberOfButtons; a++) {
-	if ((x >= Buttons[a].x) && (y >= Buttons[a].y) && ((Buttons[a].x + Buttons[a].w) >= x)
-	    && ((Buttons[a].y + Buttons[a].h) >= y)) {
-	    if (ActiveButton == a)	// deactivate
-	    {
-		GR_DrawRectangle(Buttons[a].x, Buttons[a].y, Buttons[a].x + Buttons[a].w,
-				 Buttons[a].y + Buttons[a].h, 1, Bt_R, Bt_G, Bt_B);
-		GR_DrawRectangle(Buttons[a].x + 1, Buttons[a].y + 1,
-				 Buttons[a].x + Buttons[a].w - 1, Buttons[a].y + Buttons[a].h - 1,
-				 1, Bt_R, Bt_G, Bt_B);
-		ActiveButton = -1;
-	    }
-	    else {
-		if ((SelectedImage != -1) || (!Buttons[a].ImageManipulate)) {
-		    if (ActiveButton != -1) {
-			GR_DrawRectangle(Buttons[ActiveButton].x, Buttons[ActiveButton].y,
-					 Buttons[ActiveButton].x + Buttons[ActiveButton].w,
-					 Buttons[ActiveButton].y + Buttons[ActiveButton].h, 1, Bt_R,
-					 Bt_G, Bt_B);
-			GR_DrawRectangle(Buttons[ActiveButton].x + 1, Buttons[ActiveButton].y + 1,
-					 Buttons[ActiveButton].x + Buttons[ActiveButton].w - 1,
-					 Buttons[ActiveButton].y + Buttons[ActiveButton].h - 1, 1,
-					 Bt_R, Bt_G, Bt_B);
-		    }
-		    GR_DrawRectangle(Buttons[a].x, Buttons[a].y, Buttons[a].x + Buttons[a].w,
-				     Buttons[a].y + Buttons[a].h, 1, Bts_R, Bts_G, Bts_B);
-		    GR_DrawRectangle(Buttons[a].x + 1, Buttons[a].y + 1,
-				     Buttons[a].x + Buttons[a].w - 1,
-				     Buttons[a].y + Buttons[a].h - 1, 1, Bts2_R, Bts2_G, Bts2_B);
-		    ActiveButton = a;
-		    if (Buttons[a].PushFunction != NULL)
-			Buttons[a].PushFunction(Buttons[a].PushClientData);
-		}
-	    }
-	    CopyDisplayBufferToScreen(Buttons[ActiveButton].x - 2, Buttons[ActiveButton].y - 2,
-				      Buttons[ActiveButton].w + 2, Buttons[ActiveButton].h + 2);
-	    return (-1);
-	}
+        if ((x >= Buttons[a].x) && (y >= Buttons[a].y) && ((Buttons[a].x + Buttons[a].w) >= x)
+            && ((Buttons[a].y + Buttons[a].h) >= y)) {
+            if (ActiveButton == a)      // deactivate
+            {
+                GR_DrawRectangle(Buttons[a].x, Buttons[a].y, Buttons[a].x + Buttons[a].w,
+                                 Buttons[a].y + Buttons[a].h, 1, Bt_R, Bt_G, Bt_B);
+                GR_DrawRectangle(Buttons[a].x + 1, Buttons[a].y + 1,
+                                 Buttons[a].x + Buttons[a].w - 1, Buttons[a].y + Buttons[a].h - 1,
+                                 1, Bt_R, Bt_G, Bt_B);
+                ActiveButton = -1;
+            }
+            else {
+                if ((SelectedImage != -1) || (!Buttons[a].ImageManipulate)) {
+                    if (ActiveButton != -1) {
+                        GR_DrawRectangle(Buttons[ActiveButton].x, Buttons[ActiveButton].y,
+                                         Buttons[ActiveButton].x + Buttons[ActiveButton].w,
+                                         Buttons[ActiveButton].y + Buttons[ActiveButton].h, 1, Bt_R,
+                                         Bt_G, Bt_B);
+                        GR_DrawRectangle(Buttons[ActiveButton].x + 1, Buttons[ActiveButton].y + 1,
+                                         Buttons[ActiveButton].x + Buttons[ActiveButton].w - 1,
+                                         Buttons[ActiveButton].y + Buttons[ActiveButton].h - 1, 1,
+                                         Bt_R, Bt_G, Bt_B);
+                    }
+                    GR_DrawRectangle(Buttons[a].x, Buttons[a].y, Buttons[a].x + Buttons[a].w,
+                                     Buttons[a].y + Buttons[a].h, 1, Bts_R, Bts_G, Bts_B);
+                    GR_DrawRectangle(Buttons[a].x + 1, Buttons[a].y + 1,
+                                     Buttons[a].x + Buttons[a].w - 1,
+                                     Buttons[a].y + Buttons[a].h - 1, 1, Bts2_R, Bts2_G, Bts2_B);
+                    ActiveButton = a;
+                    if (Buttons[a].PushFunction != NULL)
+                        Buttons[a].PushFunction(Buttons[a].PushClientData);
+                }
+            }
+            CopyDisplayBufferToScreen(Buttons[ActiveButton].x - 2, Buttons[ActiveButton].y - 2,
+                                      Buttons[ActiveButton].w + 2, Buttons[ActiveButton].h + 2);
+            return (-1);
+        }
     }
     if (y > WorkHeight)
-	return (-1);		// Menu area
+        return (-1);            // Menu area
 
     if (SelectedImage != -1) {
-	a = SelectedImage;
-	w = (int) ((float) MyImages[a].Width * MyImages[a].ZoomFactor) + MyImages[a].X;
-	h = (int) ((float) MyImages[a].Height * MyImages[a].ZoomFactor) + MyImages[a].Y;
-	if ((x >= MyImages[a].X) && (x <= w) && (y >= MyImages[a].Y) && (y <= h)) {
-	    return (a);
-	}
+        a = SelectedImage;
+        w = (int) ((float) MyImages[a].Width * MyImages[a].ZoomFactor) + MyImages[a].X;
+        h = (int) ((float) MyImages[a].Height * MyImages[a].ZoomFactor) + MyImages[a].Y;
+        if ((x >= MyImages[a].X) && (x <= w) && (y >= MyImages[a].Y) && (y <= h)) {
+            return (a);
+        }
     }
 
-    for (a = 0; a < NumberOfImages; a++)	// check if on picture
+    for (a = 0; a < NumberOfImages; a++)        // check if on picture
     {
-	w = (int) ((float) MyImages[a].Width * MyImages[a].ZoomFactor) + MyImages[a].X;
-	h = (int) ((float) MyImages[a].Height * MyImages[a].ZoomFactor) + MyImages[a].Y;
-	if ((x >= MyImages[a].X) && (x <= w) && (y >= MyImages[a].Y) && (y <= h)) {
-	    return (a);
-	}
+        w = (int) ((float) MyImages[a].Width * MyImages[a].ZoomFactor) + MyImages[a].X;
+        h = (int) ((float) MyImages[a].Height * MyImages[a].ZoomFactor) + MyImages[a].Y;
+        if ((x >= MyImages[a].X) && (x <= w) && (y >= MyImages[a].Y) && (y <= h)) {
+            return (a);
+        }
     }
     return (-1);
 }
@@ -1474,70 +1474,70 @@ HandleSystemKeys(int kmodifier, unsigned char Key)
 
     switch (Key) {
     case SK_F1:
-	if (SelectedImage != -1) {
-	    MyImages[SelectedImage].X -=
-		(int) ((float) MyImages[SelectedImage].HotPosX *
-		       MyImages[SelectedImage].ZoomFactor);
-	    MyImages[SelectedImage].Y -=
-		(int) ((float) MyImages[SelectedImage].HotPosY *
-		       MyImages[SelectedImage].ZoomFactor);
-	    if ((MyImages[SelectedImage].ZoomFactor *= (float) 2.0) > MAX_ZOOMFACTOR)
-		MyImages[SelectedImage].ZoomFactor = MAX_ZOOMFACTOR;
-	    ClearWorkBuffer();
-	    CopyImagesToWorkBuffer();
-	    CopyWorkBufferToScreen();
-	}
-	break;
+        if (SelectedImage != -1) {
+            MyImages[SelectedImage].X -=
+                (int) ((float) MyImages[SelectedImage].HotPosX *
+                       MyImages[SelectedImage].ZoomFactor);
+            MyImages[SelectedImage].Y -=
+                (int) ((float) MyImages[SelectedImage].HotPosY *
+                       MyImages[SelectedImage].ZoomFactor);
+            if ((MyImages[SelectedImage].ZoomFactor *= (float) 2.0) > MAX_ZOOMFACTOR)
+                MyImages[SelectedImage].ZoomFactor = MAX_ZOOMFACTOR;
+            ClearWorkBuffer();
+            CopyImagesToWorkBuffer();
+            CopyWorkBufferToScreen();
+        }
+        break;
     case SK_F2:
-	if (SelectedImage != -1) {
-	    if ((MyImages[SelectedImage].ZoomFactor *= (float) 0.5) < MIN_ZOOMFACTOR)
-		MyImages[SelectedImage].ZoomFactor = MIN_ZOOMFACTOR;
-	    MyImages[SelectedImage].X +=
-		(int) ((float) MyImages[SelectedImage].HotPosX *
-		       MyImages[SelectedImage].ZoomFactor);
-	    MyImages[SelectedImage].Y +=
-		(int) ((float) MyImages[SelectedImage].HotPosY *
-		       MyImages[SelectedImage].ZoomFactor);
-	    ClearWorkBuffer();
-	    CopyImagesToWorkBuffer();
-	    CopyWorkBufferToScreen();
-	}
-	break;
+        if (SelectedImage != -1) {
+            if ((MyImages[SelectedImage].ZoomFactor *= (float) 0.5) < MIN_ZOOMFACTOR)
+                MyImages[SelectedImage].ZoomFactor = MIN_ZOOMFACTOR;
+            MyImages[SelectedImage].X +=
+                (int) ((float) MyImages[SelectedImage].HotPosX *
+                       MyImages[SelectedImage].ZoomFactor);
+            MyImages[SelectedImage].Y +=
+                (int) ((float) MyImages[SelectedImage].HotPosY *
+                       MyImages[SelectedImage].ZoomFactor);
+            ClearWorkBuffer();
+            CopyImagesToWorkBuffer();
+            CopyWorkBufferToScreen();
+        }
+        break;
     case SK_HOME:
-	if (SelectedImage != -1) {
-	    MyImages[SelectedImage].X = 0;
-	    MyImages[SelectedImage].Y = 0;
-	    ButtonPressedImageX = 0;
-	    ButtonPressedImageY = 0;
-	    MyImages[SelectedImage].HotPosX = 0;
-	    MyImages[SelectedImage].HotPosY = 0;
-	    ClearWorkBuffer();
-	    CopyImagesToWorkBuffer();
-	    CopyWorkBufferToScreen();
-	    CopyDisplayBufferToScreen(0, 0, DisplayWidth, DisplayHeight);
-	}
-	break;
+        if (SelectedImage != -1) {
+            MyImages[SelectedImage].X = 0;
+            MyImages[SelectedImage].Y = 0;
+            ButtonPressedImageX = 0;
+            ButtonPressedImageY = 0;
+            MyImages[SelectedImage].HotPosX = 0;
+            MyImages[SelectedImage].HotPosY = 0;
+            ClearWorkBuffer();
+            CopyImagesToWorkBuffer();
+            CopyWorkBufferToScreen();
+            CopyDisplayBufferToScreen(0, 0, DisplayWidth, DisplayHeight);
+        }
+        break;
 
     case SK_END:
-	if (SelectedImage != -1) {
-	    MyImages[SelectedImage].X =
-		(int) (((float) DisplayWidth -
-			((float) MyImages[SelectedImage].Width *
-			 MyImages[SelectedImage].ZoomFactor)) * 0.5f);
-	    MyImages[SelectedImage].Y =
-		(int) (((float) DisplayHeight -
-			((float) MyImages[SelectedImage].Height *
-			 MyImages[SelectedImage].ZoomFactor)) * 0.5f);
-	    ButtonPressedImageX = 0;
-	    ButtonPressedImageY = 0;
-	    MyImages[SelectedImage].HotPosX = 0;
-	    MyImages[SelectedImage].HotPosY = 0;
-	    ClearWorkBuffer();
-	    CopyImagesToWorkBuffer();
-	    CopyWorkBufferToScreen();
-	    CopyDisplayBufferToScreen(0, 0, DisplayWidth, DisplayHeight);
-	}
-	break;
+        if (SelectedImage != -1) {
+            MyImages[SelectedImage].X =
+                (int) (((float) DisplayWidth -
+                        ((float) MyImages[SelectedImage].Width *
+                         MyImages[SelectedImage].ZoomFactor)) * 0.5f);
+            MyImages[SelectedImage].Y =
+                (int) (((float) DisplayHeight -
+                        ((float) MyImages[SelectedImage].Height *
+                         MyImages[SelectedImage].ZoomFactor)) * 0.5f);
+            ButtonPressedImageX = 0;
+            ButtonPressedImageY = 0;
+            MyImages[SelectedImage].HotPosX = 0;
+            MyImages[SelectedImage].HotPosY = 0;
+            ClearWorkBuffer();
+            CopyImagesToWorkBuffer();
+            CopyWorkBufferToScreen();
+            CopyDisplayBufferToScreen(0, 0, DisplayWidth, DisplayHeight);
+        }
+        break;
     }
 }
 
@@ -1551,50 +1551,50 @@ HandleButtonKey(int kmodifier, unsigned char Key)
 //printf("\nHandleButtonKey : '%c' = %d  (mod = %d) Activebutton=%d",Key,Key,kmodifier,ActiveButton);fflush(stdout);
 
     if (ActiveButton == -1) {
-	for (a = 0; a < NumberOfButtons; a++) {
-	    if (Key == Buttons[a].PushChar) {
-		if (ActiveButton == a)	// deactivate
-		{
-		    GR_DrawRectangle(Buttons[a].x, Buttons[a].y, Buttons[a].x + Buttons[a].w,
-				     Buttons[a].y + Buttons[a].h, 1, Bt_R, Bt_G, Bt_B);
-		    GR_DrawRectangle(Buttons[a].x + 1, Buttons[a].y + 1,
-				     Buttons[a].x + Buttons[a].w - 1,
-				     Buttons[a].y + Buttons[a].h - 1, 1, Bt_R, Bt_G, Bt_B);
-		    ActiveButton = -1;
-		}
-		else {
-		    if (ActiveButton != -1) {
-			GR_DrawRectangle(Buttons[ActiveButton].x, Buttons[ActiveButton].y,
-					 Buttons[ActiveButton].x + Buttons[ActiveButton].w,
-					 Buttons[ActiveButton].y + Buttons[ActiveButton].h, 1, Bt_R,
-					 Bt_G, Bt_B);
-			GR_DrawRectangle(Buttons[ActiveButton].x + 1, Buttons[ActiveButton].y + 1,
-					 Buttons[ActiveButton].x + Buttons[ActiveButton].w - 1,
-					 Buttons[ActiveButton].y + Buttons[ActiveButton].h - 1, 1,
-					 Bt_R, Bt_G, Bt_B);
-		    }
-		    GR_DrawRectangle(Buttons[a].x, Buttons[a].y, Buttons[a].x + Buttons[a].w,
-				     Buttons[a].y + Buttons[a].h, 1, Bts_R, Bts_G, Bts_B);
-		    GR_DrawRectangle(Buttons[a].x + 1, Buttons[a].y + 1,
-				     Buttons[a].x + Buttons[a].w - 1,
-				     Buttons[a].y + Buttons[a].h - 1, 1, Bts2_R, Bts2_G, Bts2_B);
-		    ActiveButton = a;
-		}
-		CopyDisplayBufferToScreen(Buttons[a].x - 1, Buttons[a].y - 1, Buttons[a].w + 2,
-					  Buttons[a].h + 2);
-		if (Buttons[a].PushFunction != NULL)
-		    Buttons[a].PushFunction(Buttons[a].PushClientData);
-		return;
-	    }
-	}
+        for (a = 0; a < NumberOfButtons; a++) {
+            if (Key == Buttons[a].PushChar) {
+                if (ActiveButton == a)  // deactivate
+                {
+                    GR_DrawRectangle(Buttons[a].x, Buttons[a].y, Buttons[a].x + Buttons[a].w,
+                                     Buttons[a].y + Buttons[a].h, 1, Bt_R, Bt_G, Bt_B);
+                    GR_DrawRectangle(Buttons[a].x + 1, Buttons[a].y + 1,
+                                     Buttons[a].x + Buttons[a].w - 1,
+                                     Buttons[a].y + Buttons[a].h - 1, 1, Bt_R, Bt_G, Bt_B);
+                    ActiveButton = -1;
+                }
+                else {
+                    if (ActiveButton != -1) {
+                        GR_DrawRectangle(Buttons[ActiveButton].x, Buttons[ActiveButton].y,
+                                         Buttons[ActiveButton].x + Buttons[ActiveButton].w,
+                                         Buttons[ActiveButton].y + Buttons[ActiveButton].h, 1, Bt_R,
+                                         Bt_G, Bt_B);
+                        GR_DrawRectangle(Buttons[ActiveButton].x + 1, Buttons[ActiveButton].y + 1,
+                                         Buttons[ActiveButton].x + Buttons[ActiveButton].w - 1,
+                                         Buttons[ActiveButton].y + Buttons[ActiveButton].h - 1, 1,
+                                         Bt_R, Bt_G, Bt_B);
+                    }
+                    GR_DrawRectangle(Buttons[a].x, Buttons[a].y, Buttons[a].x + Buttons[a].w,
+                                     Buttons[a].y + Buttons[a].h, 1, Bts_R, Bts_G, Bts_B);
+                    GR_DrawRectangle(Buttons[a].x + 1, Buttons[a].y + 1,
+                                     Buttons[a].x + Buttons[a].w - 1,
+                                     Buttons[a].y + Buttons[a].h - 1, 1, Bts2_R, Bts2_G, Bts2_B);
+                    ActiveButton = a;
+                }
+                CopyDisplayBufferToScreen(Buttons[a].x - 1, Buttons[a].y - 1, Buttons[a].w + 2,
+                                          Buttons[a].h + 2);
+                if (Buttons[a].PushFunction != NULL)
+                    Buttons[a].PushFunction(Buttons[a].PushClientData);
+                return;
+            }
+        }
     }
     else {
-	if (Buttons[ActiveButton].KeyFunction != NULL) {
-	    ret = Buttons[ActiveButton].KeyFunction(kmodifier, Key);
-	}
+        if (Buttons[ActiveButton].KeyFunction != NULL) {
+            ret = Buttons[ActiveButton].KeyFunction(kmodifier, Key);
+        }
     }
     if (ret == 0)
-	HandleSystemKeys(kmodifier, Key);
+        HandleSystemKeys(kmodifier, Key);
 }
 
 int
@@ -1604,17 +1604,17 @@ InitializeNextImageStructure(void)
 
     ++NumberOfImages;
     if ((MyImages =
-	 (struct MyImagesStructure *) realloc((void *) MyImages,
-					      (size_t) ((sizeof(struct MyImagesStructure)) *
-							NumberOfImages))) == NULL) {
-	printf("Error ReAllocating MyImages structure.");
-	fflush(stdout);
-	return (-1);
+         (struct MyImagesStructure *) realloc((void *) MyImages,
+                                              (size_t) ((sizeof(struct MyImagesStructure)) *
+                                                        NumberOfImages))) == NULL) {
+        printf("Error ReAllocating MyImages structure.");
+        fflush(stdout);
+        return (-1);
     }
 
 #ifdef ALLOC_TRACK
     printf("\nA(r) : graphics : InitializeNextImageStructure : MyImages %08x (%d)", MyImages,
-	   ((sizeof(struct MyImagesStructure)) * NumberOfImages));
+           ((sizeof(struct MyImagesStructure)) * NumberOfImages));
     fflush(stdout);
 #endif
 
@@ -1662,7 +1662,7 @@ int
 UpdateImageToOriginal(int a)
 {
     if (a >= NumberOfImages)
-	return (-1);
+        return (-1);
     MyImages[a].Buffer = MyImages[a].OriginalBuffer;
     MyImages[a].BufferSize = MyImages[a].OriginalBufferSize;
     MyImages[a].X = MyImages[a].OriginalX;
@@ -1670,7 +1670,7 @@ UpdateImageToOriginal(int a)
     MyImages[a].Width = MyImages[a].OriginalWidth;
     MyImages[a].Height = MyImages[a].OriginalHeight;
     if (MyImages[a].Buffer == NULL)
-	return (-1);
+        return (-1);
     return (0);
 }
 
@@ -1678,10 +1678,10 @@ int
 MoveImageModifiedToOriginal(int a)
 {
     if (a >= NumberOfImages)
-	return (-1);
+        return (-1);
 
     if (MyImages[a].OriginalBuffer != NULL)
-	free((void *) MyImages[a].OriginalBuffer);
+        free((void *) MyImages[a].OriginalBuffer);
 
     MyImages[a].OriginalBuffer = MyImages[a].ModifiedBuffer;
     MyImages[a].OriginalBufferSize = MyImages[a].ModifiedBufferSize;
@@ -1704,9 +1704,9 @@ int
 UpdateImageToModified(int a)
 {
     if (a >= NumberOfImages)
-	return;
+        return;
     if (MyImages[a].ModifiedBuffer == NULL)
-	return (-1);
+        return (-1);
 
     MyImages[a].Buffer = MyImages[a].ModifiedBuffer;
     MyImages[a].BufferSize = MyImages[a].ModifiedBufferSize;
@@ -1734,86 +1734,86 @@ GetHighestVisualPixmapCombination(void)
     maxdpt = -1;
     MyVisInfo = XGetVisualInfo(WorkDisplay, VisualNoMask, NULL, &NumVis);
     if ((NumVis < 1) || (MyVisInfo == NULL)) {
-	if (Main_Info) {
-	    printf("\nXGetVisualInfo returned NO availability.");
-	    fflush(stdout);
-	}
-	return (-3);
+        if (Main_Info) {
+            printf("\nXGetVisualInfo returned NO availability.");
+            fflush(stdout);
+        }
+        return (-3);
     }
     if (Main_Info) {
-	printf("\nXGetVisualInfo returned with %d matches", NumVis);
-	fflush(stdout);
-	WorkWithThisVisInfo = MyVisInfo;
-	for (b = 0; b < NumVis; b++) {
-	    printf
-		("\n\t%d. :\n\t\tVisual=%0x\n\t\tVidusalID=%d\n\t\tScreen=%d\n\t\tDepth=%d\n\t\tClass=%d\n\t\tMasks= %04x : %04x : %04x\n\t\tColormap Size=%d\n\t\tBits per RGB=%d",
-		 b, WorkWithThisVisInfo->visual, WorkWithThisVisInfo->visualid, MyVisInfo->screen,
-		 WorkWithThisVisInfo->depth, MyVisInfo->class, WorkWithThisVisInfo->screen,
-		 WorkWithThisVisInfo->red_mask, WorkWithThisVisInfo->green_mask,
-		 WorkWithThisVisInfo->blue_mask, WorkWithThisVisInfo->colormap_size,
-		 WorkWithThisVisInfo->bits_per_rgb);
-	    fflush(stdout);
-	    WorkWithThisVisInfo++;
-	}
-	printf("\n\n");
-	fflush(stdout);
+        printf("\nXGetVisualInfo returned with %d matches", NumVis);
+        fflush(stdout);
+        WorkWithThisVisInfo = MyVisInfo;
+        for (b = 0; b < NumVis; b++) {
+            printf
+                ("\n\t%d. :\n\t\tVisual=%0x\n\t\tVidusalID=%d\n\t\tScreen=%d\n\t\tDepth=%d\n\t\tClass=%d\n\t\tMasks= %04x : %04x : %04x\n\t\tColormap Size=%d\n\t\tBits per RGB=%d",
+                 b, WorkWithThisVisInfo->visual, WorkWithThisVisInfo->visualid, MyVisInfo->screen,
+                 WorkWithThisVisInfo->depth, MyVisInfo->class, WorkWithThisVisInfo->screen,
+                 WorkWithThisVisInfo->red_mask, WorkWithThisVisInfo->green_mask,
+                 WorkWithThisVisInfo->blue_mask, WorkWithThisVisInfo->colormap_size,
+                 WorkWithThisVisInfo->bits_per_rgb);
+            fflush(stdout);
+            WorkWithThisVisInfo++;
+        }
+        printf("\n\n");
+        fflush(stdout);
     }
 
     if ((MyPFVInfo = XListPixmapFormats(WorkDisplay, &NumRet)) != NULL) {
-	WorkWithThisPFV = MyPFVInfo;
-	if (Main_Info) {
-	    printf("\n%d pixmap formats", NumRet);
-	    fflush(stdout);
-	}
-	for (a = 0; a < NumRet; a++) {
-	    if (Main_Info) {
-		printf("\n\t%d. Depth=%d  Bits_per_Pixel=%d  Scanline_pad=%d)", a,
-		       WorkWithThisPFV->depth, WorkWithThisPFV->bits_per_pixel,
-		       WorkWithThisPFV->scanline_pad);
-		fflush(stdout);
-	    }
+        WorkWithThisPFV = MyPFVInfo;
+        if (Main_Info) {
+            printf("\n%d pixmap formats", NumRet);
+            fflush(stdout);
+        }
+        for (a = 0; a < NumRet; a++) {
+            if (Main_Info) {
+                printf("\n\t%d. Depth=%d  Bits_per_Pixel=%d  Scanline_pad=%d)", a,
+                       WorkWithThisPFV->depth, WorkWithThisPFV->bits_per_pixel,
+                       WorkWithThisPFV->scanline_pad);
+                fflush(stdout);
+            }
 
-	    WorkWithThisVisInfo = MyVisInfo;
-	    for (b = 0; b < NumVis; b++) {
-		if ((WorkWithThisVisInfo->depth == WorkWithThisPFV->depth)
-		    && (WorkWithThisVisInfo->screen == WorkScreen)) {
-		    if (Main_Info) {
-			printf(" -> MATCH!");
-			fflush(stdout);
-		    }
-		    maxdpt = WorkWithThisPFV->depth;
-		    WorkScanLinePad = WorkWithThisPFV->scanline_pad;
-		    WorkVisual = WorkWithThisVisInfo->visual;
-		    wid = WorkWithThisVisInfo->visualid;
-		    WorkDepth = WorkWithThisVisInfo->depth;
-		    WorkRedMask = WorkWithThisVisInfo->red_mask;
-		    WorkGreenMask = WorkWithThisVisInfo->green_mask;
-		    WorkBlueMask = WorkWithThisVisInfo->blue_mask;
-		    b = NumVis;
-		}
-	    }
-	    ++WorkWithThisPFV;
-	}
+            WorkWithThisVisInfo = MyVisInfo;
+            for (b = 0; b < NumVis; b++) {
+                if ((WorkWithThisVisInfo->depth == WorkWithThisPFV->depth)
+                    && (WorkWithThisVisInfo->screen == WorkScreen)) {
+                    if (Main_Info) {
+                        printf(" -> MATCH!");
+                        fflush(stdout);
+                    }
+                    maxdpt = WorkWithThisPFV->depth;
+                    WorkScanLinePad = WorkWithThisPFV->scanline_pad;
+                    WorkVisual = WorkWithThisVisInfo->visual;
+                    wid = WorkWithThisVisInfo->visualid;
+                    WorkDepth = WorkWithThisVisInfo->depth;
+                    WorkRedMask = WorkWithThisVisInfo->red_mask;
+                    WorkGreenMask = WorkWithThisVisInfo->green_mask;
+                    WorkBlueMask = WorkWithThisVisInfo->blue_mask;
+                    b = NumVis;
+                }
+            }
+            ++WorkWithThisPFV;
+        }
     }
     else {
-	if (Main_Info) {
-	    printf("\nXListPixmapFormats returned NULL.");
-	    fflush(stdout);
-	}
-	return (-1);
+        if (Main_Info) {
+            printf("\nXListPixmapFormats returned NULL.");
+            fflush(stdout);
+        }
+        return (-1);
     }
     if (selected == -1) {
-	if (Main_Info) {
-	    printf("\nDid not find suitable depth from XListPixmapFormats.");
-	    fflush(stdout);
-	}
-	return (-2);
+        if (Main_Info) {
+            printf("\nDid not find suitable depth from XListPixmapFormats.");
+            fflush(stdout);
+        }
+        return (-2);
     }
     else {
-	if (Main_Info) {
-	    printf("\nSelected %d. with MaxDpt=%d", selected, maxdpt);
-	    fflush(stdout);
-	}
+        if (Main_Info) {
+            printf("\nSelected %d. with MaxDpt=%d", selected, maxdpt);
+            fflush(stdout);
+        }
     }
     XFree(MyPFVInfo);
     XFree(MyVisInfo);
@@ -1821,150 +1821,150 @@ GetHighestVisualPixmapCombination(void)
     selected = (unsigned int) WorkRedMask;
     a = 0;
     while (((selected & 1) == 0) && (a < 32)) {
-	++a;
-	selected >>= 1;
+        ++a;
+        selected >>= 1;
     }
     WorkRedNumberOfUpShifts = a;
     a = 0;
     while (((selected & 1) == 1) && (a < 32)) {
-	++a;
-	selected = selected >> 1;
+        ++a;
+        selected = selected >> 1;
     }
     WorkRedNumberOfShifts = 8 - a;
     selected = (unsigned int) WorkGreenMask;
     a = 0;
     while (((selected & 1) == 0) && (a < 32)) {
-	++a;
-	selected >>= 1;
+        ++a;
+        selected >>= 1;
     }
     WorkGreenNumberOfUpShifts = a;
     a = 0;
     while (((selected & 1) == 1) && (a < 32)) {
-	++a;
-	selected = selected >> 1;
+        ++a;
+        selected = selected >> 1;
     }
     WorkGreenNumberOfShifts = 8 - a;
     selected = (unsigned int) WorkBlueMask;
     a = 0;
     while (((selected & 1) == 0) && (a < 32)) {
-	++a;
-	selected >>= 1;
+        ++a;
+        selected >>= 1;
     }
     WorkBlueNumberOfUpShifts = a;
     a = 0;
     while (((selected & 1) == 1) && (a < 32)) {
-	++a;
-	selected = selected >> 1;
+        ++a;
+        selected = selected >> 1;
     }
     WorkBlueNumberOfShifts = 8 - a;
 
 
     if (Main_Info) {
-	printf("\n\n Visual         = %08x", WorkVisual);
-	printf("\n VisualID       = %d", wid);
-	printf("\n WorkDepth      = %d", WorkDepth);
-	printf("\n WorkRedMask    = %04x (%d) (%d)", WorkRedMask, WorkRedNumberOfShifts,
-	       WorkRedNumberOfUpShifts);
-	printf("\n WorkGreenMask  = %04x (%d) (%d)", WorkGreenMask, WorkGreenNumberOfShifts,
-	       WorkGreenNumberOfUpShifts);
-	printf("\n WorkBlueMask   = %04x (%d) (%d)", WorkBlueMask, WorkBlueNumberOfShifts,
-	       WorkBlueNumberOfUpShifts);
-	printf("\n WorkDepthShift = %d (%d)", (WorkDepth >> 3), sizeof(unsigned short));
-	fflush(stdout);
-	fflush(stdout);
+        printf("\n\n Visual         = %08x", WorkVisual);
+        printf("\n VisualID       = %d", wid);
+        printf("\n WorkDepth      = %d", WorkDepth);
+        printf("\n WorkRedMask    = %04x (%d) (%d)", WorkRedMask, WorkRedNumberOfShifts,
+               WorkRedNumberOfUpShifts);
+        printf("\n WorkGreenMask  = %04x (%d) (%d)", WorkGreenMask, WorkGreenNumberOfShifts,
+               WorkGreenNumberOfUpShifts);
+        printf("\n WorkBlueMask   = %04x (%d) (%d)", WorkBlueMask, WorkBlueNumberOfShifts,
+               WorkBlueNumberOfUpShifts);
+        printf("\n WorkDepthShift = %d (%d)", (WorkDepth >> 3), sizeof(unsigned short));
+        fflush(stdout);
+        fflush(stdout);
     }
 
 //      wd=WorkDepth;
     if ((wd = WorkDepth) == 24)
-	wd = 32;
+        wd = 32;
     if ((WorkData = (char *) malloc((wd >> 3) * DisplayWidth * DisplayHeight)) == NULL) {
-	if (Main_Info) {
-	    printf("\nCan not allocate %d bytes for WorkData.",
-		   ((WorkDepth >> 3) * DisplayWidth * DisplayHeight));
-	    fflush(stdout);
-	}
-	return (-4);
+        if (Main_Info) {
+            printf("\nCan not allocate %d bytes for WorkData.",
+                   ((WorkDepth >> 3) * DisplayWidth * DisplayHeight));
+            fflush(stdout);
+        }
+        return (-4);
     }
 
 #ifdef ALLOC_TRACK
     printf("\nA : graphics : GetHighestVisualPixmapCombination : WorkData %08x (%d)", WorkData,
-	   ((wd >> 3) * DisplayWidth * DisplayHeight));
+           ((wd >> 3) * DisplayWidth * DisplayHeight));
     fflush(stdout);
 #endif
 
     if ((ImageBuffer =
-	 (struct ImageBufferStructure *) malloc(sizeof(struct ImageBufferStructure) * DisplayWidth *
-						DisplayHeight)) == NULL) {
-	if (Main_Info) {
-	    printf("\nCan not allocate %d bytes for ImageBuffer.",
-		   (3 * DisplayWidth * DisplayHeight));
-	    fflush(stdout);
-	}
-	return (-4);
+         (struct ImageBufferStructure *) malloc(sizeof(struct ImageBufferStructure) * DisplayWidth *
+                                                DisplayHeight)) == NULL) {
+        if (Main_Info) {
+            printf("\nCan not allocate %d bytes for ImageBuffer.",
+                   (3 * DisplayWidth * DisplayHeight));
+            fflush(stdout);
+        }
+        return (-4);
     }
 
 #ifdef ALLOC_TRACK
     printf("\nA : graphics : GetHighestVisualPixmapCombination : ImageBuffer %08x (%d)",
-	   ImageBuffer, (sizeof(struct ImageBufferStructure) * DisplayWidth * DisplayHeight));
+           ImageBuffer, (sizeof(struct ImageBufferStructure) * DisplayWidth * DisplayHeight));
     fflush(stdout);
 #endif
 
     if (Main_Info) {
-	printf("\nXCreateImage");
-	fflush(stdout);
+        printf("\nXCreateImage");
+        fflush(stdout);
     }
 
     if ((WorkImage =
-	 XCreateImage(WorkDisplay, WorkVisual, WorkDepth, ZPixmap, 0, WorkData, DisplayWidth,
-		      DisplayHeight, BitmapPad(WorkDisplay), 0)) == NULL)
+         XCreateImage(WorkDisplay, WorkVisual, WorkDepth, ZPixmap, 0, WorkData, DisplayWidth,
+                      DisplayHeight, BitmapPad(WorkDisplay), 0)) == NULL)
 //      if((WorkImage=XCreateImage(WorkDisplay,WorkVisual,WorkDepth,ZPixmap,0,WorkData,DisplayWidth,DisplayHeight,BitmapPad(WorkDisplay),0))==NULL)
     {
-	if (Main_Info) {
-	    printf("\nXCreateImage returned NULL.");
-	    fflush(stdout);
-	}
-	return (-5);
+        if (Main_Info) {
+            printf("\nXCreateImage returned NULL.");
+            fflush(stdout);
+        }
+        return (-5);
     }
 
     if (Main_Info) {
-	printf("->Ok.\nXInitImage");
-	fflush(stdout);
+        printf("->Ok.\nXInitImage");
+        fflush(stdout);
     }
 
     if (XInitImage(WorkImage) == 0) {
-	if (Main_Info) {
-	    printf("\nError with XInitImage");
-	    fflush(stdout);
-	}
-	return (-6);
+        if (Main_Info) {
+            printf("\nError with XInitImage");
+            fflush(stdout);
+        }
+        return (-6);
     }
 
     if (Main_Info) {
-	printf("->Ok.");
-	fflush(stdout);
+        printf("->Ok.");
+        fflush(stdout);
     }
 
     WorkBitsPerRGB = WorkImage->bits_per_pixel;
 
     if (Main_Info) {
-	printf("\n WorkImage = %08x", WorkImage);
-	printf("\n width = %d", WorkImage->width);
-	printf("\n height = %d", WorkImage->height);
-	printf("\n xoffset = %d", WorkImage->xoffset);
-	printf("\n format = %d", WorkImage->format);
-	printf("\n bitmap_unit = %d", WorkImage->bitmap_unit);
-	printf("\n byte_order = %d", WorkImage->byte_order);
-	printf("\n bitmap_bit_order = %d", WorkImage->bitmap_bit_order);
-	printf("\n depth = %d", WorkImage->depth);
-	printf("\n bytes_per_line = %d", WorkImage->bytes_per_line);
-	printf("\n bits_per_pixel = %d", WorkImage->bits_per_pixel);
-	printf("\n red_mask = %04x", WorkImage->red_mask);
-	printf("\n green_mask = %04x", WorkImage->green_mask);
-	printf("\n blue_mask = %04x", WorkImage->blue_mask);
-	printf("\n WorkRedNumberOfShifts = %d", WorkRedNumberOfShifts);
-	printf("\n WorkGreenNumberOfShifts = %d", WorkGreenNumberOfShifts);
-	printf("\n WorkBlueNumberOfShifts = %d", WorkBlueNumberOfShifts);
-	fflush(stdout);
+        printf("\n WorkImage = %08x", WorkImage);
+        printf("\n width = %d", WorkImage->width);
+        printf("\n height = %d", WorkImage->height);
+        printf("\n xoffset = %d", WorkImage->xoffset);
+        printf("\n format = %d", WorkImage->format);
+        printf("\n bitmap_unit = %d", WorkImage->bitmap_unit);
+        printf("\n byte_order = %d", WorkImage->byte_order);
+        printf("\n bitmap_bit_order = %d", WorkImage->bitmap_bit_order);
+        printf("\n depth = %d", WorkImage->depth);
+        printf("\n bytes_per_line = %d", WorkImage->bytes_per_line);
+        printf("\n bits_per_pixel = %d", WorkImage->bits_per_pixel);
+        printf("\n red_mask = %04x", WorkImage->red_mask);
+        printf("\n green_mask = %04x", WorkImage->green_mask);
+        printf("\n blue_mask = %04x", WorkImage->blue_mask);
+        printf("\n WorkRedNumberOfShifts = %d", WorkRedNumberOfShifts);
+        printf("\n WorkGreenNumberOfShifts = %d", WorkGreenNumberOfShifts);
+        printf("\n WorkBlueNumberOfShifts = %d", WorkBlueNumberOfShifts);
+        fflush(stdout);
     }
 
     return (0);
@@ -1986,13 +1986,13 @@ CreateMainWindow(void)
     DrawTarget = 1;
 
     if ((WorkDisplay = XOpenDisplay(NULL)) == NULL) {
-	if ((WorkDisplay = XOpenDisplay(":0")) == NULL) {
-	    if ((WorkDisplay = XOpenDisplay(":0.0")) == NULL) {
-		printf("\nError opening display...");
-		fflush(stdout);
-		return (-1);
-	    }
-	}
+        if ((WorkDisplay = XOpenDisplay(":0")) == NULL) {
+            if ((WorkDisplay = XOpenDisplay(":0.0")) == NULL) {
+                printf("\nError opening display...");
+                fflush(stdout);
+                return (-1);
+            }
+        }
     }
     WorkScreen = DefaultScreen(WorkDisplay);
 
@@ -2000,71 +2000,71 @@ CreateMainWindow(void)
     WorkPosY = 30;
 
     if (GetHighestVisualPixmapCombination() < 0) {
-	printf("\nError for getting Visual Information...");
-	fflush(stdout);
-	XCloseDisplay(WorkDisplay);
-	return (-1);
+        printf("\nError for getting Visual Information...");
+        fflush(stdout);
+        XCloseDisplay(WorkDisplay);
+        return (-1);
     }
 
     if (Main_Info) {
-	printf("\nXCreateWindow");
-	fflush(stdout);
+        printf("\nXCreateWindow");
+        fflush(stdout);
     }
 
     if ((WorkWindow =
-	 XCreateWindow(WorkDisplay, RootWindow(WorkDisplay, WorkScreen), WorkPosX, WorkPosY,
-		       DisplayWidth, DisplayHeight, 2, WorkDepth, InputOutput, WorkVisual, 0,
-		       NULL)) == 0) {
-	printf("\nError Creatig Window...");
-	fflush(stdout);
-	XCloseDisplay(WorkDisplay);
-	return (-1);
+         XCreateWindow(WorkDisplay, RootWindow(WorkDisplay, WorkScreen), WorkPosX, WorkPosY,
+                       DisplayWidth, DisplayHeight, 2, WorkDepth, InputOutput, WorkVisual, 0,
+                       NULL)) == 0) {
+        printf("\nError Creatig Window...");
+        fflush(stdout);
+        XCloseDisplay(WorkDisplay);
+        return (-1);
     }
 
     if (Main_Info) {
-	printf("->Ok.");
-	fflush(stdout);
+        printf("->Ok.");
+        fflush(stdout);
     }
 
     TmpChrPtrBuffer[0] = &TmpBuffer[0];
     TmpChrPtrBuffer[1] = NULL;
     sprintf(TmpBuffer, "%s", WINDOWNAME);
     if (XStringListToTextProperty(TmpChrPtrBuffer, 1, &winname)) {
-	sprintf(TmpBuffer, "%s", ICONNAME);
-	if (XStringListToTextProperty(TmpChrPtrBuffer, 1, &iconame)) {
-	    if (!(s_h = XAllocSizeHints()))
-		XSetWMProperties(WorkDisplay, WorkWindow, &winname, &iconame, NULL, 0, NULL, NULL,
-				 NULL);
-	    else {
-		s_h->flags = PPosition | PSize | PMinSize | PMaxSize;
-		s_h->min_width = DisplayWidth;
-		s_h->max_width = DisplayWidth;
-		s_h->width = DisplayWidth;
-		s_h->min_height = DisplayHeight;
-		s_h->max_height = DisplayHeight;
-		s_h->height = DisplayHeight;
-		XSetWMProperties(WorkDisplay, WorkWindow, &winname, &iconame, NULL, 0, s_h, NULL,
-				 NULL);
-		XResizeWindow(WorkDisplay, WorkWindow, DisplayWidth, DisplayHeight);
-	    }
-	}
+        sprintf(TmpBuffer, "%s", ICONNAME);
+        if (XStringListToTextProperty(TmpChrPtrBuffer, 1, &iconame)) {
+            if (!(s_h = XAllocSizeHints()))
+                XSetWMProperties(WorkDisplay, WorkWindow, &winname, &iconame, NULL, 0, NULL, NULL,
+                                 NULL);
+            else {
+                s_h->flags = PPosition | PSize | PMinSize | PMaxSize;
+                s_h->min_width = DisplayWidth;
+                s_h->max_width = DisplayWidth;
+                s_h->width = DisplayWidth;
+                s_h->min_height = DisplayHeight;
+                s_h->max_height = DisplayHeight;
+                s_h->height = DisplayHeight;
+                XSetWMProperties(WorkDisplay, WorkWindow, &winname, &iconame, NULL, 0, s_h, NULL,
+                                 NULL);
+                XResizeWindow(WorkDisplay, WorkWindow, DisplayWidth, DisplayHeight);
+            }
+        }
     }
 
     xpos = 30;
     CreateButton("Quit", QuitApplication, NULL, (unsigned char) 'q', NULL, 0, DisplayWidth - xpos,
-		 DisplayHeight - 21, 0, 0, NULL);
+                 DisplayHeight - 21, 0, 0, NULL);
     xpos += 2;
     xpos += 38;
     CreateButton("Save", SavePicture, NULL, (unsigned char) 's', NULL, 1, DisplayWidth - xpos,
-		 DisplayHeight - 21, 0, 0, NULL);
+                 DisplayHeight - 21, 0, 0, NULL);
     xpos += 120;
     CreateButton("Process CAN Data", MiscellaneousButton, NULL, (unsigned char) ' ',
-		 MiscellaneousKey, 1, DisplayWidth - xpos, DisplayHeight - 21, 0, 0, NULL);
+                 MiscellaneousKey, 1, DisplayWidth - xpos, DisplayHeight - 21, 0, 0, NULL);
 
     XMoveWindow(WorkDisplay, WorkWindow, WorkPosX, WorkPosY);
     XSelectInput(WorkDisplay, WorkWindow,
-		 KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonMotionMask |
-		 ButtonReleaseMask | PointerMotionMask | ExposureMask | StructureNotifyMask);
+                 KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonMotionMask |
+                 ButtonReleaseMask | PointerMotionMask | ExposureMask | StructureNotifyMask);
     XMapWindow(WorkDisplay, WorkWindow);
 
     return (0);
@@ -2076,36 +2076,36 @@ ReconfigureWindow(int width, int height)
     XGCValues mygcvalues;
 
     if (Main_Info) {
-	printf("Reconfiguring to %dx%d...", width, height);
-	fflush(stdout);
+        printf("Reconfiguring to %dx%d...", width, height);
+        fflush(stdout);
     }
 
     DisplayWidth = width;
     DisplayHeight = height;
 
     if (WorkPixmap != (Pixmap) 0)
-	XFreePixmap(WorkDisplay, WorkPixmap);
+        XFreePixmap(WorkDisplay, WorkPixmap);
     if (WorkPixmapGC != NULL)
-	XFreeGC(WorkDisplay, WorkPixmapGC);
+        XFreeGC(WorkDisplay, WorkPixmapGC);
 
     if ((WorkData =
-	 (char *) realloc((void *) WorkData,
-			  (size_t) ((WorkDepth >> 3) * DisplayWidth * DisplayHeight))) == NULL) {
-	printf("\nCan not reallocate %d bytes for WorkData.",
-	       ((WorkDepth >> 3) * DisplayWidth * DisplayHeight));
-	fflush(stdout);
-	return (1);
+         (char *) realloc((void *) WorkData,
+                          (size_t) ((WorkDepth >> 3) * DisplayWidth * DisplayHeight))) == NULL) {
+        printf("\nCan not reallocate %d bytes for WorkData.",
+               ((WorkDepth >> 3) * DisplayWidth * DisplayHeight));
+        fflush(stdout);
+        return (1);
     }
 
     if ((ImageBuffer =
-	 (struct ImageBufferStructure *) realloc((void *) ImageBuffer,
-						 (size_t) (sizeof(struct ImageBufferStructure) *
-							   DisplayWidth * DisplayHeight))) ==
-	NULL) {
-	printf("\nCan not reallocate %d bytes for ImageBuffer.",
-	       (3 * DisplayWidth * DisplayHeight));
-	fflush(stdout);
-	return (1);
+         (struct ImageBufferStructure *) realloc((void *) ImageBuffer,
+                                                 (size_t) (sizeof(struct ImageBufferStructure) *
+                                                           DisplayWidth * DisplayHeight))) ==
+        NULL) {
+        printf("\nCan not reallocate %d bytes for ImageBuffer.",
+               (3 * DisplayWidth * DisplayHeight));
+        fflush(stdout);
+        return (1);
     }
 
     WorkImage->width = DisplayWidth;
@@ -2117,7 +2117,7 @@ ReconfigureWindow(int width, int height)
 
     WorkPixmap = XCreatePixmap(WorkDisplay, WorkWindow, DisplayWidth, DisplayHeight, WorkDepth);
     WorkPixmapGC =
-	XCreateGC(WorkDisplay, WorkPixmap, GCFunction | GCGraphicsExposures, &mygcvalues);
+        XCreateGC(WorkDisplay, WorkPixmap, GCFunction | GCGraphicsExposures, &mygcvalues);
 
     ClearDisplayBuffer();
     CopyImagesToWorkBuffer();
@@ -2147,311 +2147,311 @@ MainLoop(void)
 #endif
 
     while (ProcessGo) {
-	XNextEvent(WorkDisplay, &report);
-	switch (report.type) {
-	case Expose:
+        XNextEvent(WorkDisplay, &report);
+        switch (report.type) {
+        case Expose:
 
 #ifdef DEBUG_MESSAGES
-	    printf("\n\nExpose %08x (%08x) %d:%d %dx%d", report.xexpose.window, WorkWindow,
-		   report.xexpose.x, report.xexpose.y, report.xexpose.width, report.xexpose.height);
-	    fflush(stdout);
+            printf("\n\nExpose %08x (%08x) %d:%d %dx%d", report.xexpose.window, WorkWindow,
+                   report.xexpose.x, report.xexpose.y, report.xexpose.width, report.xexpose.height);
+            fflush(stdout);
 #endif
-	    if ((report.xexpose.count == 0)) {
-		if (!WorkWindowInitialized) {
-		    mygcvalues.function = GXcopy;
-		    mygcvalues.graphics_exposures = 1;
-		    WorkWindowGC =
-			XCreateGC(WorkDisplay, WorkWindow, GCFunction | GCGraphicsExposures,
-				  &mygcvalues);
-		    WorkCursor = XCreateFontCursor(WorkDisplay, XC_hand2);
-		    XDefineCursor(WorkDisplay, WorkWindow, WorkCursor);
-		    WorkPixmap =
-			XCreatePixmap(WorkDisplay, WorkWindow, DisplayWidth, DisplayHeight,
-				      WorkDepth);
-		    WorkPixmapGC =
-			XCreateGC(WorkDisplay, WorkPixmap, GCFunction | GCGraphicsExposures,
-				  &mygcvalues);
-		    XClearWindow(WorkDisplay, WorkWindow);
-		    WorkWindowInitialized = 1;
-		    XMoveWindow(WorkDisplay, WorkWindow, WorkPosX, WorkPosY);
-		    ClearDisplayBuffer();
-		    CopyImagesToWorkBuffer();
-		    DrawButtons();
-		}
+            if ((report.xexpose.count == 0)) {
+                if (!WorkWindowInitialized) {
+                    mygcvalues.function = GXcopy;
+                    mygcvalues.graphics_exposures = 1;
+                    WorkWindowGC =
+                        XCreateGC(WorkDisplay, WorkWindow, GCFunction | GCGraphicsExposures,
+                                  &mygcvalues);
+                    WorkCursor = XCreateFontCursor(WorkDisplay, XC_hand2);
+                    XDefineCursor(WorkDisplay, WorkWindow, WorkCursor);
+                    WorkPixmap =
+                        XCreatePixmap(WorkDisplay, WorkWindow, DisplayWidth, DisplayHeight,
+                                      WorkDepth);
+                    WorkPixmapGC =
+                        XCreateGC(WorkDisplay, WorkPixmap, GCFunction | GCGraphicsExposures,
+                                  &mygcvalues);
+                    XClearWindow(WorkDisplay, WorkWindow);
+                    WorkWindowInitialized = 1;
+                    XMoveWindow(WorkDisplay, WorkWindow, WorkPosX, WorkPosY);
+                    ClearDisplayBuffer();
+                    CopyImagesToWorkBuffer();
+                    DrawButtons();
+                }
 //                              CopyDisplayBufferToScreen(report.xexpose.x,report.xexpose.y,report.xexpose.width,report.xexpose.height);
 
 //PutMyString("Alma Helloho ilinoise Alaska",30,260,0,2);
 
-		CopyDisplayBufferToScreen(0, 0, DisplayWidth, DisplayHeight);
-	    }
-	    break;
-	case ConfigureNotify:
+                CopyDisplayBufferToScreen(0, 0, DisplayWidth, DisplayHeight);
+            }
+            break;
+        case ConfigureNotify:
 
 #ifdef DEBUG_MESSAGES
-	    printf("\n\nConfigureNotify %08x (%08x) %d:%d %dx%d", report.xconfigure.window,
-		   WorkWindow, report.xconfigure.x, report.xconfigure.y, report.xconfigure.width,
-		   report.xconfigure.height);
-	    fflush(stdout);
+            printf("\n\nConfigureNotify %08x (%08x) %d:%d %dx%d", report.xconfigure.window,
+                   WorkWindow, report.xconfigure.x, report.xconfigure.y, report.xconfigure.width,
+                   report.xconfigure.height);
+            fflush(stdout);
 #endif
 
-	    if (WorkWindowInitialized) {
-		if ((report.xconfigure.width != DisplayWidth)
-		    || (report.xconfigure.height != DisplayHeight)) {
-		    ReconfigureWindow(report.xconfigure.width, report.xconfigure.height);
-		}
-	    }
+            if (WorkWindowInitialized) {
+                if ((report.xconfigure.width != DisplayWidth)
+                    || (report.xconfigure.height != DisplayHeight)) {
+                    ReconfigureWindow(report.xconfigure.width, report.xconfigure.height);
+                }
+            }
 
-	    break;
-	case KeyRelease:
-	    if (report.xkey.window == WorkWindow) {
-		switch ((int) XLookupKeysym((XKeyEvent *) & report, 0)) {
-		case XK_Shift_L:
-		    InternalKeyModifiers &= ((unsigned int) 0xFFFF - 1);
-		    if (!(InternalKeyModifiers & 2))
-			KeyModifiers &= ((unsigned char) 255 - (KM_SHIFT));
-		    break;
-		case XK_Shift_R:
-		    InternalKeyModifiers &= ((unsigned int) 0xFFFF - 2);
-		    if (!(InternalKeyModifiers & 1))
-			KeyModifiers &= ((unsigned char) 255 - (KM_SHIFT));
-		    break;
-		case XK_Control_L:
-		    InternalKeyModifiers &= ((unsigned int) 0xFFFF - 4);
-		    if (!(InternalKeyModifiers & 8))
-			KeyModifiers &= ((unsigned char) 255 - (KM_CTRL));
-		    break;
-		case XK_Control_R:
-		    InternalKeyModifiers &= ((unsigned int) 0xFFFF - 8);
-		    if (!(InternalKeyModifiers & 4))
-			KeyModifiers &= ((unsigned char) 255 - (KM_CTRL));
-		    break;
-		case XK_Alt_L:
-		    InternalKeyModifiers &= ((unsigned int) 0xFFFF - 16);
-		    if (!(InternalKeyModifiers & 32))
-			KeyModifiers &= ((unsigned char) 255 - (KM_ALT));
-		    break;
-		case XK_Alt_R:
-		    InternalKeyModifiers &= ((unsigned int) 0xFFFF - 32);
-		    if (!(InternalKeyModifiers & 16))
-			KeyModifiers &= ((unsigned char) 255 - (KM_ALT));
-		    break;
-		}
-		if (!XLookupString
-		    ((XKeyEvent *) & report, (char *) buffer, bufsize, &keysym, &compose))
-		    buffer[0] = 0;
+            break;
+        case KeyRelease:
+            if (report.xkey.window == WorkWindow) {
+                switch ((int) XLookupKeysym((XKeyEvent *) & report, 0)) {
+                case XK_Shift_L:
+                    InternalKeyModifiers &= ((unsigned int) 0xFFFF - 1);
+                    if (!(InternalKeyModifiers & 2))
+                        KeyModifiers &= ((unsigned char) 255 - (KM_SHIFT));
+                    break;
+                case XK_Shift_R:
+                    InternalKeyModifiers &= ((unsigned int) 0xFFFF - 2);
+                    if (!(InternalKeyModifiers & 1))
+                        KeyModifiers &= ((unsigned char) 255 - (KM_SHIFT));
+                    break;
+                case XK_Control_L:
+                    InternalKeyModifiers &= ((unsigned int) 0xFFFF - 4);
+                    if (!(InternalKeyModifiers & 8))
+                        KeyModifiers &= ((unsigned char) 255 - (KM_CTRL));
+                    break;
+                case XK_Control_R:
+                    InternalKeyModifiers &= ((unsigned int) 0xFFFF - 8);
+                    if (!(InternalKeyModifiers & 4))
+                        KeyModifiers &= ((unsigned char) 255 - (KM_CTRL));
+                    break;
+                case XK_Alt_L:
+                    InternalKeyModifiers &= ((unsigned int) 0xFFFF - 16);
+                    if (!(InternalKeyModifiers & 32))
+                        KeyModifiers &= ((unsigned char) 255 - (KM_ALT));
+                    break;
+                case XK_Alt_R:
+                    InternalKeyModifiers &= ((unsigned int) 0xFFFF - 32);
+                    if (!(InternalKeyModifiers & 16))
+                        KeyModifiers &= ((unsigned char) 255 - (KM_ALT));
+                    break;
+                }
+                if (!XLookupString
+                    ((XKeyEvent *) & report, (char *) buffer, bufsize, &keysym, &compose))
+                    buffer[0] = 0;
 
-		if (buffer[0] == 'z')	// distance
-		{
-		    if ((SelectedImage >= 0) && (MyImages[SelectedImage].HotPosX >= 0)) {
-			if (SelectedImage != ZPressSel) {
-			    ZPressSel = SelectedImage;
-			    ZPressX = MyImages[SelectedImage].HotPosX;
-			    ZPressY = MyImages[SelectedImage].HotPosY;
-			}
-			else {
-			    fv = ((float) ZPressX -
-				  (float) MyImages[SelectedImage].HotPosX) * ((float) ZPressX -
-									      (float)
-									      MyImages
-									      [SelectedImage].
-									      HotPosX);
-			    fv +=
-				((float) ZPressY -
-				 (float) MyImages[SelectedImage].HotPosY) * ((float) ZPressY -
-									     (float)
-									     MyImages
-									     [SelectedImage].
-									     HotPosY);
-			    fv = sqrt(fv);
+                if (buffer[0] == 'z')   // distance
+                {
+                    if ((SelectedImage >= 0) && (MyImages[SelectedImage].HotPosX >= 0)) {
+                        if (SelectedImage != ZPressSel) {
+                            ZPressSel = SelectedImage;
+                            ZPressX = MyImages[SelectedImage].HotPosX;
+                            ZPressY = MyImages[SelectedImage].HotPosY;
+                        }
+                        else {
+                            fv = ((float) ZPressX -
+                                  (float) MyImages[SelectedImage].HotPosX) * ((float) ZPressX -
+                                                                              (float)
+                                                                              MyImages
+                                                                              [SelectedImage].
+                                                                              HotPosX);
+                            fv +=
+                                ((float) ZPressY -
+                                 (float) MyImages[SelectedImage].HotPosY) * ((float) ZPressY -
+                                                                             (float)
+                                                                             MyImages
+                                                                             [SelectedImage].
+                                                                             HotPosY);
+                            fv = sqrt(fv);
 
-			    printf("\nDistance %d:%d -> %d:%d = %1.2f  [%d:%d]", ZPressX, ZPressY,
-				   MyImages[SelectedImage].HotPosX, MyImages[SelectedImage].HotPosY,
-				   fv, ABS((MyImages[SelectedImage].HotPosX - ZPressX)),
-				   ABS((MyImages[SelectedImage].HotPosY - ZPressY)));
-			    fflush(stdout);
+                            printf("\nDistance %d:%d -> %d:%d = %1.2f  [%d:%d]", ZPressX, ZPressY,
+                                   MyImages[SelectedImage].HotPosX, MyImages[SelectedImage].HotPosY,
+                                   fv, ABS((MyImages[SelectedImage].HotPosX - ZPressX)),
+                                   ABS((MyImages[SelectedImage].HotPosY - ZPressY)));
+                            fflush(stdout);
 
-			    ZPressX = MyImages[SelectedImage].HotPosX;
-			    ZPressY = MyImages[SelectedImage].HotPosY;
-			}
-		    }
-		}
+                            ZPressX = MyImages[SelectedImage].HotPosX;
+                            ZPressY = MyImages[SelectedImage].HotPosY;
+                        }
+                    }
+                }
 
-	    }
+            }
 #ifdef DEBUG_MESSAGES
-	    printf("\nKeyRelease = %08x (%08x)[%d] = %d %04x", report.xkey.window, WorkWindow,
-		   KeyModifiers, (int) XLookupKeysym((XKeyEvent *) & report, 0),
-		   (int) XLookupKeysym((XKeyEvent *) & report, 0));
-	    fflush(stdout);
+            printf("\nKeyRelease = %08x (%08x)[%d] = %d %04x", report.xkey.window, WorkWindow,
+                   KeyModifiers, (int) XLookupKeysym((XKeyEvent *) & report, 0),
+                   (int) XLookupKeysym((XKeyEvent *) & report, 0));
+            fflush(stdout);
 #endif
 
-	    break;
-	case KeyPress:
-	    if (report.xkey.window == WorkWindow) {
-		buffer[0] = 0;
-		switch ((int) XLookupKeysym((XKeyEvent *) & report, 0)) {
-		case XK_Shift_L:
-		    InternalKeyModifiers |= ((unsigned int) 1);
-		    KeyModifiers |= ((unsigned char) (KM_SHIFT));
-		    break;
-		case XK_Shift_R:
-		    InternalKeyModifiers |= ((unsigned int) 2);
-		    KeyModifiers |= ((unsigned char) (KM_SHIFT));
-		    break;
-		case XK_Control_L:
-		    InternalKeyModifiers |= ((unsigned int) 4);
-		    KeyModifiers |= ((unsigned char) (KM_CTRL));
-		    break;
-		case XK_Control_R:
-		    InternalKeyModifiers |= ((unsigned int) 8);
-		    KeyModifiers |= ((unsigned char) (KM_CTRL));
-		    break;
-		case XK_Alt_L:
-		    InternalKeyModifiers |= ((unsigned int) 16);
-		    KeyModifiers |= ((unsigned char) (KM_ALT));
-		    break;
-		case XK_Alt_R:
-		    InternalKeyModifiers |= ((unsigned int) 32);
-		    KeyModifiers |= ((unsigned char) (KM_ALT));
-		    break;
+            break;
+        case KeyPress:
+            if (report.xkey.window == WorkWindow) {
+                buffer[0] = 0;
+                switch ((int) XLookupKeysym((XKeyEvent *) & report, 0)) {
+                case XK_Shift_L:
+                    InternalKeyModifiers |= ((unsigned int) 1);
+                    KeyModifiers |= ((unsigned char) (KM_SHIFT));
+                    break;
+                case XK_Shift_R:
+                    InternalKeyModifiers |= ((unsigned int) 2);
+                    KeyModifiers |= ((unsigned char) (KM_SHIFT));
+                    break;
+                case XK_Control_L:
+                    InternalKeyModifiers |= ((unsigned int) 4);
+                    KeyModifiers |= ((unsigned char) (KM_CTRL));
+                    break;
+                case XK_Control_R:
+                    InternalKeyModifiers |= ((unsigned int) 8);
+                    KeyModifiers |= ((unsigned char) (KM_CTRL));
+                    break;
+                case XK_Alt_L:
+                    InternalKeyModifiers |= ((unsigned int) 16);
+                    KeyModifiers |= ((unsigned char) (KM_ALT));
+                    break;
+                case XK_Alt_R:
+                    InternalKeyModifiers |= ((unsigned int) 32);
+                    KeyModifiers |= ((unsigned char) (KM_ALT));
+                    break;
 
-		case XK_Left:
-		    buffer[0] = (unsigned char) SK_LFAR;
-		    break;
-		case XK_Up:
-		    buffer[0] = (unsigned char) SK_UPAR;
-		    break;
-		case XK_Down:
-		    buffer[0] = (unsigned char) SK_DNAR;
-		    break;
-		case XK_Right:
-		    buffer[0] = (unsigned char) SK_RIAR;
-		    break;
-		case XK_Home:
-		    buffer[0] = (unsigned char) SK_HOME;
-		    break;
-		case XK_Page_Up:
-		    buffer[0] = (unsigned char) SK_PGUP;
-		    break;
-		case XK_Page_Down:
-		    buffer[0] = (unsigned char) SK_PGDN;
-		    break;
-		case XK_End:
-		    buffer[0] = (unsigned char) SK_END;
-		    break;
-		case XK_F1:
-		    buffer[0] = (unsigned char) SK_F1;
-		    break;
-		case XK_F2:
-		    buffer[0] = (unsigned char) SK_F2;
-		    break;
-		case XK_F3:
-		    buffer[0] = (unsigned char) SK_F3;
-		    break;
-		case XK_F4:
-		    buffer[0] = (unsigned char) SK_F4;
-		    break;
-		case XK_F5:
-		    buffer[0] = (unsigned char) SK_F5;
-		    break;
-		case XK_F6:
-		    buffer[0] = (unsigned char) SK_F6;
-		    break;
-		case XK_F7:
-		    buffer[0] = (unsigned char) SK_F7;
-		    break;
-		case XK_F8:
-		    buffer[0] = (unsigned char) SK_F8;
-		    break;
-		case XK_F9:
-		    buffer[0] = (unsigned char) SK_F9;
-		    break;
-		case XK_F10:
-		    buffer[0] = (unsigned char) SK_F10;
-		    break;
-		case XK_F11:
-		    buffer[0] = (unsigned char) SK_F11;
-		    break;
-		case XK_F12:
-		    buffer[0] = (unsigned char) SK_F12;
-		    break;
-		case XK_Tab:
-		    buffer[0] = (unsigned char) 9;
-		    break;
-		}
+                case XK_Left:
+                    buffer[0] = (unsigned char) SK_LFAR;
+                    break;
+                case XK_Up:
+                    buffer[0] = (unsigned char) SK_UPAR;
+                    break;
+                case XK_Down:
+                    buffer[0] = (unsigned char) SK_DNAR;
+                    break;
+                case XK_Right:
+                    buffer[0] = (unsigned char) SK_RIAR;
+                    break;
+                case XK_Home:
+                    buffer[0] = (unsigned char) SK_HOME;
+                    break;
+                case XK_Page_Up:
+                    buffer[0] = (unsigned char) SK_PGUP;
+                    break;
+                case XK_Page_Down:
+                    buffer[0] = (unsigned char) SK_PGDN;
+                    break;
+                case XK_End:
+                    buffer[0] = (unsigned char) SK_END;
+                    break;
+                case XK_F1:
+                    buffer[0] = (unsigned char) SK_F1;
+                    break;
+                case XK_F2:
+                    buffer[0] = (unsigned char) SK_F2;
+                    break;
+                case XK_F3:
+                    buffer[0] = (unsigned char) SK_F3;
+                    break;
+                case XK_F4:
+                    buffer[0] = (unsigned char) SK_F4;
+                    break;
+                case XK_F5:
+                    buffer[0] = (unsigned char) SK_F5;
+                    break;
+                case XK_F6:
+                    buffer[0] = (unsigned char) SK_F6;
+                    break;
+                case XK_F7:
+                    buffer[0] = (unsigned char) SK_F7;
+                    break;
+                case XK_F8:
+                    buffer[0] = (unsigned char) SK_F8;
+                    break;
+                case XK_F9:
+                    buffer[0] = (unsigned char) SK_F9;
+                    break;
+                case XK_F10:
+                    buffer[0] = (unsigned char) SK_F10;
+                    break;
+                case XK_F11:
+                    buffer[0] = (unsigned char) SK_F11;
+                    break;
+                case XK_F12:
+                    buffer[0] = (unsigned char) SK_F12;
+                    break;
+                case XK_Tab:
+                    buffer[0] = (unsigned char) 9;
+                    break;
+                }
 
-		if (buffer[0] == 0)
-		    if (!XLookupString
-			((XKeyEvent *) & report, (char *) buffer, bufsize, &keysym, &compose))
-			buffer[0] = 0;
+                if (buffer[0] == 0)
+                    if (!XLookupString
+                        ((XKeyEvent *) & report, (char *) buffer, bufsize, &keysym, &compose))
+                        buffer[0] = 0;
 
-		if (buffer[0] != 0)
-		    HandleButtonKey(KeyModifiers, buffer[0]);
+                if (buffer[0] != 0)
+                    HandleButtonKey(KeyModifiers, buffer[0]);
 
 #ifdef DEBUG_MESSAGES
-		printf("\nKeyPress = %08x (%08x) [%d] = %d %04x => '%c' '%d'", report.xkey.window,
-		       WorkWindow, KeyModifiers, (int) XLookupKeysym((XKeyEvent *) & report, 0),
-		       (int) XLookupKeysym((XKeyEvent *) & report, 0), buffer[0],
-		       (unsigned char) buffer[0]);
-		fflush(stdout);
+                printf("\nKeyPress = %08x (%08x) [%d] = %d %04x => '%c' '%d'", report.xkey.window,
+                       WorkWindow, KeyModifiers, (int) XLookupKeysym((XKeyEvent *) & report, 0),
+                       (int) XLookupKeysym((XKeyEvent *) & report, 0), buffer[0],
+                       (unsigned char) buffer[0]);
+                fflush(stdout);
 #endif
 
-	    }
-	    break;
-	case MotionNotify:
-	    while (XCheckMaskEvent(WorkDisplay, ButtonMotionMask, &report));
+            }
+            break;
+        case MotionNotify:
+            while (XCheckMaskEvent(WorkDisplay, ButtonMotionMask, &report));
 
 // printf("\n%d:%d [%d]",report.xmotion.x,report.xmotion.y,ButtonPressed);fflush(stdout);
 
-	    switch (ButtonPressed) {
-	    case 0:
-		if (SelectedImage != -1) {
-		    a = ((float) (report.xmotion.x - MyImages[SelectedImage].X) /
-			 MyImages[SelectedImage].ZoomFactor);
-		    b = ((float) (report.xmotion.y - MyImages[SelectedImage].Y) /
-			 MyImages[SelectedImage].ZoomFactor);
-		    if ((a < 0) || (a >= MyImages[SelectedImage].Width))
-			a = -1;
-		    if ((b < 0) || (b >= MyImages[SelectedImage].Height))
-			b = -1;
-		    if (a == -1)
-			b = -1;
-		    else if (b == -1)
-			a = -1;
-		    MyImages[SelectedImage].HotPosX = a;
-		    MyImages[SelectedImage].HotPosY = b;
-		}
-		break;
-	    case 1:		// Left button
-		if (SelectedImage != -1) {
-		    if ((KeyModifiers == 2) && (Buttons[ActiveButton].ButtonFunction != NULL)) {
-			a = ((float) (report.xmotion.x - MyImages[SelectedImage].X) /
-			     MyImages[SelectedImage].ZoomFactor);
-			b = ((float) (report.xmotion.y - MyImages[SelectedImage].Y) /
-			     MyImages[SelectedImage].ZoomFactor);
-			if ((a < 0) || (a >= MyImages[SelectedImage].Width))
-			    a = -1;
-			if ((b < 0) || (b >= MyImages[SelectedImage].Height))
-			    b = -1;
-			if (a == -1)
-			    b = -1;
-			else if (b == -1)
-			    a = -1;
-			if ((MyImages[SelectedImage].HotPosX != a)
-			    || (MyImages[SelectedImage].HotPosY != b)) {
-			    MyImages[SelectedImage].HotPosX = a;
-			    MyImages[SelectedImage].HotPosY = b;
-			    Buttons[ActiveButton].ButtonFunction((int) a, (int) b,
-								 (char) (report.xbutton.button),
-								 KeyModifiers);
-			}
-		    }
-		    else {
-			a = MyImages[SelectedImage].X;
-			b = MyImages[SelectedImage].Y;
-			MyImages[SelectedImage].X =
-			    ButtonPressedImageX + (int) (report.xmotion.x) - ButtonPressedX;
-			MyImages[SelectedImage].Y =
-			    ButtonPressedImageY + (int) (report.xmotion.y) - ButtonPressedY;
+            switch (ButtonPressed) {
+            case 0:
+                if (SelectedImage != -1) {
+                    a = ((float) (report.xmotion.x - MyImages[SelectedImage].X) /
+                         MyImages[SelectedImage].ZoomFactor);
+                    b = ((float) (report.xmotion.y - MyImages[SelectedImage].Y) /
+                         MyImages[SelectedImage].ZoomFactor);
+                    if ((a < 0) || (a >= MyImages[SelectedImage].Width))
+                        a = -1;
+                    if ((b < 0) || (b >= MyImages[SelectedImage].Height))
+                        b = -1;
+                    if (a == -1)
+                        b = -1;
+                    else if (b == -1)
+                        a = -1;
+                    MyImages[SelectedImage].HotPosX = a;
+                    MyImages[SelectedImage].HotPosY = b;
+                }
+                break;
+            case 1:            // Left button
+                if (SelectedImage != -1) {
+                    if ((KeyModifiers == 2) && (Buttons[ActiveButton].ButtonFunction != NULL)) {
+                        a = ((float) (report.xmotion.x - MyImages[SelectedImage].X) /
+                             MyImages[SelectedImage].ZoomFactor);
+                        b = ((float) (report.xmotion.y - MyImages[SelectedImage].Y) /
+                             MyImages[SelectedImage].ZoomFactor);
+                        if ((a < 0) || (a >= MyImages[SelectedImage].Width))
+                            a = -1;
+                        if ((b < 0) || (b >= MyImages[SelectedImage].Height))
+                            b = -1;
+                        if (a == -1)
+                            b = -1;
+                        else if (b == -1)
+                            a = -1;
+                        if ((MyImages[SelectedImage].HotPosX != a)
+                            || (MyImages[SelectedImage].HotPosY != b)) {
+                            MyImages[SelectedImage].HotPosX = a;
+                            MyImages[SelectedImage].HotPosY = b;
+                            Buttons[ActiveButton].ButtonFunction((int) a, (int) b,
+                                                                 (char) (report.xbutton.button),
+                                                                 KeyModifiers);
+                        }
+                    }
+                    else {
+                        a = MyImages[SelectedImage].X;
+                        b = MyImages[SelectedImage].Y;
+                        MyImages[SelectedImage].X =
+                            ButtonPressedImageX + (int) (report.xmotion.x) - ButtonPressedX;
+                        MyImages[SelectedImage].Y =
+                            ButtonPressedImageY + (int) (report.xmotion.y) - ButtonPressedY;
 /*
 							w=MyImages[SelectedImage].Width+ABS(a-MyImages[SelectedImage].X);
 							h=MyImages[SelectedImage].Height+ABS(b-MyImages[SelectedImage].Y);
@@ -2461,106 +2461,106 @@ MainLoop(void)
 								b=MyImages[SelectedImage].Y;
 							ReDrawWorkBuffer(a,b,w,h);
 */
-			ClearWorkBuffer();
-			CopyImagesToWorkBuffer();
-			CopyWorkBufferToScreen();
-		    }
-		}
-		break;
-	    }
-	    break;
-	case ButtonPress:
-	    h = 1;
-	    ButtonPressed |= (1 << (unsigned char) (report.xbutton.button - 1));
-	    if ((ActiveButton != -1) && (SelectedImage != -1)) {
-		if (Buttons[ActiveButton].ButtonFunction != NULL) {
-		    a = ((float) (report.xmotion.x - MyImages[SelectedImage].X) /
-			 MyImages[SelectedImage].ZoomFactor);
-		    b = ((float) (report.xmotion.y - MyImages[SelectedImage].Y) /
-			 MyImages[SelectedImage].ZoomFactor);
-		    if ((a < 0) || (a >= MyImages[SelectedImage].Width))
-			a = -1;
-		    if ((b < 0) || (b >= MyImages[SelectedImage].Height))
-			b = -1;
-		    if (a == -1)
-			b = -1;
-		    else if (b == -1)
-			a = -1;
-		    MyImages[SelectedImage].HotPosX = a;
-		    MyImages[SelectedImage].HotPosY = b;
-		    if (Buttons[ActiveButton].
-			ButtonFunction((int) a, (int) b, (char) (report.xbutton.button),
-				       KeyModifiers))
-			h = 0;
-		}
-	    }
+                        ClearWorkBuffer();
+                        CopyImagesToWorkBuffer();
+                        CopyWorkBufferToScreen();
+                    }
+                }
+                break;
+            }
+            break;
+        case ButtonPress:
+            h = 1;
+            ButtonPressed |= (1 << (unsigned char) (report.xbutton.button - 1));
+            if ((ActiveButton != -1) && (SelectedImage != -1)) {
+                if (Buttons[ActiveButton].ButtonFunction != NULL) {
+                    a = ((float) (report.xmotion.x - MyImages[SelectedImage].X) /
+                         MyImages[SelectedImage].ZoomFactor);
+                    b = ((float) (report.xmotion.y - MyImages[SelectedImage].Y) /
+                         MyImages[SelectedImage].ZoomFactor);
+                    if ((a < 0) || (a >= MyImages[SelectedImage].Width))
+                        a = -1;
+                    if ((b < 0) || (b >= MyImages[SelectedImage].Height))
+                        b = -1;
+                    if (a == -1)
+                        b = -1;
+                    else if (b == -1)
+                        a = -1;
+                    MyImages[SelectedImage].HotPosX = a;
+                    MyImages[SelectedImage].HotPosY = b;
+                    if (Buttons[ActiveButton].
+                        ButtonFunction((int) a, (int) b, (char) (report.xbutton.button),
+                                       KeyModifiers))
+                        h = 0;
+                }
+            }
 
-	    if (h)		// Was not processed
-	    {
-		if (ButtonPressed == 1) {
-		    ButtonPressedX = (int) (report.xbutton.x);
-		    ButtonPressedY = (int) (report.xbutton.y);
-		    if ((a = HandleButtonPush((int) (report.xbutton.x), (int) (report.xbutton.y))) >= 0)	// click on image
-		    {
-			if (SelectedImage != a)
-			    PreviousSelectedImage = SelectedImage;
-			SelectedImage = a;
-			ButtonPressedImageX = MyImages[SelectedImage].X;
-			ButtonPressedImageY = MyImages[SelectedImage].Y;
-			a = ((float) (report.xbutton.x - MyImages[SelectedImage].X) /
-			     MyImages[SelectedImage].ZoomFactor);
-			b = ((float) (report.xbutton.y - MyImages[SelectedImage].Y) /
-			     MyImages[SelectedImage].ZoomFactor);
-			if ((a < 0) || (a >= MyImages[SelectedImage].Width))
-			    a = -1;
-			if ((b < 0) || (b >= MyImages[SelectedImage].Height))
-			    b = -1;
-			if (a == -1)
-			    b = -1;
-			else if (b == -1)
-			    a = -1;
-			MyImages[SelectedImage].HotPosX = a;
-			MyImages[SelectedImage].HotPosY = b;
-			if (MyImages[SelectedImage].Name[0] == '%') {
-			    noc = MyImages[SelectedImage].NumOfComponent;
-			    bp = (unsigned char *) MyImages[SelectedImage].Buffer;
-			    DRed = bp[a * noc + b * MyImages[SelectedImage].Width * noc];
-			    DGreen = bp[a * noc + b * MyImages[SelectedImage].Width * noc + 1];
-			    DBlue = bp[a * noc + b * MyImages[SelectedImage].Width * noc + 2];
-			}
+            if (h)              // Was not processed
+            {
+                if (ButtonPressed == 1) {
+                    ButtonPressedX = (int) (report.xbutton.x);
+                    ButtonPressedY = (int) (report.xbutton.y);
+                    if ((a = HandleButtonPush((int) (report.xbutton.x), (int) (report.xbutton.y))) >= 0)        // click on image
+                    {
+                        if (SelectedImage != a)
+                            PreviousSelectedImage = SelectedImage;
+                        SelectedImage = a;
+                        ButtonPressedImageX = MyImages[SelectedImage].X;
+                        ButtonPressedImageY = MyImages[SelectedImage].Y;
+                        a = ((float) (report.xbutton.x - MyImages[SelectedImage].X) /
+                             MyImages[SelectedImage].ZoomFactor);
+                        b = ((float) (report.xbutton.y - MyImages[SelectedImage].Y) /
+                             MyImages[SelectedImage].ZoomFactor);
+                        if ((a < 0) || (a >= MyImages[SelectedImage].Width))
+                            a = -1;
+                        if ((b < 0) || (b >= MyImages[SelectedImage].Height))
+                            b = -1;
+                        if (a == -1)
+                            b = -1;
+                        else if (b == -1)
+                            a = -1;
+                        MyImages[SelectedImage].HotPosX = a;
+                        MyImages[SelectedImage].HotPosY = b;
+                        if (MyImages[SelectedImage].Name[0] == '%') {
+                            noc = MyImages[SelectedImage].NumOfComponent;
+                            bp = (unsigned char *) MyImages[SelectedImage].Buffer;
+                            DRed = bp[a * noc + b * MyImages[SelectedImage].Width * noc];
+                            DGreen = bp[a * noc + b * MyImages[SelectedImage].Width * noc + 1];
+                            DBlue = bp[a * noc + b * MyImages[SelectedImage].Width * noc + 2];
+                        }
 
-			ClearWorkBuffer();
-			CopyImagesToWorkBuffer();
-			CopyWorkBufferToScreen();
-			CopyDisplayBufferToScreen(0, 0, DisplayWidth, DisplayHeight);
-		    }
-		}
-	    }
+                        ClearWorkBuffer();
+                        CopyImagesToWorkBuffer();
+                        CopyWorkBufferToScreen();
+                        CopyDisplayBufferToScreen(0, 0, DisplayWidth, DisplayHeight);
+                    }
+                }
+            }
 #ifdef DEBUG_MESSAGES
-	    printf("\n%d %d [%d / %d]", (unsigned int) (report.xbutton.x),
-		   (unsigned int) (report.xbutton.y), (unsigned char) (report.xbutton.button),
-		   ButtonPressed);
-	    fflush(stdout);
+            printf("\n%d %d [%d / %d]", (unsigned int) (report.xbutton.x),
+                   (unsigned int) (report.xbutton.y), (unsigned char) (report.xbutton.button),
+                   ButtonPressed);
+            fflush(stdout);
 #endif
-	    break;
-	case ButtonRelease:
+            break;
+        case ButtonRelease:
 
-	    ButtonPressed &= 0xFF - (1 << (unsigned char) (report.xbutton.button - 1));
+            ButtonPressed &= 0xFF - (1 << (unsigned char) (report.xbutton.button - 1));
 
-	    if ((report.xbutton.x > (DisplayWidth - 10))
-		&& (report.xbutton.y > (DisplayHeight - 10)))
-		return;
+            if ((report.xbutton.x > (DisplayWidth - 10))
+                && (report.xbutton.y > (DisplayHeight - 10)))
+                return;
 
 #if 0
-	    (unsigned int) (report.xbutton.x);
-	    (unsigned int) (report.xbutton.y);
-	    (unsigned char) (report.xbutton.button);
+            (unsigned int) (report.xbutton.x);
+            (unsigned int) (report.xbutton.y);
+            (unsigned char) (report.xbutton.button);
 #endif
-	    break;
-	default:
-	    break;
-	}
-    }				/* while */
+            break;
+        default:
+            break;
+        }
+    }                           /* while */
 }
 
 char *
@@ -2574,16 +2574,16 @@ CreatePicture(unsigned int *ret_width, unsigned int *ret_height, int *SrcBufferS
     bs = 3 * w * h;
 
     if ((TB = (char *) malloc((size_t) bs)) == NULL) {
-	printf("\nCan NOT allocate memory for %d bytes (%dx%d)", bs, w, h);
-	return (NULL);
+        printf("\nCan NOT allocate memory for %d bytes (%dx%d)", bs, w, h);
+        return (NULL);
     }
 
     for (y = 0; y < h; y++) {
-	for (x = 0; x < w; x++) {
-	    TB[x * 3 + y * w * 3] = (unsigned char) x << 3;
-	    TB[x * 3 + y * w * 3 + 1] = (unsigned char) y << 3;
-	    TB[x * 3 + y * w * 3 + 2] = (unsigned char) 0;
-	}
+        for (x = 0; x < w; x++) {
+            TB[x * 3 + y * w * 3] = (unsigned char) x << 3;
+            TB[x * 3 + y * w * 3 + 1] = (unsigned char) y << 3;
+            TB[x * 3 + y * w * 3 + 2] = (unsigned char) 0;
+        }
     }
 
     *ret_width = w;

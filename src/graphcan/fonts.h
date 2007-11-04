@@ -31,4 +31,3 @@ typedef struct _fontmetrics
     int width;
     int height;
 } fontmetrics;
-

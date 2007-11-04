@@ -61,43 +61,43 @@ GetHighestVisualPixmapCombination(void)
     maxdpt = -1;
     MyVisInfo = XGetVisualInfo(WorkDisplay, VisualNoMask, NULL, &NumVis);
     if ((NumVis < 1) || (MyVisInfo == NULL)) {
-	printf("\nXGetVisualInfo returned NO availability.");
-	fflush(stdout);
-	return (-3);
+        printf("\nXGetVisualInfo returned NO availability.");
+        fflush(stdout);
+        return (-3);
     }
 
     if ((MyPFVInfo = XListPixmapFormats(WorkDisplay, &NumRet)) != NULL) {
-	WorkWithThisPFV = MyPFVInfo;
-	for (a = 0; a < NumRet; a++) {
-	    WorkWithThisVisInfo = MyVisInfo;
-	    for (b = 0; b < NumVis; b++) {
-		if ((WorkWithThisVisInfo->depth == WorkWithThisPFV->depth)
-		    && (WorkWithThisVisInfo->screen == WorkScreen)) {
-		    printf(" -> MATCH!");
-		    fflush(stdout);
-		    maxdpt = WorkWithThisPFV->depth;
-		    WorkScanLinePad = WorkWithThisPFV->scanline_pad;
-		    WorkVisual = WorkWithThisVisInfo->visual;
-		    wid = WorkWithThisVisInfo->visualid;
-		    WorkDepth = WorkWithThisVisInfo->depth;
-		    WorkRedMask = WorkWithThisVisInfo->red_mask;
-		    WorkGreenMask = WorkWithThisVisInfo->green_mask;
-		    WorkBlueMask = WorkWithThisVisInfo->blue_mask;
-		    b = NumVis;
-		}
-	    }
-	    ++WorkWithThisPFV;
-	}
+        WorkWithThisPFV = MyPFVInfo;
+        for (a = 0; a < NumRet; a++) {
+            WorkWithThisVisInfo = MyVisInfo;
+            for (b = 0; b < NumVis; b++) {
+                if ((WorkWithThisVisInfo->depth == WorkWithThisPFV->depth)
+                    && (WorkWithThisVisInfo->screen == WorkScreen)) {
+                    printf(" -> MATCH!");
+                    fflush(stdout);
+                    maxdpt = WorkWithThisPFV->depth;
+                    WorkScanLinePad = WorkWithThisPFV->scanline_pad;
+                    WorkVisual = WorkWithThisVisInfo->visual;
+                    wid = WorkWithThisVisInfo->visualid;
+                    WorkDepth = WorkWithThisVisInfo->depth;
+                    WorkRedMask = WorkWithThisVisInfo->red_mask;
+                    WorkGreenMask = WorkWithThisVisInfo->green_mask;
+                    WorkBlueMask = WorkWithThisVisInfo->blue_mask;
+                    b = NumVis;
+                }
+            }
+            ++WorkWithThisPFV;
+        }
     }
     else {
-	printf("\nXListPixmapFormats returned NULL.");
-	fflush(stdout);
-	return (-1);
+        printf("\nXListPixmapFormats returned NULL.");
+        fflush(stdout);
+        return (-1);
     }
     if (selected == -1) {
-	printf("\nDid not find suitable depth from XListPixmapFormats.");
-	fflush(stdout);
-	return (-2);
+        printf("\nDid not find suitable depth from XListPixmapFormats.");
+        fflush(stdout);
+        return (-2);
     }
     XFree(MyPFVInfo);
     XFree(MyVisInfo);
@@ -105,80 +105,80 @@ GetHighestVisualPixmapCombination(void)
     selected = (unsigned int) WorkRedMask;
     a = 0;
     while (((selected & 1) == 0) && (a < 32)) {
-	++a;
-	selected >>= 1;
+        ++a;
+        selected >>= 1;
     }
     WorkRedNumberOfUpShifts = a;
     a = 0;
     while (((selected & 1) == 1) && (a < 32)) {
-	++a;
-	selected = selected >> 1;
+        ++a;
+        selected = selected >> 1;
     }
     WorkRedNumberOfShifts = 8 - a;
     selected = (unsigned int) WorkGreenMask;
     a = 0;
     while (((selected & 1) == 0) && (a < 32)) {
-	++a;
-	selected >>= 1;
+        ++a;
+        selected >>= 1;
     }
     WorkGreenNumberOfUpShifts = a;
     a = 0;
     while (((selected & 1) == 1) && (a < 32)) {
-	++a;
-	selected = selected >> 1;
+        ++a;
+        selected = selected >> 1;
     }
     WorkGreenNumberOfShifts = 8 - a;
     selected = (unsigned int) WorkBlueMask;
     a = 0;
     while (((selected & 1) == 0) && (a < 32)) {
-	++a;
-	selected >>= 1;
+        ++a;
+        selected >>= 1;
     }
     WorkBlueNumberOfUpShifts = a;
     a = 0;
     while (((selected & 1) == 1) && (a < 32)) {
-	++a;
-	selected = selected >> 1;
+        ++a;
+        selected = selected >> 1;
     }
     WorkBlueNumberOfShifts = 8 - a;
 
 //      wd=WorkDepth;
     if ((wd = WorkDepth) == 24)
-	wd = 32;
+        wd = 32;
     if ((WorkData = (char *) malloc((wd >> 3) * WIDTH * HEIGHT)) == NULL) {
-	printf("\nCan not allocate %d bytes for WorkData.", ((WorkDepth >> 3) * WIDTH * HEIGHT));
-	fflush(stdout);
-	return (-4);
+        printf("\nCan not allocate %d bytes for WorkData.", ((WorkDepth >> 3) * WIDTH * HEIGHT));
+        fflush(stdout);
+        return (-4);
     }
 
     if ((ImageBuffer =
-	 (struct ImageBufferStructure *) malloc(sizeof(struct ImageBufferStructure) * WIDTH *
-						HEIGHT)) == NULL) {
-	printf("\nCan not allocate %d bytes for ImageBuffer.", (3 * WIDTH * HEIGHT));
-	fflush(stdout);
-	return (-4);
+         (struct ImageBufferStructure *) malloc(sizeof(struct ImageBufferStructure) * WIDTH *
+                                                HEIGHT)) == NULL) {
+        printf("\nCan not allocate %d bytes for ImageBuffer.", (3 * WIDTH * HEIGHT));
+        fflush(stdout);
+        return (-4);
     }
 
     printf("\nXCreateImage");
     fflush(stdout);
 
     if ((WorkImage =
-	 XCreateImage(WorkDisplay, WorkVisual, WorkDepth, ZPixmap, 0, WorkData, WIDTH, HEIGHT,
-		      BitmapPad(WorkDisplay), 0)) == NULL)
+         XCreateImage(WorkDisplay, WorkVisual, WorkDepth, ZPixmap, 0, WorkData, WIDTH, HEIGHT,
+                      BitmapPad(WorkDisplay), 0)) == NULL)
 //      if((WorkImage=XCreateImage(WorkDisplay,WorkVisual,WorkDepth,ZPixmap,0,WorkData,WIDTH,HEIGHT,BitmapPad(WorkDisplay),0))==NULL)
     {
-	printf("\nXCreateImage returned NULL.");
-	fflush(stdout);
-	return (-5);
+        printf("\nXCreateImage returned NULL.");
+        fflush(stdout);
+        return (-5);
     }
 
     printf("->Ok.\nXInitImage");
     fflush(stdout);
 
     if (XInitImage(WorkImage) == 0) {
-	printf("\nError with XInitImage");
-	fflush(stdout);
-	return (-6);
+        printf("\nError with XInitImage");
+        fflush(stdout);
+        return (-6);
     }
 
     WorkBitsPerRGB = WorkImage->bits_per_pixel;
@@ -197,54 +197,54 @@ CopyDisplayBufferToScreen(int x, int y, int w, int h)
     register int a, b, c, d, wx = x, wy = y, wh = (h + y), ww = w;
 
     if (!WorkWindowInitialized)
-	return;
+        return;
 
     wx = 0, wy = 0;
     ww = WIDTH - 1;
     wh = HEIGHT;
 
     if (wx < 0) {
-	if ((ww -= (0 - wx)) <= 0)
-	    return;		// nothing to draw...
-	wx = 0;
+        if ((ww -= (0 - wx)) <= 0)
+            return;             // nothing to draw...
+        wx = 0;
     }
     if (wx >= WIDTH)
-	return;
+        return;
     if (wy < 0) {
-	if ((wh -= (0 - wy)) <= 0)
-	    return;
-	wy = 0;
+        if ((wh -= (0 - wy)) <= 0)
+            return;
+        wy = 0;
     }
 
     if (wh >= HEIGHT)
-	wh = HEIGHT - 1;
+        wh = HEIGHT - 1;
     if (ww >= WIDTH)
-	ww = WIDTH - 1;
+        ww = WIDTH - 1;
 
     switch (WorkBitsPerRGB) {
     case 16:
-	for (b = wy; b < wh; b++)
-	    for (a = wx; a < ww; a++) {
-		c = a + b * WIDTH;
-		TmpWrk[c] =
-		    ((ImageBuffer[c].
-		      R >> WorkRedNumberOfShifts) << WorkRedNumberOfUpShifts) | ((ImageBuffer[c].
-										  G >>
-										  WorkGreenNumberOfShifts)
-										 <<
-										 WorkGreenNumberOfUpShifts)
-		    | ((ImageBuffer[c].B >> WorkBlueNumberOfShifts) << WorkBlueNumberOfUpShifts);
-	    }
-	break;
+        for (b = wy; b < wh; b++)
+            for (a = wx; a < ww; a++) {
+                c = a + b * WIDTH;
+                TmpWrk[c] =
+                    ((ImageBuffer[c].
+                      R >> WorkRedNumberOfShifts) << WorkRedNumberOfUpShifts) | ((ImageBuffer[c].
+                                                                                  G >>
+                                                                                  WorkGreenNumberOfShifts)
+                                                                                 <<
+                                                                                 WorkGreenNumberOfUpShifts)
+                    | ((ImageBuffer[c].B >> WorkBlueNumberOfShifts) << WorkBlueNumberOfUpShifts);
+            }
+        break;
     case 32:
-	for (b = wy; b < wh; b++)
-	    for (a = wx; a < ww; a++) {
-		c = a + b * WIDTH;
-		d = c << 1;
-		TmpWrk[d++] = ImageBuffer[c].B | (ImageBuffer[c].G << 8);
-		TmpWrk[d] = ImageBuffer[c].R;
-	    }
-	break;
+        for (b = wy; b < wh; b++)
+            for (a = wx; a < ww; a++) {
+                c = a + b * WIDTH;
+                d = c << 1;
+                TmpWrk[d++] = ImageBuffer[c].B | (ImageBuffer[c].G << 8);
+                TmpWrk[d] = ImageBuffer[c].R;
+            }
+        break;
     }
     XPutImage(WorkDisplay, WorkPixmap, WorkPixmapGC, WorkImage, wx, wy, wx, wy, ww, wh);
     XCopyArea(WorkDisplay, WorkPixmap, WorkWindow, WorkWindowGC, wx, wy, ww, wh, wx, wy);
@@ -253,43 +253,45 @@ CopyDisplayBufferToScreen(int x, int y, int w, int h)
 
 
 
-void ui_main_loop()
+void
+ui_main_loop()
 {
     XEvent report;
     XGCValues mygcvalues;
 
     while ((XEventsQueued(WorkDisplay, QueuedAfterFlush)) != 0) {
-	XNextEvent(WorkDisplay, &report);
-	switch (report.type) {
-	case Expose:
-	    if ((report.xexpose.count == 0)) {
-		if (!WorkWindowInitialized) {
-		    mygcvalues.function = GXcopy;
-		    mygcvalues.graphics_exposures = 1;
-		    WorkWindowGC =
-			XCreateGC(WorkDisplay, WorkWindow, GCFunction | GCGraphicsExposures,
-				  &mygcvalues);
-		    WorkPixmap = XCreatePixmap(WorkDisplay, WorkWindow, WIDTH, HEIGHT, WorkDepth);
-		    WorkPixmapGC =
-			XCreateGC(WorkDisplay, WorkPixmap, GCFunction | GCGraphicsExposures,
-				  &mygcvalues);
-		    XClearWindow(WorkDisplay, WorkWindow);
-		    WorkWindowInitialized = 1;
-		    XMoveWindow(WorkDisplay, WorkWindow, 0, 0);
-		}
+        XNextEvent(WorkDisplay, &report);
+        switch (report.type) {
+        case Expose:
+            if ((report.xexpose.count == 0)) {
+                if (!WorkWindowInitialized) {
+                    mygcvalues.function = GXcopy;
+                    mygcvalues.graphics_exposures = 1;
+                    WorkWindowGC =
+                        XCreateGC(WorkDisplay, WorkWindow, GCFunction | GCGraphicsExposures,
+                                  &mygcvalues);
+                    WorkPixmap = XCreatePixmap(WorkDisplay, WorkWindow, WIDTH, HEIGHT, WorkDepth);
+                    WorkPixmapGC =
+                        XCreateGC(WorkDisplay, WorkPixmap, GCFunction | GCGraphicsExposures,
+                                  &mygcvalues);
+                    XClearWindow(WorkDisplay, WorkWindow);
+                    WorkWindowInitialized = 1;
+                    XMoveWindow(WorkDisplay, WorkWindow, 0, 0);
+                }
 
 //PutMyString("Alma Helloho ilinoise Alaska",30,260,0,2);
 
-		CopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
-	    }
-	    break;
-	default:
-	    break;
-	}
-    }				/* while */
+                CopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
+            }
+            break;
+        default:
+            break;
+        }
+    }                           /* while */
 }
 
-int ui_create_window()
+int
+ui_create_window()
 {
     XSizeHints *s_h;
     XTextProperty winname, iconame;
@@ -297,33 +299,33 @@ int ui_create_window()
     char *TmpChrPtrBuffer[2];
 
     if ((WorkDisplay = XOpenDisplay(NULL)) == NULL) {
-	if ((WorkDisplay = XOpenDisplay(":0")) == NULL) {
-	    if ((WorkDisplay = XOpenDisplay(":0.0")) == NULL) {
-		printf("\nError opening display...");
-		fflush(stdout);
-		return (-1);
-	    }
-	}
+        if ((WorkDisplay = XOpenDisplay(":0")) == NULL) {
+            if ((WorkDisplay = XOpenDisplay(":0.0")) == NULL) {
+                printf("\nError opening display...");
+                fflush(stdout);
+                return (-1);
+            }
+        }
     }
     WorkScreen = DefaultScreen(WorkDisplay);
 
     if (GetHighestVisualPixmapCombination() < 0) {
-	printf("\nError for getting Visual Information...");
-	fflush(stdout);
-	XCloseDisplay(WorkDisplay);
-	return (-1);
+        printf("\nError for getting Visual Information...");
+        fflush(stdout);
+        XCloseDisplay(WorkDisplay);
+        return (-1);
     }
 
     printf("\nXCreateWindow");
     fflush(stdout);
 
     if ((WorkWindow =
-	 XCreateWindow(WorkDisplay, RootWindow(WorkDisplay, WorkScreen), 0, 0, WIDTH, HEIGHT, 2,
-		       WorkDepth, InputOutput, WorkVisual, 0, NULL)) == 0) {
-	printf("\nError Creatig Window...");
-	fflush(stdout);
-	XCloseDisplay(WorkDisplay);
-	return (-1);
+         XCreateWindow(WorkDisplay, RootWindow(WorkDisplay, WorkScreen), 0, 0, WIDTH, HEIGHT, 2,
+                       WorkDepth, InputOutput, WorkVisual, 0, NULL)) == 0) {
+        printf("\nError Creatig Window...");
+        fflush(stdout);
+        XCloseDisplay(WorkDisplay);
+        return (-1);
     }
 
     printf("->Ok.");
@@ -333,24 +335,24 @@ int ui_create_window()
     TmpChrPtrBuffer[1] = NULL;
     sprintf(TmpBuffer, "GraphCan - Linux");
     if (XStringListToTextProperty(TmpChrPtrBuffer, 1, &winname)) {
-	sprintf(TmpBuffer, "Graphcan");
-	if (XStringListToTextProperty(TmpChrPtrBuffer, 1, &iconame)) {
-	    if (!(s_h = XAllocSizeHints()))
-		XSetWMProperties(WorkDisplay, WorkWindow, &winname, &iconame, NULL, 0, NULL, NULL,
-				 NULL);
-	    else {
-		s_h->flags = PPosition | PSize | PMinSize | PMaxSize;
-		s_h->min_width = WIDTH;
-		s_h->max_width = WIDTH;
-		s_h->width = WIDTH;
-		s_h->min_height = HEIGHT;
-		s_h->max_height = HEIGHT;
-		s_h->height = HEIGHT;
-		XSetWMProperties(WorkDisplay, WorkWindow, &winname, &iconame, NULL, 0, s_h, NULL,
-				 NULL);
-		XResizeWindow(WorkDisplay, WorkWindow, WIDTH, HEIGHT);
-	    }
-	}
+        sprintf(TmpBuffer, "Graphcan");
+        if (XStringListToTextProperty(TmpChrPtrBuffer, 1, &iconame)) {
+            if (!(s_h = XAllocSizeHints()))
+                XSetWMProperties(WorkDisplay, WorkWindow, &winname, &iconame, NULL, 0, NULL, NULL,
+                                 NULL);
+            else {
+                s_h->flags = PPosition | PSize | PMinSize | PMaxSize;
+                s_h->min_width = WIDTH;
+                s_h->max_width = WIDTH;
+                s_h->width = WIDTH;
+                s_h->min_height = HEIGHT;
+                s_h->max_height = HEIGHT;
+                s_h->height = HEIGHT;
+                XSetWMProperties(WorkDisplay, WorkWindow, &winname, &iconame, NULL, 0, s_h, NULL,
+                                 NULL);
+                XResizeWindow(WorkDisplay, WorkWindow, WIDTH, HEIGHT);
+            }
+        }
     }
     XMoveWindow(WorkDisplay, WorkWindow, 0, 0);
     XSelectInput(WorkDisplay, WorkWindow, ExposureMask);
@@ -360,5 +362,3 @@ int ui_create_window()
 
     return (0);
 }
-
-

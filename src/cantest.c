@@ -60,19 +60,19 @@ gettime(void)
 }
 
 void
-zerotime(void)			// This could take up to a second...
+zerotime(void)                  // This could take up to a second...
 {
     struct timeval ltim;
     register long b = 0;
 
 
     while (1) {
-	gettimeofday(&ltim, NULL);
-	if (ltim.tv_usec < b) {
-	    zeso = ltim.tv_sec;
-	    return;
-	}
-	b = ltim.tv_usec;
+        gettimeofday(&ltim, NULL);
+        if (ltim.tv_usec < b) {
+            zeso = ltim.tv_sec;
+            return;
+        }
+        b = ltim.tv_usec;
     }
 }
 
@@ -87,32 +87,32 @@ OpenAndConfigurePort(void)
 #endif
 
     if ((Port = open(DEVICE, O_RDWR | O_NOCTTY)) < 0) {
-	printf("\nError Opening Serialport ( %s ) : '%s'", DEVICE, strerror(errno));
-	fflush(stdout);
-	return (1);
+        printf("\nError Opening Serialport ( %s ) : '%s'", DEVICE, strerror(errno));
+        fflush(stdout);
+        return (1);
     }
-    memset(&newio, 0, sizeof(newio));	/* Clears termios struct  */
+    memset(&newio, 0, sizeof(newio));   /* Clears termios struct  */
     newio.c_cflag = CS8 | CLOCAL | CREAD;
     newio.c_iflag = IGNPAR;
     newio.c_oflag = 0;
     newio.c_lflag = 0;
     newio.c_cc[VTIME] = 0;
-    newio.c_cc[VMIN] = 0;	/* read min. one char at a time  */
+    newio.c_cc[VMIN] = 0;       /* read min. one char at a time  */
     if (cfsetispeed(&newio, BAUD) == -1) {
-	printf("Error setting serial input baud rate\n");
-	close(Port);
-	return (1);
+        printf("Error setting serial input baud rate\n");
+        close(Port);
+        return (1);
     }
     if (cfsetospeed(&newio, BAUD) == -1) {
-	printf("Error setting serial output baud rate\n");
-	close(Port);
-	return (1);
+        printf("Error setting serial output baud rate\n");
+        close(Port);
+        return (1);
     }
     tcflush(Port, TCIFLUSH);
     if (tcsetattr(Port, TCSANOW, &newio) == -1) {
-	printf("Error setting terminal attributes\n");
-	close(Port);
-	return (1);
+        printf("Error setting terminal attributes\n");
+        close(Port);
+        return (1);
     }
 
     return (0);
@@ -125,7 +125,7 @@ WriteToPort(char *ZTV)
     register int a = 0, b = 0;
 
     while (*(ZTV + a) != '\0')
-	++a;
+        ++a;
     b = write(Port, ZTV, a);
 //      tcflush(Port,TCOFLUSH);
 
@@ -138,17 +138,17 @@ WriteToPort(char *ZTV)
 
 
     while (*(ZTV + a) != '\0') {
-	do {
-	    b = 0;
-	    b = write(Port, ZTV + a, 1);
+        do {
+            b = 0;
+            b = write(Port, ZTV + a, 1);
 
 #ifdef COMM_DEBUG
-	    printf("wrote:%d", *(ZTV + a));
-	    fflush(stdout);
+            printf("wrote:%d", *(ZTV + a));
+            fflush(stdout);
 #endif
 
-	} while (!b);
-	++a;
+        } while (!b);
+        ++a;
     }
     tcflush(Port, TCOFLUSH);
     return (a);
@@ -162,14 +162,14 @@ DumpBuffer(void)
     printf("\n%d bytes in buffer :\n", a);
     fflush(stdout);
     for (b = 0; b < a; b++) {
-	printf("%02x", IB[b]);
-	if ((IB[b] >= ' ') && (IB[b] < 127))
-	    printf("'%c':");
-	else
-	    printf("'.'");
-	if (b % 8)
-	    printf("\n");
-	fflush(stdout);
+        printf("%02x", IB[b]);
+        if ((IB[b] >= ' ') && (IB[b] < 127))
+            printf("'%c':");
+        else
+            printf("'.'");
+        if (b % 8)
+            printf("\n");
+        fflush(stdout);
     }
 
 }
@@ -180,7 +180,7 @@ Poll(void)
     register int a, b, c, d, ret, go = 1;
 
     if ((ret = read(Port, IB + IBCP, (IBS - IBCP))) < 1)
-	return (0);
+        return (0);
     IBCP += ret;
     a = IBCP;
 
@@ -191,95 +191,95 @@ Poll(void)
 #endif
 
     while (go) {
-	a = IBCP;
-	for (b = 0; b < a; b++) {
-	    if ((IB[b] == 13) || (IB[b] == 7))	// Terminator
-	    {
+        a = IBCP;
+        for (b = 0; b < a; b++) {
+            if ((IB[b] == 13) || (IB[b] == 7))  // Terminator
+            {
 
 #ifdef COMM_DEBUG
-		printf("\n%d/%d : ", b, IBCP);
-		fflush(stdout);
+                printf("\n%d/%d : ", b, IBCP);
+                fflush(stdout);
 #endif
 
-		switch (IB[0])	// 0 is OK, because we tidy up the buffer as we go...
-		{
-		case 'V':	// version
-		    for (c = 0; c < 4; c++)
-			Version[c] = IB[c + 1];
+                switch (IB[0])  // 0 is OK, because we tidy up the buffer as we go...
+                {
+                case 'V':      // version
+                    for (c = 0; c < 4; c++)
+                        Version[c] = IB[c + 1];
 #ifdef COMM_DEBUG
-		    printf("Version Recognized");
-		    fflush(stdout);
+                    printf("Version Recognized");
+                    fflush(stdout);
 #endif
-		    break;
-		case 'N':
-		    for (c = 0; c < 4; c++)
-			Serial[c] = IB[c + 1];
-		    break;
-		case 'F':	// Status
-		    if (IB[1] >= 'A')
-			StatusFlag = (IB[1] - 'A') + 10;
-		    else
-			StatusFlag = (IB[1] - '0');
-		    StatusFlag <<= 4;
-		    if (IB[2] >= 'A')
-			StatusFlag += (IB[2] - 'A') + 10;
-		    else
-			StatusFlag += (IB[2] - '0');
-		    CRSignal = 1;
-		    break;
-		case 'z':	// transmission ack
-		case 'Z':
+                    break;
+                case 'N':
+                    for (c = 0; c < 4; c++)
+                        Serial[c] = IB[c + 1];
+                    break;
+                case 'F':      // Status
+                    if (IB[1] >= 'A')
+                        StatusFlag = (IB[1] - 'A') + 10;
+                    else
+                        StatusFlag = (IB[1] - '0');
+                    StatusFlag <<= 4;
+                    if (IB[2] >= 'A')
+                        StatusFlag += (IB[2] - 'A') + 10;
+                    else
+                        StatusFlag += (IB[2] - '0');
+                    CRSignal = 1;
+                    break;
+                case 'z':      // transmission ack
+                case 'Z':
 #ifdef COMM_DEBUG
-		    printf("Transmission Success");
-		    fflush(stdout);
+                    printf("Transmission Success");
+                    fflush(stdout);
 #endif
-		    CRSignal = 1;
-		    break;
-		case 13:
-		    CRSignal = 1;
-		    break;
-		case 7:
-		    printf("\n*****  ERROR BELL RECEIVED...");
-		    fflush(stdout);
-		    CRSignal = 1;
-		    break;
-		default:
+                    CRSignal = 1;
+                    break;
+                case 13:
+                    CRSignal = 1;
+                    break;
+                case 7:
+                    printf("\n*****  ERROR BELL RECEIVED...");
+                    fflush(stdout);
+                    CRSignal = 1;
+                    break;
+                default:
 #ifdef COMM_DEBUG
-		    printf("Header Byte : '%c' ", IB[0]);
-		    fflush(stdout);
-		    for (c = 0; c < b; c++)
-			printf("'%c'", IB[c]);
-		    fflush(stdout);
+                    printf("Header Byte : '%c' ", IB[0]);
+                    fflush(stdout);
+                    for (c = 0; c < b; c++)
+                        printf("'%c'", IB[c]);
+                    fflush(stdout);
 #endif
-		    break;
-		}
-		// Tidy up...
-		if (IBCP == (b + 1))	// This is the only message, so no copy req.
-		    IBCP = 0;
-		else {
-		    a = b + 1;	// from here
-		    c = IBCP - b;	// this many
+                    break;
+                }
+                // Tidy up...
+                if (IBCP == (b + 1))    // This is the only message, so no copy req.
+                    IBCP = 0;
+                else {
+                    a = b + 1;  // from here
+                    c = IBCP - b;       // this many
 #ifdef COMM_DEBUG
-		    printf(" => %d/%d : ", a, c);
-		    fflush(stdout);
+                    printf(" => %d/%d : ", a, c);
+                    fflush(stdout);
 #endif
-		    for (d = 0; d < c; d++) {
-			IB[d] = IB[d + a];
-		    }
-		    IBCP -= (b + 1);
+                    for (d = 0; d < c; d++) {
+                        IB[d] = IB[d + a];
+                    }
+                    IBCP -= (b + 1);
 #ifdef COMM_DEBUG
-		    printf(" -> %d", IBCP);
-		    fflush(stdout);
+                    printf(" -> %d", IBCP);
+                    fflush(stdout);
 #endif
-		}
-		b = a + 2;	// quit from loop in 'C' fashion...
-	    }
+                }
+                b = a + 2;      // quit from loop in 'C' fashion...
+            }
 #ifdef COMM_DEBUG
-	    DumpBuffer();
+            DumpBuffer();
 #endif
-	}
-	if (b == a)
-	    go = 0;
+        }
+        if (b == a)
+            go = 0;
     }
 
 #ifdef COMM_DEBUG
@@ -297,13 +297,13 @@ GoodBye(void)
     printf("\nClosing port %d and freeing buffer %x\n\n", Port, IB);
     fflush(stdout);
 
-    sprintf(Message, "C\015");	// Close the CAN channel
+    sprintf(Message, "C\015");  // Close the CAN channel
     WriteToPort(Message);
 
     if (Port >= 0)
-	close(Port);
+        close(Port);
     if (IB != NULL)
-	free((void *) IB);
+        free((void *) IB);
 }
 
 void
@@ -314,22 +314,22 @@ SigCatch(int sig)
 
 // We could print here...  CTRL+4
 
-	DumpBuffer();
+        DumpBuffer();
 
-	break;
+        break;
     case SIGBUS:
     case SIGSEGV:
-	printf("\nSYSTEM TERMINATION ...");
-	fflush(stdout);
-	GoodBye();
-	exit(1);
+        printf("\nSYSTEM TERMINATION ...");
+        fflush(stdout);
+        GoodBye();
+        exit(1);
     case SIGINT:
     case SIGHUP:
-    case SIGTERM:		// Ctrl+C
-	DumpBuffer();
-	GoodBye();
-	exit(1);
-	break;
+    case SIGTERM:              // Ctrl+C
+        DumpBuffer();
+        GoodBye();
+        exit(1);
+        break;
     }
 }
 
@@ -351,9 +351,9 @@ main(int argc, char **argv)
 
     IBS = 256 * 1024;
     if ((IB = (char *) malloc((size_t) IBS)) == NULL) {
-	printf("\n\nCan not allocate buffer with %d size...", IBS);
-	fflush(stdout);
-	return (0);
+        printf("\n\nCan not allocate buffer with %d size...", IBS);
+        fflush(stdout);
+        return (0);
     }
     Version[0] = '\0';
     Serial[0] = '\0';
@@ -371,7 +371,7 @@ main(int argc, char **argv)
     printf("\n... Opening port");
     fflush(stdout);
     if (OpenAndConfigurePort()) {
-	return 1;
+        return 1;
     }
 
     gettime();
@@ -386,39 +386,39 @@ main(int argc, char **argv)
     printf("\n... Sending Version Request");
     fflush(stdout);
 
-    sprintf(Message, "V\015");	// get version
+    sprintf(Message, "V\015");  // get version
     WriteToPort(Message);
 
     to = 1000000;
     while (to) {
-	if (Poll()) {
-	    if (Version[0] != '\0')
-		to = 1;
-	}
-	--to;
+        if (Poll()) {
+            if (Version[0] != '\0')
+                to = 1;
+        }
+        --to;
     }
     gettime();
 
     printf("\n%6d : Version = HW : %c.%c  SW : %c.%c", curtime, Version[0], Version[1], Version[2],
-	   Version[3]);
+           Version[3]);
     fflush(stdout);
     printf("\n... Sending Serial Request");
     fflush(stdout);
 
-    sprintf(Message, "N\015");	// get Serial
+    sprintf(Message, "N\015");  // get Serial
     WriteToPort(Message);
 
     to = 1000000;
     while (to) {
-	if (Poll()) {
-	    if (Serial[0] != '\0')
-		to = 1;
-	}
-	--to;
+        if (Poll()) {
+            if (Serial[0] != '\0')
+                to = 1;
+        }
+        --to;
     }
 
     printf("\n%6d : Serial ID = %s  ( %02x:%02x:%02x:%02x )", curtime, Serial, Serial[0], Serial[1],
-	   Serial[2], Serial[3]);
+           Serial[2], Serial[3]);
     fflush(stdout);
 
 
@@ -428,18 +428,18 @@ main(int argc, char **argv)
 #ifdef SET_NEW_UART_SPEED
 
     CRSignal = 0;
-    sprintf(Message, "U1\015");	// UART with U0=230K, U1=115.2K U2=57.6K
+    sprintf(Message, "U1\015"); // UART with U0=230K, U1=115.2K U2=57.6K
     WriteToPort(Message);
     to = 1000000;
     while (to) {
-	if (Poll()) {
-	    if (CRSignal)
-		to = 1;
-	}
-	--to;
+        if (Poll()) {
+            if (CRSignal)
+                to = 1;
+        }
+        --to;
     }
     if (CRSignal)
-	printf("Set Successfully...");
+        printf("Set Successfully...");
     fflush(stdout);
 
     GoodBye();
@@ -447,15 +447,15 @@ main(int argc, char **argv)
 #endif
 
     CRSignal = 0;
-    sprintf(Message, "S6\015");	// CAN with 500Kbps S0-10 S1-20 S2-50 S3-100 S4-125 S5-250 S7-800  S8-1M
+    sprintf(Message, "S6\015"); // CAN with 500Kbps S0-10 S1-20 S2-50 S3-100 S4-125 S5-250 S7-800  S8-1M
     WriteToPort(Message);
     to = 1000000;
     while (to) {
-	if (Poll()) {
-	    if (CRSignal)
-		to = 1;
-	}
-	--to;
+        if (Poll()) {
+            if (CRSignal)
+                to = 1;
+        }
+        --to;
     }
 
 
@@ -465,15 +465,15 @@ main(int argc, char **argv)
 // The below needs to be done only once...
 #if 0
     CRSignal = 0;
-    sprintf(Message, "X1\015");	// Turn on out poll
+    sprintf(Message, "X1\015"); // Turn on out poll
     WriteToPort(Message);
     to = 1000000;
     while (to) {
-	if (Poll()) {
-	    if (CRSignal)
-		to = 1;
-	}
-	--to;
+        if (Poll()) {
+            if (CRSignal)
+                to = 1;
+        }
+        --to;
     }
 
     printf("\nAuto Poll setup.");
@@ -483,30 +483,30 @@ main(int argc, char **argv)
 
 
     CRSignal = 0;
-    sprintf(Message, "O\015");	// Open the CAN channel
+    sprintf(Message, "O\015");  // Open the CAN channel
     WriteToPort(Message);
     to = 1000000;
     while (to) {
-	if (Poll()) {
-	    if (CRSignal)
-		to = 1;
-	}
-	--to;
+        if (Poll()) {
+            if (CRSignal)
+                to = 1;
+        }
+        --to;
     }
 
     printf("\nChannel opened.");
     fflush(stdout);
 
     CRSignal = 0;
-    sprintf(Message, "t0000\015");	// Send 0 byte message to test CAN
+    sprintf(Message, "t0000\015");      // Send 0 byte message to test CAN
     WriteToPort(Message);
     to = 1000000;
     while (to) {
-	if (Poll()) {
-	    if (CRSignal)
-		to = 1;
-	}
-	--to;
+        if (Poll()) {
+            if (CRSignal)
+                to = 1;
+        }
+        --to;
     }
 
     printf("\nBogus message sent, waiting 5 sec., check red LED, should be lit...");
@@ -515,15 +515,15 @@ main(int argc, char **argv)
     sleep(5);
 
     CRSignal = 0;
-    sprintf(Message, "F\015");	// Get Status
+    sprintf(Message, "F\015");  // Get Status
     WriteToPort(Message);
     to = 1000000;
     while (to) {
-	if (Poll()) {
-	    if (CRSignal)
-		to = 1;
-	}
-	--to;
+        if (Poll()) {
+            if (CRSignal)
+                to = 1;
+        }
+        --to;
     }
 
     printf("\nStatus Flag = %02x", StatusFlag);
@@ -531,9 +531,9 @@ main(int argc, char **argv)
 
     to = 1000;
     while (to) {
-	if (Poll()) {
-	}
-	--to;
+        if (Poll()) {
+        }
+        --to;
     }
 
     GoodBye();

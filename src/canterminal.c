@@ -81,19 +81,19 @@ gettime(void)
 }
 
 void
-zerotime(void)			// This could take up to a second...
+zerotime(void)                  // This could take up to a second...
 {
     struct timeval ltim;
     register long b = 0;
 
 
     while (1) {
-	gettimeofday(&ltim, NULL);
-	if (ltim.tv_usec < b) {
-	    zeso = ltim.tv_sec;
-	    return;
-	}
-	b = ltim.tv_usec;
+        gettimeofday(&ltim, NULL);
+        if (ltim.tv_usec < b) {
+            zeso = ltim.tv_sec;
+            return;
+        }
+        b = ltim.tv_usec;
     }
 }
 
@@ -109,39 +109,39 @@ OpenAndConfigurePort(void)
 #endif
 
     if ((Port = open(DEVICE, O_RDWR | O_NOCTTY)) < 0) {
-	printf("\nError Opening Serialport ( %s ) : '%s'", DEVICE, strerror(errno));
-	fflush(stdout);
-	return (1);
+        printf("\nError Opening Serialport ( %s ) : '%s'", DEVICE, strerror(errno));
+        fflush(stdout);
+        return (1);
     }
-    memset(&newio, 0, sizeof(newio));	/* Clears termios struct  */
+    memset(&newio, 0, sizeof(newio));   /* Clears termios struct  */
     newio.c_cflag = CS8 | CLOCAL | CREAD;
     newio.c_iflag = IGNPAR;
     newio.c_oflag = 0;
     newio.c_lflag = 0;
     newio.c_cc[VTIME] = 0;
-    newio.c_cc[VMIN] = 1;	/* read min. one char at a time  */
+    newio.c_cc[VMIN] = 1;       /* read min. one char at a time  */
     if (cfsetispeed(&newio, BAUD) == -1) {
-	printf("Error setting serial input baud rate\n");
-	close(Port);
-	return (1);
+        printf("Error setting serial input baud rate\n");
+        close(Port);
+        return (1);
     }
     if (cfsetospeed(&newio, BAUD) == -1) {
-	printf("Error setting serial output baud rate\n");
-	close(Port);
-	return (1);
+        printf("Error setting serial output baud rate\n");
+        close(Port);
+        return (1);
     }
     tcflush(Port, TCIFLUSH);
     if (tcsetattr(Port, TCSANOW, &newio) == -1) {
-	printf("Error setting terminal attributes\n");
-	close(Port);
-	return (1);
+        printf("Error setting terminal attributes\n");
+        close(Port);
+        return (1);
     }
 
     if (fcntl(Port, F_SETOWN, getpid()) >= 0) {
-	flag |= FASYNC;
-	if (fcntl(Port, F_SETFL, flag) >= 0) {
-	    printf("\nAll Set for Polling... FD = %d", Port);
-	}
+        flag |= FASYNC;
+        if (fcntl(Port, F_SETFL, flag) >= 0) {
+            printf("\nAll Set for Polling... FD = %d", Port);
+        }
     }
 
 
@@ -155,7 +155,7 @@ WriteToPort(char *ZTV)
     register int a = 0, b = 0;
 
     while (*(ZTV + a) != '\0')
-	++a;
+        ++a;
     b = write(Port, ZTV, a);
 //      tcflush(Port,TCOFLUSH);
 
@@ -168,17 +168,17 @@ WriteToPort(char *ZTV)
 
 
     while (*(ZTV + a) != '\0') {
-	do {
-	    b = 0;
-	    b = write(Port, ZTV + a, 1);
+        do {
+            b = 0;
+            b = write(Port, ZTV + a, 1);
 
 #ifdef COMM_DEBUG
-	    printf("wrote:%d", *(ZTV + a));
-	    fflush(stdout);
+            printf("wrote:%d", *(ZTV + a));
+            fflush(stdout);
 #endif
 
-	} while (!b);
-	++a;
+        } while (!b);
+        ++a;
     }
     tcflush(Port, TCOFLUSH);
     return (a);
@@ -190,25 +190,25 @@ Poll(void)
     register int a, ret;
 
     if ((ret = read(Port, Buffer, 256)) < 1)
-	return (0);
+        return (0);
     if (LP != 1)
-	printf("\n :");
+        printf("\n :");
     fflush(stdout);
     for (a = 0; a < ret; a++) {
-	if ((Buffer[a] < ' ') || (Buffer[a] > '~')) {
-	    switch (Buffer[a]) {
-	    case 13:
-		printf("[CR]");
-		break;
-	    case 7:
-		printf("[BELL]");
-		break;
-	    default:
-		printf("[%02x]", Buffer[a]);
-	    }
-	}
-	else
-	    printf("%c", Buffer[a]);
+        if ((Buffer[a] < ' ') || (Buffer[a] > '~')) {
+            switch (Buffer[a]) {
+            case 13:
+                printf("[CR]");
+                break;
+            case 7:
+                printf("[BELL]");
+                break;
+            default:
+                printf("[%02x]", Buffer[a]);
+            }
+        }
+        else
+            printf("%c", Buffer[a]);
     }
     LP = 1;
     fflush(stdout);
@@ -230,8 +230,8 @@ ProcessSigIo()
     to.tv_sec = 0;
     to.tv_usec = 0;
     if (select(FD_SETSIZE, &fdset, 0, 0, &to) != -1) {
-	if (FD_ISSET(Port, &fdset))
-	    Poll();
+        if (FD_ISSET(Port, &fdset))
+            Poll();
     }
 }
 
@@ -244,7 +244,7 @@ GoodBye(void)
     fflush(stdout);
 #endif
     if (Port >= 0)
-	close(Port);
+        close(Port);
     ioctl(0, TCSETS, &oldT);
 }
 
@@ -256,22 +256,22 @@ SigCatch(int sig)
 
 // We could print here...  CTRL+4
 
-	break;
+        break;
     case SIGBUS:
     case SIGSEGV:
-	printf("\nSYSTEM TERMINATION ...");
-	fflush(stdout);
-	GoodBye();
-	exit(1);
+        printf("\nSYSTEM TERMINATION ...");
+        fflush(stdout);
+        GoodBye();
+        exit(1);
     case SIGINT:
     case SIGHUP:
-    case SIGTERM:		// Ctrl+C
-	GoodBye();
-	exit(1);
-	break;
+    case SIGTERM:              // Ctrl+C
+        GoodBye();
+        exit(1);
+        break;
     case SIGIO:
-	ProcessSigIo();
-	break;
+        ProcessSigIo();
+        break;
     }
 }
 
@@ -305,7 +305,7 @@ main(int argc, char **argv)
     printf("\n... Opening port");
     fflush(stdout);
     if (OpenAndConfigurePort()) {
-	return 1;
+        return 1;
     }
 
     gettime();
@@ -330,28 +330,28 @@ main(int argc, char **argv)
     fflush(stdout);
 
     while (go) {
-	if ((a = getchar()) == 27)
-	    go = 0;
-	else {
-	    if (LP == 1)
-		printf("\n");
-	    switch (a) {
-	    case 10:
-		printf("[CR]");
-		a = 13;
-		break;
-	    case 7:
-		printf("[BELL]");
-		break;
-	    default:
-		printf("%c", (char) a);
-	    }
-	    fflush(stdout);
-	    Message[0] = (char) a;
-	    Message[1] = 0;
-	    WriteToPort(Message);
-	    LP = 0;
-	}
+        if ((a = getchar()) == 27)
+            go = 0;
+        else {
+            if (LP == 1)
+                printf("\n");
+            switch (a) {
+            case 10:
+                printf("[CR]");
+                a = 13;
+                break;
+            case 7:
+                printf("[BELL]");
+                break;
+            default:
+                printf("%c", (char) a);
+            }
+            fflush(stdout);
+            Message[0] = (char) a;
+            Message[1] = 0;
+            WriteToPort(Message);
+            LP = 0;
+        }
     }
     GoodBye();
 

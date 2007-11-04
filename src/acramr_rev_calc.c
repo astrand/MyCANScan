@@ -63,9 +63,9 @@ GiveAMRComb(void)
 
     c = 1;
     for (b = 11; b >= 0; b--) {
-	if (((AMR >> b) & 1)) {
-	    c *= 2;
-	}
+        if (((AMR >> b) & 1)) {
+            c *= 2;
+        }
     }
     return (c);
 }
@@ -77,46 +77,46 @@ PrintHexa(int NumOfDigits, int Number)
     register int a, b;
 
     for (a = (NumOfDigits - 1); a >= 0; a--) {
-	b = ((Number >> (a << 2)) & 0xF);
-	if (b < 10)
-	    printf("%d", b);
-	else
-	    printf("%c", ('A' + b - 10));
+        b = ((Number >> (a << 2)) & 0xF);
+        if (b < 10)
+            printf("%d", b);
+        else
+            printf("%c", ('A' + b - 10));
     }
 }
 
 #ifdef	USE_SORTING
 
 void
-SortAndPrintResults(void)	// Just a quick bubble... No brainer, since result is limited...
+SortAndPrintResults(void)       // Just a quick bubble... No brainer, since result is limited...
 {
     register int a, b, c;
 
     for (a = 0; a < (NoOfResults - 1); a++) {
-	for (b = (a + 1); b < NoOfResults; b++) {
-	    if (ResultsBuffer[a] > ResultsBuffer[b]) {
-		c = ResultsBuffer[a];
-		ResultsBuffer[a] = ResultsBuffer[b];
-		ResultsBuffer[b] = c;
-	    }
-	}
+        for (b = (a + 1); b < NoOfResults; b++) {
+            if (ResultsBuffer[a] > ResultsBuffer[b]) {
+                c = ResultsBuffer[a];
+                ResultsBuffer[a] = ResultsBuffer[b];
+                ResultsBuffer[b] = c;
+            }
+        }
     }
     for (a = 0; a < NoOfResults; a++) {
 //              printf("%03x  ",ResultsBuffer[a]);
 #ifdef PRIUS_SPECIFIC
-	b = ResultsBuffer[a];
-	c = 0;
-	while ((c < 0xFFF) && (PriusValues[c] != 0xFFF)) {
-	    if (b == PriusValues[c]) {
-		PrintHexa(3, ResultsBuffer[a]);
-		printf("  ");
-		c = 0xFFE;
-	    }
-	    ++c;
-	}
+        b = ResultsBuffer[a];
+        c = 0;
+        while ((c < 0xFFF) && (PriusValues[c] != 0xFFF)) {
+            if (b == PriusValues[c]) {
+                PrintHexa(3, ResultsBuffer[a]);
+                printf("  ");
+                c = 0xFFE;
+            }
+            ++c;
+        }
 #else
-	PrintHexa(3, ResultsBuffer[a]);
-	printf("  ");
+        PrintHexa(3, ResultsBuffer[a]);
+        printf("  ");
 #endif
     }
     fflush(stdout);
@@ -128,19 +128,19 @@ AddToResultsBuffer(int NewValue)
     register int a;
 
     if (SizeOfResultsBuffer <= NoOfResults) {
-	SizeOfResultsBuffer += 20;
-	if ((ResultsBuffer =
-	     (int *) realloc((void *) ResultsBuffer,
-			     (size_t) SizeOfResultsBuffer * sizeof(int))) == NULL) {
-	    printf("\n\nError allocating %d numbers for result buffer... Terminated...\n\n",
-		   SizeOfResultsBuffer);
-	    fflush(stdout);
-	    exit(0);
-	}
+        SizeOfResultsBuffer += 20;
+        if ((ResultsBuffer =
+             (int *) realloc((void *) ResultsBuffer,
+                             (size_t) SizeOfResultsBuffer * sizeof(int))) == NULL) {
+            printf("\n\nError allocating %d numbers for result buffer... Terminated...\n\n",
+                   SizeOfResultsBuffer);
+            fflush(stdout);
+            exit(0);
+        }
     }
     for (a = 0; a < NoOfResults; a++) {
-	if (ResultsBuffer[a] == NewValue)
-	    return;		// duplicate element...
+        if (ResultsBuffer[a] == NewValue)
+            return;             // duplicate element...
     }
     ResultsBuffer[NoOfResults] = NewValue;
     ++NoOfResults;
@@ -156,10 +156,10 @@ CEval(void)
     tam = 0;
     c = 1;
     for (a = 0; a < 11; a++) {
-	if (PCOM[a] == 1)
-	    tam += c;
+        if (PCOM[a] == 1)
+            tam += c;
 //              c*=2;
-	c <<= 1;
+        c <<= 1;
     }
     tam += ACR;
 #ifdef	USE_SORTING
@@ -177,36 +177,36 @@ CWalkThisMany(int npc, int tm, int frh)
     register int a, c = tm, k, tam, ca, ctam, cc;
 
     for (a = frh; a < npc; a++) {
-	tam = AMR;
-	for (k = 0; k < a; k++)
-	    tam >>= 1;
-	if (tam & 1) {
-	    PCOM[a] = 1;
-	    if (--c == 0) {
+        tam = AMR;
+        for (k = 0; k < a; k++)
+            tam >>= 1;
+        if (tam & 1) {
+            PCOM[a] = 1;
+            if (--c == 0) {
 
-		ctam = 0;
-		cc = 1;
-		for (ca = 0; ca < 11; ca++) {
-		    if (PCOM[ca] == 1)
-			ctam += cc;
+                ctam = 0;
+                cc = 1;
+                for (ca = 0; ca < 11; ca++) {
+                    if (PCOM[ca] == 1)
+                        ctam += cc;
 //                                      cc*=2;
-		    cc <<= 1;
-		}
-		ctam += ACR;
+                    cc <<= 1;
+                }
+                ctam += ACR;
 #ifdef	USE_SORTING
-		AddToResultsBuffer(ctam);
+                AddToResultsBuffer(ctam);
 #else
-		printf("%03x  ", ctam);
-		fflush(stdout);
+                printf("%03x  ", ctam);
+                fflush(stdout);
 #endif
 
-		PCOM[a] = 0;
-	    }
-	    else
-		CWalkThisMany(npc, c, a + 1);
-	    PCOM[a] = 0;
-	    c = tm;
-	}
+                PCOM[a] = 0;
+            }
+            else
+                CWalkThisMany(npc, c, a + 1);
+            PCOM[a] = 0;
+            c = tm;
+        }
     }
     return;
 }
@@ -217,14 +217,14 @@ CWalker(int npc)
     int a, k, d = 0;
 
     for (a = 1; a < npc; a++) {
-	if (((a * 100) / npc) > d) {
-	    printf("%d%% ", d);
-	    fflush(stdout);
-	    d += 5;
-	}
-	for (k = 0; k < npc; k++)
-	    PCOM[k] = 0;
-	CWalkThisMany(npc, a, 0);
+        if (((a * 100) / npc) > d) {
+            printf("%d%% ", d);
+            fflush(stdout);
+            d += 5;
+        }
+        for (k = 0; k < npc; k++)
+            PCOM[k] = 0;
+        CWalkThisMany(npc, a, 0);
     }
 }
 
@@ -238,10 +238,10 @@ GiveCombo(int npc, int lacr, int lamr)
     c = 1;
     d = 0;
     for (b = 11; b >= 0; b--) {
-	if (((am >> b) & 1)) {
-	    c *= 2;
-	    ++d;
-	}
+        if (((am >> b) & 1)) {
+            c *= 2;
+            ++d;
+        }
     }
 #ifdef	USE_SORTING
     AddToResultsBuffer(ac);
@@ -250,9 +250,9 @@ GiveCombo(int npc, int lacr, int lamr)
     fflush(stdout);
 #endif
     if (d) {
-	ACR = ac;
-	AMR = am;
-	CWalker(npc);
+        ACR = ac;
+        AMR = am;
+        CWalker(npc);
     }
 }
 
@@ -264,7 +264,7 @@ Eval(void)
 
     AMR = (OriAMR & 0xFFFF);
     AMR >>= 5;
-    r1 = GiveAMRComb();		// AMR based possible combinations
+    r1 = GiveAMRComb();         // AMR based possible combinations
     ACR = (OriACR & 0xFFFF);
     AMR = (OriAMR & 0xFFFF);
     lACR = ACR;
@@ -293,23 +293,23 @@ int
 main(int argc, char *argv[])
 {
     if (argc == 3) {
-	if ((sscanf(argv[1], "M%0xd", &OriACR)) != 1) {
-	    printf("Error reading '%s'", argv[1]);
-	    fflush(stdout);
-	    return (1);
-	}
-	if ((sscanf(argv[2], "m%0xd", &OriAMR)) != 1) {
-	    printf("Error reading '%s'", argv[1]);
-	    fflush(stdout);
-	    return (1);
-	}
+        if ((sscanf(argv[1], "M%0xd", &OriACR)) != 1) {
+            printf("Error reading '%s'", argv[1]);
+            fflush(stdout);
+            return (1);
+        }
+        if ((sscanf(argv[2], "m%0xd", &OriAMR)) != 1) {
+            printf("Error reading '%s'", argv[1]);
+            fflush(stdout);
+            return (1);
+        }
     }
     else {
-	printf
-	    ("Usage : %s Mxxxxxxxx mxxxxxxxx ( hexa numbers, M is for Acceptance m is for Mask register )\n\n",
-	     argv[0]);
-	fflush(stdout);
-	return (1);
+        printf
+            ("Usage : %s Mxxxxxxxx mxxxxxxxx ( hexa numbers, M is for Acceptance m is for Mask register )\n\n",
+             argv[0]);
+        fflush(stdout);
+        return (1);
     }
 
     printf("\nWorking with ACR = ");
@@ -323,7 +323,7 @@ main(int argc, char *argv[])
     fflush(stdout);
 #ifdef	USE_SORTING
     if (ResultsBuffer != NULL)
-	free((void *) ResultsBuffer);
+        free((void *) ResultsBuffer);
 #endif
 
     return (0);

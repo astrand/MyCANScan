@@ -40,7 +40,7 @@ extern unsigned int InternalKeyModifiers;
 #endif
 
 extern void PutMyStringB(char *TB, int xsz, int ysz, char *Text, int x, int y, int usebignums,
-			 int zoom);
+                         int zoom);
 
 int MessageID = 0;
 
@@ -101,21 +101,21 @@ SavePicture(void *Data)
 
     FileName = "saved.png";
     GR_DrawFillRectangle((int) ((DisplayWidth >> 1) - 200), (WorkHeight - 32),
-			 (int) ((DisplayWidth >> 1) + 200), (WorkHeight - 2), 0, BKG_R, BKG_G,
-			 BKG_B);
+                         (int) ((DisplayWidth >> 1) + 200), (WorkHeight - 2), 0, BKG_R, BKG_G,
+                         BKG_B);
     sprintf(TmpBuffer, "Saving '%s' as PNG... Size : %dx%d", FileName,
-	    MyImages[SelectedImage].Width, MyImages[SelectedImage].Height);
+            MyImages[SelectedImage].Width, MyImages[SelectedImage].Height);
     b = GetMyStringLength(TmpBuffer, 0, 1);
     PutMyString(TmpBuffer, ((int) (DisplayWidth - b) >> 1), (WorkHeight - 30), 0, 1);
     CopyDisplayBufferToScreen(0, 0, DisplayWidth, DisplayHeight);
     if ((b =
-	 SavePNGFile(FileName, MyImages[SelectedImage].Buffer, MyImages[SelectedImage].Width,
-		     MyImages[SelectedImage].Height, MyImages[SelectedImage].NumOfComponent)) == 0)
-	PutMyString("### Error ###", ((int) (DisplayWidth >> 1)), (WorkHeight - 15), 0, 1);
+         SavePNGFile(FileName, MyImages[SelectedImage].Buffer, MyImages[SelectedImage].Width,
+                     MyImages[SelectedImage].Height, MyImages[SelectedImage].NumOfComponent)) == 0)
+        PutMyString("### Error ###", ((int) (DisplayWidth >> 1)), (WorkHeight - 15), 0, 1);
     else {
-	sprintf(TmpBuffer, "Ok. %d bytes.", b);
-	b = GetMyStringLength(TmpBuffer, 0, 1);
-	PutMyString(TmpBuffer, ((int) (DisplayWidth - b) >> 1), (WorkHeight - 15), 0, 1);
+        sprintf(TmpBuffer, "Ok. %d bytes.", b);
+        b = GetMyStringLength(TmpBuffer, 0, 1);
+        PutMyString(TmpBuffer, ((int) (DisplayWidth - b) >> 1), (WorkHeight - 15), 0, 1);
     }
     ActiveButton = -1;
     DrawButtons();
@@ -144,103 +144,103 @@ CollectColors(char *BPTR, int TTX, int TTY, int NUMCO)
 
 // First try using memory vs. CPU, this can speed up by 300x
 
-    if ((ClrSpUpBuf = (unsigned int *) malloc((size_t) ((unsigned int) 16777216 * sizeof(unsigned int)))) != NULL)	// Wow, use memory!!!
+    if ((ClrSpUpBuf = (unsigned int *) malloc((size_t) ((unsigned int) 16777216 * sizeof(unsigned int)))) != NULL)      // Wow, use memory!!!
     {
-	for (a = 0; a < 16777216; a++)
-	    ClrSpUpBuf[a] = 0;
-	for (y = 0; y < ty; y++) {
-	    for (x = 0; x < tx; x++) {
-		a = (unsigned int) SrcBuf[x * nuco + y * tx * nuco];	// R
-		b = (unsigned int) SrcBuf[x * nuco + y * tx * nuco + 1];
-		c = (unsigned int) SrcBuf[x * nuco + y * tx * nuco + 2];
-		++ClrSpUpBuf[(a << 16) + (b << 8) + c];
-	    }
-	}
-	c = 0;
-	for (a = 0; a < 16777216; a++)
-	    if (ClrSpUpBuf[a] != 0)
-		++NumClrs;
-	MyClrStrSize = NumClrs;
-	if ((MyClrStr =
-	     (ColorStructure *) realloc((void *) MyClrStr,
-					(size_t) MyClrStrSize * sizeof(ColorStructure))) == NULL) {
-	    printf("\n\nCan not allocate ColorStructure for %d colors...", MyClrStrSize);
-	    fflush(stdout);
-	    return;
-	}
-	b = 0;
-	for (a = 0; a < 16777216; a++) {
-	    if (ClrSpUpBuf[a] != 0) {
-		MyClrStr[b].R = (unsigned char) ((a >> 16) & 0xFF);
-		MyClrStr[b].G = (unsigned char) ((a >> 8) & 0xFF);
-		MyClrStr[b].B = (unsigned char) (a & 0xFF);
-		MyClrStr[b++].Cnt = ClrSpUpBuf[a];
-	    }
-	}
+        for (a = 0; a < 16777216; a++)
+            ClrSpUpBuf[a] = 0;
+        for (y = 0; y < ty; y++) {
+            for (x = 0; x < tx; x++) {
+                a = (unsigned int) SrcBuf[x * nuco + y * tx * nuco];    // R
+                b = (unsigned int) SrcBuf[x * nuco + y * tx * nuco + 1];
+                c = (unsigned int) SrcBuf[x * nuco + y * tx * nuco + 2];
+                ++ClrSpUpBuf[(a << 16) + (b << 8) + c];
+            }
+        }
+        c = 0;
+        for (a = 0; a < 16777216; a++)
+            if (ClrSpUpBuf[a] != 0)
+                ++NumClrs;
+        MyClrStrSize = NumClrs;
+        if ((MyClrStr =
+             (ColorStructure *) realloc((void *) MyClrStr,
+                                        (size_t) MyClrStrSize * sizeof(ColorStructure))) == NULL) {
+            printf("\n\nCan not allocate ColorStructure for %d colors...", MyClrStrSize);
+            fflush(stdout);
+            return;
+        }
+        b = 0;
+        for (a = 0; a < 16777216; a++) {
+            if (ClrSpUpBuf[a] != 0) {
+                MyClrStr[b].R = (unsigned char) ((a >> 16) & 0xFF);
+                MyClrStr[b].G = (unsigned char) ((a >> 8) & 0xFF);
+                MyClrStr[b].B = (unsigned char) (a & 0xFF);
+                MyClrStr[b++].Cnt = ClrSpUpBuf[a];
+            }
+        }
 
-	free((void *) ClrSpUpBuf);
-	return (NumClrs);
+        free((void *) ClrSpUpBuf);
+        return (NumClrs);
     }
 
     if (MyClrStrSize == 0) {
-	MyClrStrSize = 1000;
-	if ((MyClrStr =
-	     (ColorStructure *) realloc((void *) MyClrStr,
-					(size_t) MyClrStrSize * sizeof(ColorStructure))) == NULL) {
-	    printf("\n\nCan not allocate ColorStructure for %d colors...", MyClrStrSize);
-	    fflush(stdout);
-	    return;
-	}
-	for (a = 0; a < 1000; a++) {
-	    MyClrStr[a].R = 0;
-	    MyClrStr[a].G = 0;
-	    MyClrStr[a].B = 0;
-	    MyClrStr[a].Cnt = 0;
-	}
+        MyClrStrSize = 1000;
+        if ((MyClrStr =
+             (ColorStructure *) realloc((void *) MyClrStr,
+                                        (size_t) MyClrStrSize * sizeof(ColorStructure))) == NULL) {
+            printf("\n\nCan not allocate ColorStructure for %d colors...", MyClrStrSize);
+            fflush(stdout);
+            return;
+        }
+        for (a = 0; a < 1000; a++) {
+            MyClrStr[a].R = 0;
+            MyClrStr[a].G = 0;
+            MyClrStr[a].B = 0;
+            MyClrStr[a].Cnt = 0;
+        }
     }
 
     for (y = 0; y < ty; y++) {
-	for (x = 0; x < tx; x++) {
-	    vR = SrcBuf[x * nuco + y * tx * nuco];
-	    vG = SrcBuf[x * nuco + y * tx * nuco + 1];
-	    vB = SrcBuf[x * nuco + y * tx * nuco + 2];
-	    a = 0;
-	    while (a < NumClrs) {
-		if ((MyClrStr[a].R == vR) && (MyClrStr[a].G == vG) && (MyClrStr[a].B == vB)) {
-		    ++MyClrStr[a].Cnt;
-		    a = NumClrs + 5;
-		}
-		++a;
-	    }
-	    if (a != (NumClrs + 6)) {
-		if ((++NumClrs) > MyClrStrSize)	// realloc needed
-		{
-		    b = (NumClrs - 1);
-		    MyClrStrSize += 1000;
-		    if ((MyClrStr =
-			 (ColorStructure *) realloc((void *) MyClrStr,
-						    (size_t) MyClrStrSize *
-						    sizeof(ColorStructure))) == NULL) {
-			printf("\n\nCan not allocate ColorStructure for %d colors...",
-			       MyClrStrSize);
-			fflush(stdout);
-			return;
-		    }
-		    for (a = (b + 1); a < MyClrStrSize; a++) {
-			MyClrStr[a].R = 0;
-			MyClrStr[a].G = 0;
-			MyClrStr[a].B = 0;
-			MyClrStr[a].Cnt = 0;
-		    }
-		}
-		else
-		    b = (NumClrs - 1);
-		MyClrStr[b].R = vR;
-		MyClrStr[b].G = vG;
-		MyClrStr[b].B = vB;
-		MyClrStr[b].Cnt = 1;
-	    }
-	}
+        for (x = 0; x < tx; x++) {
+            vR = SrcBuf[x * nuco + y * tx * nuco];
+            vG = SrcBuf[x * nuco + y * tx * nuco + 1];
+            vB = SrcBuf[x * nuco + y * tx * nuco + 2];
+            a = 0;
+            while (a < NumClrs) {
+                if ((MyClrStr[a].R == vR) && (MyClrStr[a].G == vG) && (MyClrStr[a].B == vB)) {
+                    ++MyClrStr[a].Cnt;
+                    a = NumClrs + 5;
+                }
+                ++a;
+            }
+            if (a != (NumClrs + 6)) {
+                if ((++NumClrs) > MyClrStrSize) // realloc needed
+                {
+                    b = (NumClrs - 1);
+                    MyClrStrSize += 1000;
+                    if ((MyClrStr =
+                         (ColorStructure *) realloc((void *) MyClrStr,
+                                                    (size_t) MyClrStrSize *
+                                                    sizeof(ColorStructure))) == NULL) {
+                        printf("\n\nCan not allocate ColorStructure for %d colors...",
+                               MyClrStrSize);
+                        fflush(stdout);
+                        return;
+                    }
+                    for (a = (b + 1); a < MyClrStrSize; a++) {
+                        MyClrStr[a].R = 0;
+                        MyClrStr[a].G = 0;
+                        MyClrStr[a].B = 0;
+                        MyClrStr[a].Cnt = 0;
+                    }
+                }
+                else
+                    b = (NumClrs - 1);
+                MyClrStr[b].R = vR;
+                MyClrStr[b].G = vG;
+                MyClrStr[b].B = vB;
+                MyClrStr[b].Cnt = 1;
+            }
+        }
     }
     return (NumClrs);
 }
@@ -252,14 +252,14 @@ GetNextEntry(void)
     register int a;
 
     while (SearchPos < BufferLength) {
-	if (FileBuffer[SearchPos] == SearchTerm[0]) {
-	    a = 0;
-	    while (FileBuffer[SearchPos + a] == SearchTerm[a])
-		++a;
-	    if (SearchTerm[a] == '\0')
-		return (1);
-	}
-	++SearchPos;
+        if (FileBuffer[SearchPos] == SearchTerm[0]) {
+            a = 0;
+            while (FileBuffer[SearchPos + a] == SearchTerm[a])
+                ++a;
+            if (SearchTerm[a] == '\0')
+                return (1);
+        }
+        ++SearchPos;
     }
     return (0);
 }
@@ -270,11 +270,11 @@ GetMID(int a)
     register unsigned int val = 0, b;
 
     for (b = 0; b < 3; b++) {
-	val <<= 4;
-	if (FileBuffer[a + b] >= 'A')
-	    val += (unsigned int) ((FileBuffer[a + b] - 'A') + 10);
-	else
-	    val += (unsigned int) (FileBuffer[a + b] - '0');
+        val <<= 4;
+        if (FileBuffer[a + b] >= 'A')
+            val += (unsigned int) ((FileBuffer[a + b] - 'A') + 10);
+        else
+            val += (unsigned int) (FileBuffer[a + b] - '0');
     }
     return (val);
 }
@@ -286,30 +286,30 @@ GetData(int a)
     int Bl;
 
     if ((FileBuffer[a] > '9') || (FileBuffer[a] < '0'))
-	return (-1);
+        return (-1);
     Bl = (int) (FileBuffer[a] - '0');
 
     for (b = 0; b < 8; b++)
-	DataBytes[b] = 0;
+        DataBytes[b] = 0;
     ++a;
 //printf("\n");fflush(stdout);
     for (b = 0; b < Bl; b++) {
-	if (!((FileBuffer[a + (b << 1)] >= '0') && (FileBuffer[a + (b << 1)] <= '9')
-	      || (FileBuffer[a + (b << 1)] >= 'A') && (FileBuffer[a + (b << 1)] <= 'F')))
-	    return (-1);	// Invalid...
-	if (!((FileBuffer[a + ((b << 1) + 1)] >= '0') && (FileBuffer[a + ((b << 1) + 1)] <= '9')
-	      || (FileBuffer[a + ((b << 1) + 1)] >= 'A')
-	      && (FileBuffer[a + ((b << 1) + 1)] <= 'F')))
-	    return (-1);	// Invalid...
-	if (FileBuffer[a + (b << 1)] >= 'A')
-	    DataBytes[b] += (unsigned char) ((FileBuffer[a + (b << 1)] - 'A') + 10);
-	else
-	    DataBytes[b] += (unsigned char) (FileBuffer[a + (b << 1)] - '0');
-	DataBytes[b] <<= 4;
-	if (FileBuffer[a + (b << 1) + 1] >= 'A')
-	    DataBytes[b] += (unsigned char) ((FileBuffer[a + (b << 1) + 1] - 'A') + 10);
-	else
-	    DataBytes[b] += (unsigned char) (FileBuffer[a + (b << 1) + 1] - '0');
+        if (!((FileBuffer[a + (b << 1)] >= '0') && (FileBuffer[a + (b << 1)] <= '9')
+              || (FileBuffer[a + (b << 1)] >= 'A') && (FileBuffer[a + (b << 1)] <= 'F')))
+            return (-1);        // Invalid...
+        if (!((FileBuffer[a + ((b << 1) + 1)] >= '0') && (FileBuffer[a + ((b << 1) + 1)] <= '9')
+              || (FileBuffer[a + ((b << 1) + 1)] >= 'A')
+              && (FileBuffer[a + ((b << 1) + 1)] <= 'F')))
+            return (-1);        // Invalid...
+        if (FileBuffer[a + (b << 1)] >= 'A')
+            DataBytes[b] += (unsigned char) ((FileBuffer[a + (b << 1)] - 'A') + 10);
+        else
+            DataBytes[b] += (unsigned char) (FileBuffer[a + (b << 1)] - '0');
+        DataBytes[b] <<= 4;
+        if (FileBuffer[a + (b << 1) + 1] >= 'A')
+            DataBytes[b] += (unsigned char) ((FileBuffer[a + (b << 1) + 1] - 'A') + 10);
+        else
+            DataBytes[b] += (unsigned char) (FileBuffer[a + (b << 1) + 1] - '0');
 //printf(" %d : '%c%c' = %02x  ",b,FileBuffer[a+(b<<1)],FileBuffer[a+(b<<1)+1],DataBytes[b]);fflush(stdout);
     }
     return (Bl);
@@ -323,76 +323,76 @@ GetBasicStatistics(void)
 
     sprintf(SearchTerm, "t");
     SearchPos = 0;
-    if ((TmpBfr = (unsigned int *) malloc(0xFFF * sizeof(int))) == NULL)	// For the IDs
+    if ((TmpBfr = (unsigned int *) malloc(0xFFF * sizeof(int))) == NULL)        // For the IDs
     {
 
-	printf("\nError allocating tempbuffer...");
-	fflush(stdout);
+        printf("\nError allocating tempbuffer...");
+        fflush(stdout);
 
     }
 
     for (b = 0; b < 0xFFF; b++)
-	TmpBfr[b] = 0;
+        TmpBfr[b] = 0;
     NumberOfSamples = 0;
     while (GetNextEntry()) {
-	b = GetMID(SearchPos + 1);
-	if ((b > 0) && (b < 0xFFF)) {
-	    ++TmpBfr[b];
-	    ++NumberOfSamples;
-	}
-	SearchPos += 3;
+        b = GetMID(SearchPos + 1);
+        if ((b > 0) && (b < 0xFFF)) {
+            ++TmpBfr[b];
+            ++NumberOfSamples;
+        }
+        SearchPos += 3;
     }
 
     a = 0;
     for (b = 0; b < 0xFFF; b++)
-	if (TmpBfr[b] > 0)
-	    ++a;
+        if (TmpBfr[b] > 0)
+            ++a;
 
     if ((Messages =
-	 (struct MessageStructure *) malloc((a + 1) * sizeof(struct MessageStructure))) == NULL) {
+         (struct MessageStructure *) malloc((a + 1) * sizeof(struct MessageStructure))) == NULL) {
 
-	printf("\nError allocating ID buffer...");
-	fflush(stdout);
+        printf("\nError allocating ID buffer...");
+        fflush(stdout);
 
     }
 
     for (b = 0; b <= a; b++) {
-	Messages[a].ID = 0;
-	Messages[a].Occurance = 0;
-	Messages[a].BL = 0;
+        Messages[a].ID = 0;
+        Messages[a].Occurance = 0;
+        Messages[a].BL = 0;
     }
 
     a = 0;
     for (b = 0; b < 0xFFF; b++) {
-	if (TmpBfr[b] > 0) {
-	    Messages[a].ID = b;
-	    Messages[a].Occurance = TmpBfr[b];
+        if (TmpBfr[b] > 0) {
+            Messages[a].ID = b;
+            Messages[a].Occurance = TmpBfr[b];
 //                      if(b==0x3B) SpeedPos=a;
-	    if (b == 0x3CA)
-		SpeedPos = a;
+            if (b == 0x3CA)
+                SpeedPos = a;
 //                      if(b==0x3C8) SpeedPos=a;
 
-	    sprintf(SearchTerm, "t");
-	    SearchPos = 0;
-	    c = 1;
-	    while (c) {
-		if (!GetNextEntry())
-		    c = 0;
-		else {
-		    d = GetMID(SearchPos + 1);
-		    if ((d > 0) && (d < 0xFFF)) {
-			if (d == b) {
-			    if ((d = GetData(SearchPos + 4)) > 0) {
-				Messages[a].BL = d;
-			    }
-			    c = 0;
-			}
-		    }
-		}
-		SearchPos += 3;
-	    }
-	    ++a;
-	}
+            sprintf(SearchTerm, "t");
+            SearchPos = 0;
+            c = 1;
+            while (c) {
+                if (!GetNextEntry())
+                    c = 0;
+                else {
+                    d = GetMID(SearchPos + 1);
+                    if ((d > 0) && (d < 0xFFF)) {
+                        if (d == b) {
+                            if ((d = GetData(SearchPos + 4)) > 0) {
+                                Messages[a].BL = d;
+                            }
+                            c = 0;
+                        }
+                    }
+                }
+                SearchPos += 3;
+            }
+            ++a;
+        }
     }
 
 
@@ -400,7 +400,7 @@ GetBasicStatistics(void)
     fflush(stdout);
 #if 0
     for (a = 0; Messages[a].ID != 0; a++)
-	printf("\n%3x = %d", Messages[a].ID, Messages[a].Occurance);
+        printf("\n%3x = %d", Messages[a].ID, Messages[a].Occurance);
     fflush(stdout);
 #endif
     free(TmpBfr);
@@ -410,107 +410,107 @@ GetBasicStatistics(void)
     SearchPos = 0;
     if (!GetNextEntry()) {
 //              printf("\nPanic, can not locate duration ( 'for' )");fflush(stdout);
-	DurationValid = 0;
+        DurationValid = 0;
     }
     else {
-	SearchPos += 3;
-	a = 0;
-	while ((FileBuffer[SearchPos + a] >= '0') && (FileBuffer[SearchPos + a] <= '9'))
-	    ++a;
-	b = 1;
-	--a;
-	for (c = 0; c < a; c++)
-	    b *= 10;
-	for (c = 0; c <= a; c++) {
-	    SampleDuration += ((unsigned int) (FileBuffer[SearchPos + c] - '0') * b);
-	    b /= 10;
-	}
+        SearchPos += 3;
+        a = 0;
+        while ((FileBuffer[SearchPos + a] >= '0') && (FileBuffer[SearchPos + a] <= '9'))
+            ++a;
+        b = 1;
+        --a;
+        for (c = 0; c < a; c++)
+            b *= 10;
+        for (c = 0; c <= a; c++) {
+            SampleDuration += ((unsigned int) (FileBuffer[SearchPos + c] - '0') * b);
+            b /= 10;
+        }
     }
     for (c = 0; c < 8; c++)
-	DataBytesMask[c] = 1;
+        DataBytesMask[c] = 1;
 
     if (DurationValid) {
-	printf(" Sample Duration is %d seconds.", SampleDuration);
-	fflush(stdout);
+        printf(" Sample Duration is %d seconds.", SampleDuration);
+        fflush(stdout);
     }
 }
 
 
 void
 DrawLine(unsigned char *TB, int sx, int sy, int ex, int ey, int tx, int ty, unsigned char R,
-	 unsigned char G, unsigned char B)
+         unsigned char G, unsigned char B)
 {
     register int axis, dir = 1;
     float oaxis, stp;
 
     if (ey > ty)
-	ey = ty - 1;
+        ey = ty - 1;
     if (ey < 0)
-	ey = 0;
+        ey = 0;
     if (ex > tx)
-	ex = tx - 1;
+        ex = tx - 1;
     if (ex < 0)
-	ex = 0;
+        ex = 0;
     if (sy > ty)
-	sy = ty - 1;
+        sy = ty - 1;
     if (sy < 0)
-	sy = 0;
+        sy = 0;
     if (sx > tx)
-	sx = tx - 1;
+        sx = tx - 1;
     if (sx < 0)
-	sx = 0;
+        sx = 0;
 
     if (NoSignumDraw) {
-	if (((ABS((sx - ex))) > 140) || ((ABS((sy - ey))) > 140)) {
-	    TB[ex * 3 + ey * tx * 3] = R;
-	    TB[ex * 3 + ey * tx * 3 + 1] = G;
-	    TB[ex * 3 + ey * tx * 3 + 2] = B;
-	    return;
-	}
+        if (((ABS((sx - ex))) > 140) || ((ABS((sy - ey))) > 140)) {
+            TB[ex * 3 + ey * tx * 3] = R;
+            TB[ex * 3 + ey * tx * 3 + 1] = G;
+            TB[ex * 3 + ey * tx * 3 + 2] = B;
+            return;
+        }
     }
 
-    if ((ABS((sx - ex))) > (ABS((sy - ey))))	// stepping on x
+    if ((ABS((sx - ex))) > (ABS((sy - ey))))    // stepping on x
     {
-	stp = (float) (ey - sy) / (float) (ex - sx);
-	oaxis = sy;
-	axis = sx;
-	if (sx > ex) {
-	    for (axis = sx; axis >= ex; axis--) {
-		TB[axis * 3 + (int) oaxis * tx * 3] = R;
-		TB[axis * 3 + (int) oaxis * tx * 3 + 1] = G;
-		TB[axis * 3 + (int) oaxis * tx * 3 + 2] = B;
-		oaxis -= stp;
-	    }
-	}
-	else {
-	    for (axis = sx; axis <= ex; axis += dir) {
-		TB[axis * 3 + (int) oaxis * tx * 3] = R;
-		TB[axis * 3 + (int) oaxis * tx * 3 + 1] = G;
-		TB[axis * 3 + (int) oaxis * tx * 3 + 2] = B;
-		oaxis += stp;
-	    }
-	}
-	return;
+        stp = (float) (ey - sy) / (float) (ex - sx);
+        oaxis = sy;
+        axis = sx;
+        if (sx > ex) {
+            for (axis = sx; axis >= ex; axis--) {
+                TB[axis * 3 + (int) oaxis * tx * 3] = R;
+                TB[axis * 3 + (int) oaxis * tx * 3 + 1] = G;
+                TB[axis * 3 + (int) oaxis * tx * 3 + 2] = B;
+                oaxis -= stp;
+            }
+        }
+        else {
+            for (axis = sx; axis <= ex; axis += dir) {
+                TB[axis * 3 + (int) oaxis * tx * 3] = R;
+                TB[axis * 3 + (int) oaxis * tx * 3 + 1] = G;
+                TB[axis * 3 + (int) oaxis * tx * 3 + 2] = B;
+                oaxis += stp;
+            }
+        }
+        return;
     }
 
     stp = (float) (ex - sx) / (float) (ey - sy);
     oaxis = sx;
     axis = sy;
     if (sy > ey) {
-	for (axis = sy; axis >= ey; axis--) {
-	    TB[(int) oaxis * 3 + axis * tx * 3] = R;
-	    TB[(int) oaxis * 3 + axis * tx * 3 + 1] = G;
-	    TB[(int) oaxis * 3 + axis * tx * 3 + 2] = B;
-	    oaxis -= stp;
-	}
+        for (axis = sy; axis >= ey; axis--) {
+            TB[(int) oaxis * 3 + axis * tx * 3] = R;
+            TB[(int) oaxis * 3 + axis * tx * 3 + 1] = G;
+            TB[(int) oaxis * 3 + axis * tx * 3 + 2] = B;
+            oaxis -= stp;
+        }
     }
     else {
-	for (axis = sy; axis <= ey; axis++) {
-	    TB[(int) oaxis * 3 + axis * tx * 3] = R;
-	    TB[(int) oaxis * 3 + axis * tx * 3 + 1] = G;
-	    TB[(int) oaxis * 3 + axis * tx * 3 + 2] = B;
-	    oaxis += stp;
-	}
+        for (axis = sy; axis <= ey; axis++) {
+            TB[(int) oaxis * 3 + axis * tx * 3] = R;
+            TB[(int) oaxis * 3 + axis * tx * 3 + 1] = G;
+            TB[(int) oaxis * 3 + axis * tx * 3 + 2] = B;
+            oaxis += stp;
+        }
     }
 }
 
@@ -571,27 +571,27 @@ ProcessImage(void)
 
 
     for (b = 0; b < 8; b++) {
-	MinDataValues[b] = 0xFFFF;
-	MaxDataValues[b] = 0;
+        MinDataValues[b] = 0xFFFF;
+        MaxDataValues[b] = 0;
     }
 
     tx = 800;
     if (ShowSpeed) {
-	if (Messages[MessageID].Occurance < Messages[SpeedPos].Occurance) {
-	    SpeedBase = 1;
-	    Divider = (float) Messages[SpeedPos].Occurance / (float) tx;
-	}
-	else {
-	    Divider = (float) Messages[MessageID].Occurance / (float) tx;
-	}
+        if (Messages[MessageID].Occurance < Messages[SpeedPos].Occurance) {
+            SpeedBase = 1;
+            Divider = (float) Messages[SpeedPos].Occurance / (float) tx;
+        }
+        else {
+            Divider = (float) Messages[MessageID].Occurance / (float) tx;
+        }
     }
     else
-	Divider = (float) Messages[MessageID].Occurance / (float) tx;
+        Divider = (float) Messages[MessageID].Occurance / (float) tx;
 
     if (Divider == 0.0f) {
-	printf("\nSince occurance of data is %d, not drawing...", Messages[MessageID].Occurance);
-	fflush(stdout);
-	return;
+        printf("\nSince occurance of data is %d, not drawing...", Messages[MessageID].Occurance);
+        fflush(stdout);
+        return;
     }
 
 //printf("\nOcc : %d [%d] Div=%1.2f",Messages[MessageID].Occurance,Messages[SpeedPos].Occurance,Divider);fflush(stdout);
@@ -601,12 +601,12 @@ ProcessImage(void)
     ty = 500;
     MyImages[a].ModifiedBufferSize = (tx * ty * MyImages[a].NumOfComponent);
     if ((MyImages[a].ModifiedBuffer =
-	 (char *) realloc((void *) MyImages[a].ModifiedBuffer,
-			  (size_t) MyImages[a].ModifiedBufferSize)) == NULL) {
-	printf("\nPanic, not able to realloc (%2.4f x %2.4f scale) => %d byte", MyImages[a].ScaleX,
-	       MyImages[a].ScaleY, MyImages[a].ModifiedBufferSize);
-	fflush(stdout);
-	return (-1);
+         (char *) realloc((void *) MyImages[a].ModifiedBuffer,
+                          (size_t) MyImages[a].ModifiedBufferSize)) == NULL) {
+        printf("\nPanic, not able to realloc (%2.4f x %2.4f scale) => %d byte", MyImages[a].ScaleX,
+               MyImages[a].ScaleY, MyImages[a].ModifiedBufferSize);
+        fflush(stdout);
+        return (-1);
     }
 
     MyImages[a].ModifiedX = MyImages[a].X;
@@ -618,11 +618,11 @@ ProcessImage(void)
 //printf("\nDZ=%1.2f DS=%1.2f",DZoomVal,DShiftVal);fflush(stdout);
 
     for (y = 0; y < ty; y++) {
-	for (x = 0; x < tx; x++) {
-	    TB[x * 3 + y * tx * 3] = 10;
-	    TB[x * 3 + y * tx * 3 + 1] = 20;
-	    TB[x * 3 + y * tx * 3 + 2] = 17;
-	}
+        for (x = 0; x < tx; x++) {
+            TB[x * 3 + y * tx * 3] = 10;
+            TB[x * 3 + y * tx * 3 + 1] = 20;
+            TB[x * 3 + y * tx * 3 + 2] = 17;
+        }
     }
 
     sprintf(SearchTerm, "t");
@@ -630,336 +630,336 @@ ProcessImage(void)
     x = 0;
 
     if (DShiftVal > 0.0f) {
-	Skippy = (unsigned int) ((float) NumberOfSamples * (DShiftVal * DZoomVal * 5.0f));
+        Skippy = (unsigned int) ((float) NumberOfSamples * (DShiftVal * DZoomVal * 5.0f));
 
-	if (Skippy > (NumberOfSamples - 1))
-	    Skippy = 0;
+        if (Skippy > (NumberOfSamples - 1))
+            Skippy = 0;
 //printf("\nSkipping first %d entries",Skippy);fflush(stdout);
 
-	for (scnt = 0; scnt < Skippy; scnt++) {
-	    ++SearchPos;
-	    GetNextEntry();
-	}
+        for (scnt = 0; scnt < Skippy; scnt++) {
+            ++SearchPos;
+            GetNextEntry();
+        }
     }
 
 //printf("\nSP=%d",SearchPos);fflush(stdout);
 
     while (GetNextEntry()) {
-	b = GetMID(SearchPos + 1);
-	if ((x / Divider) > (tx - 1))
-	    x = ((tx - 1) * Divider);
-	if ((b > 0) && (b <= 0xFFF)) {
-	    switch (b) {
-	    case 0xFFF:	//"\ntFFF0:%02x\n\0",Kar
-		if (ShowKeys) {
-		    if (PrSx != -1) {
-			DrawLine(TB, (int) ((float) x / Divider), 0, (int) ((float) x / Divider),
-				 20, tx, ty, 255, 255, 255);
-			for (c = 20; c < (ty - 1); c += 20)
-			    DrawLine(TB, (int) ((float) x / Divider), c,
-				     (int) ((float) x / Divider), (c + 3), tx, ty, 40, 40, 60);
-		    }
-		    if (FileBuffer[SearchPos + 6] >= 'a')
-			c = (FileBuffer[SearchPos + 6] - 'a') + 10;
-		    else
-			c = (FileBuffer[SearchPos + 6] - '0');
-		    c <<= 4;
-		    if (FileBuffer[SearchPos + 7] >= 'A')
-			c += (FileBuffer[SearchPos + 7] - 'a') + 10;
-		    else
-			c += (FileBuffer[SearchPos + 7] - '0');
-		    if (c < 0x20)
-			c = '.';
-		    else if (c == 0x20)
-			c = '^';
-		    sprintf(TmpBuffer, "%c", c);
-		    PutMyStringB(TB, tx, ty, TmpBuffer, (int) ((float) x / Divider) - 2, 23, 0, 1);
+        b = GetMID(SearchPos + 1);
+        if ((x / Divider) > (tx - 1))
+            x = ((tx - 1) * Divider);
+        if ((b > 0) && (b <= 0xFFF)) {
+            switch (b) {
+            case 0xFFF:        //"\ntFFF0:%02x\n\0",Kar
+                if (ShowKeys) {
+                    if (PrSx != -1) {
+                        DrawLine(TB, (int) ((float) x / Divider), 0, (int) ((float) x / Divider),
+                                 20, tx, ty, 255, 255, 255);
+                        for (c = 20; c < (ty - 1); c += 20)
+                            DrawLine(TB, (int) ((float) x / Divider), c,
+                                     (int) ((float) x / Divider), (c + 3), tx, ty, 40, 40, 60);
+                    }
+                    if (FileBuffer[SearchPos + 6] >= 'a')
+                        c = (FileBuffer[SearchPos + 6] - 'a') + 10;
+                    else
+                        c = (FileBuffer[SearchPos + 6] - '0');
+                    c <<= 4;
+                    if (FileBuffer[SearchPos + 7] >= 'A')
+                        c += (FileBuffer[SearchPos + 7] - 'a') + 10;
+                    else
+                        c += (FileBuffer[SearchPos + 7] - '0');
+                    if (c < 0x20)
+                        c = '.';
+                    else if (c == 0x20)
+                        c = '^';
+                    sprintf(TmpBuffer, "%c", c);
+                    PutMyStringB(TB, tx, ty, TmpBuffer, (int) ((float) x / Divider) - 2, 23, 0, 1);
 //printf("\n%d : '%s'",c,TmpBuffer);fflush(stdout);
 //printf("\nKar : %c%c",FileBuffer[SearchPos+6],FileBuffer[SearchPos+7]);fflush(stdout);
-		}
-		break;
-	    case 0xFFE:	// "\ntFFE0:%06d\n\0",curtime);
-		if (ShowTimes) {
-		    if (PrSx != -1)
-			DrawLine(TB, (int) ((float) x / Divider), 0, (int) ((float) x / Divider), 5,
-				 tx, ty, 80, 80, 80);
-		}
-		break;
+                }
+                break;
+            case 0xFFE:        // "\ntFFE0:%06d\n\0",curtime);
+                if (ShowTimes) {
+                    if (PrSx != -1)
+                        DrawLine(TB, (int) ((float) x / Divider), 0, (int) ((float) x / Divider), 5,
+                                 tx, ty, 80, 80, 80);
+                }
+                break;
 
 #if 1
-	    case 0x3CA:
-		if (ShowSpeed) {
-		    if ((b = GetData(SearchPos + 4)) > 0) {
-			vl2 = (ty - 1) - (int) ((float) DataBytes[2] * ZoomVal * SZoomVal);
-			if (vl2 < 0)
-			    vl2 = 0;
-			vl = (int) ((float) x / Divider);
-			if (PrSx != -1)
-			    DrawLine(TB, PrSx, PrSy, vl, vl2, tx, ty, 250, 255, 200);
+            case 0x3CA:
+                if (ShowSpeed) {
+                    if ((b = GetData(SearchPos + 4)) > 0) {
+                        vl2 = (ty - 1) - (int) ((float) DataBytes[2] * ZoomVal * SZoomVal);
+                        if (vl2 < 0)
+                            vl2 = 0;
+                        vl = (int) ((float) x / Divider);
+                        if (PrSx != -1)
+                            DrawLine(TB, PrSx, PrSy, vl, vl2, tx, ty, 250, 255, 200);
 
-			if ((LastSpd != DataBytes[2]) && ((LastSpdX + 20) < vl)) {
-			    sprintf(TmpBuffer, "%2d",
-				    (unsigned char) ((float) DataBytes[2] * 0.625f));
-			    PutMyStringB(TB, tx, ty, TmpBuffer, vl, vl2, 0, 1);
-			    DrawLine(TB, vl - 2, vl2, vl + 2, vl2, tx, ty, 250, 255, 0);
-			    LastSpd = DataBytes[2];
-			    LastSpdX = vl;
-			}
+                        if ((LastSpd != DataBytes[2]) && ((LastSpdX + 20) < vl)) {
+                            sprintf(TmpBuffer, "%2d",
+                                    (unsigned char) ((float) DataBytes[2] * 0.625f));
+                            PutMyStringB(TB, tx, ty, TmpBuffer, vl, vl2, 0, 1);
+                            DrawLine(TB, vl - 2, vl2, vl + 2, vl2, tx, ty, 250, 255, 0);
+                            LastSpd = DataBytes[2];
+                            LastSpdX = vl;
+                        }
 
-			PrSx = vl;
-			PrSy = vl2;
-			if (SpeedBase)
-			    ++x;
-		    }
-		}
-		break;
+                        PrSx = vl;
+                        PrSy = vl2;
+                        if (SpeedBase)
+                            ++x;
+                    }
+                }
+                break;
 #endif
 
 #if 0
-	    case 0x3C8:
-		if (ShowSpeed) {
-		    if ((b = GetData(SearchPos + 4)) > 0) {
-			vl2 = (ty - 1) - (int) ((float)
-						(((int) (DataBytes[2]) << 8) +
-						 (int) (DataBytes[3]) & 0xFFFF) * ZoomVal *
-						SZoomVal);
-			if (vl2 < 0)
-			    vl2 = 0;
-			vl = (int) ((float) x / Divider);
-			if (PrSx != -1)
-			    DrawLine(TB, PrSx, PrSy, vl, vl2, tx, ty, 250, 255, 200);
-			PrSx = vl;
-			PrSy = vl2;
-			if (SpeedBase)
-			    ++x;
-		    }
-		}
-		break;
+            case 0x3C8:
+                if (ShowSpeed) {
+                    if ((b = GetData(SearchPos + 4)) > 0) {
+                        vl2 = (ty - 1) - (int) ((float)
+                                                (((int) (DataBytes[2]) << 8) +
+                                                 (int) (DataBytes[3]) & 0xFFFF) * ZoomVal *
+                                                SZoomVal);
+                        if (vl2 < 0)
+                            vl2 = 0;
+                        vl = (int) ((float) x / Divider);
+                        if (PrSx != -1)
+                            DrawLine(TB, PrSx, PrSy, vl, vl2, tx, ty, 250, 255, 200);
+                        PrSx = vl;
+                        PrSy = vl2;
+                        if (SpeedBase)
+                            ++x;
+                    }
+                }
+                break;
 #endif
 
 #if 0
-	    case 0x3B:
-		if (ShowSpeed) {
-		    if ((b = GetData(SearchPos + 4)) > 0) {
-			if ((char) DataBytes[0] < 0) {
-			    vl = (((int) ((int) ((char) DataBytes[0])) * 256) +
-				  (int) (DataBytes[1]));
-			    vl |= 0xF000;
-			}
-			else {
-			    vl = (((int) (DataBytes[0]) << 8) + (int) (DataBytes[1]) & 0xFFFF);
-			    if ((unsigned char) DataBytes[0] > 0x7)
-				vl |= 0xFFFFF000;
-			}
+            case 0x3B:
+                if (ShowSpeed) {
+                    if ((b = GetData(SearchPos + 4)) > 0) {
+                        if ((char) DataBytes[0] < 0) {
+                            vl = (((int) ((int) ((char) DataBytes[0])) * 256) +
+                                  (int) (DataBytes[1]));
+                            vl |= 0xF000;
+                        }
+                        else {
+                            vl = (((int) (DataBytes[0]) << 8) + (int) (DataBytes[1]) & 0xFFFF);
+                            if ((unsigned char) DataBytes[0] > 0x7)
+                                vl |= 0xFFFFF000;
+                        }
 
 //                                                      vl=(((int)(DataBytes[0])<<8)+(int)(DataBytes[1])&0xFFFF);
-			tv = (float) vl;
-			tv *= 30.0f;
-			tv /= 100.0f;
-			vl2 = (ty - 60) - ((int) tv);
-			if (vl2 < 0)
-			    vl2 = 0;
-			vl = (int) ((float) x / 1.5f);
-			if (PrSxT != -1)
-			    DrawLine(TB, PrSxT, PrSyT, vl, vl2, tx, ty, 250, 255, 20);
-			PrSxT = vl;
-			PrSyT = vl2;
-			if (SpeedBase)
-			    ++x;
-		    }
-		}
+                        tv = (float) vl;
+                        tv *= 30.0f;
+                        tv /= 100.0f;
+                        vl2 = (ty - 60) - ((int) tv);
+                        if (vl2 < 0)
+                            vl2 = 0;
+                        vl = (int) ((float) x / 1.5f);
+                        if (PrSxT != -1)
+                            DrawLine(TB, PrSxT, PrSyT, vl, vl2, tx, ty, 250, 255, 20);
+                        PrSxT = vl;
+                        PrSyT = vl2;
+                        if (SpeedBase)
+                            ++x;
+                    }
+                }
 #endif
 
-	    default:
-		if (b == InQ) {
-		    if ((b = GetData(SearchPos + 4)) > 0) {
-			if (DoubleBytes) {
-			    b >>= 1;
-			    for (a = 0; a < b; a++) {
-				if (DataBytesMask[a]) {
-				    if (UseSigned) {
-					if ((char) DataBytes[(a * 2)] < 0) {
-					    vl = (((int) ((int) ((char) DataBytes[(a * 2)])) *
-						   256) + (int) (DataBytes[(a * 2) + 1]));
-					    if (Use12bitSigned)
-						vl |= 0xF000;
-					}
-					else {
-					    vl = (((int) (DataBytes[(a * 2)]) << 8) +
-						  (int) (DataBytes[(a * 2) + 1]) & 0xFFFF);
-					    if (Use12bitSigned) {
-						if ((unsigned char) DataBytes[(a * 2)] > 0x7)
-						    vl |= 0xFFFFF000;
-					    }
-					}
-					if (MinDataValues[a] > vl)
-					    MinDataValues[a] = vl;
-					if (MaxDataValues[a] < vl)
-					    MaxDataValues[a] = vl;
-					vl += DataOffset;
-				    }
-				    else {
-					vl = (((int) (DataBytes[(a * 2)]) << 8) +
-					      (int) (DataBytes[(a * 2) + 1]) & 0xFFFF);
-					if (MinDataValues[a] > vl)
-					    MinDataValues[a] = vl;
-					if (MaxDataValues[a] < vl)
-					    MaxDataValues[a] = vl;
-				    }
-				    tv = (float) vl;
-				    tv *= ZoomVal;
+            default:
+                if (b == InQ) {
+                    if ((b = GetData(SearchPos + 4)) > 0) {
+                        if (DoubleBytes) {
+                            b >>= 1;
+                            for (a = 0; a < b; a++) {
+                                if (DataBytesMask[a]) {
+                                    if (UseSigned) {
+                                        if ((char) DataBytes[(a * 2)] < 0) {
+                                            vl = (((int) ((int) ((char) DataBytes[(a * 2)])) *
+                                                   256) + (int) (DataBytes[(a * 2) + 1]));
+                                            if (Use12bitSigned)
+                                                vl |= 0xF000;
+                                        }
+                                        else {
+                                            vl = (((int) (DataBytes[(a * 2)]) << 8) +
+                                                  (int) (DataBytes[(a * 2) + 1]) & 0xFFFF);
+                                            if (Use12bitSigned) {
+                                                if ((unsigned char) DataBytes[(a * 2)] > 0x7)
+                                                    vl |= 0xFFFFF000;
+                                            }
+                                        }
+                                        if (MinDataValues[a] > vl)
+                                            MinDataValues[a] = vl;
+                                        if (MaxDataValues[a] < vl)
+                                            MaxDataValues[a] = vl;
+                                        vl += DataOffset;
+                                    }
+                                    else {
+                                        vl = (((int) (DataBytes[(a * 2)]) << 8) +
+                                              (int) (DataBytes[(a * 2) + 1]) & 0xFFFF);
+                                        if (MinDataValues[a] > vl)
+                                            MinDataValues[a] = vl;
+                                        if (MaxDataValues[a] < vl)
+                                            MaxDataValues[a] = vl;
+                                    }
+                                    tv = (float) vl;
+                                    tv *= ZoomVal;
 //printf("\nZoomVal = %f",ZoomVal);fflush(stdout);
-				    tv /= 100.0f;
-				    vl2 = (ty - 1) - ((int) tv);
-				    if (vl2 < 0)
-					vl2 = 0;
-				    vl = (int) ((float) x / Divider);
+                                    tv /= 100.0f;
+                                    vl2 = (ty - 1) - ((int) tv);
+                                    if (vl2 < 0)
+                                        vl2 = 0;
+                                    vl = (int) ((float) x / Divider);
 //printf("\nDivider = %f",Divider);fflush(stdout);
-				    if (ShowValueUnderPointerX > 0) {
-					if (ShowValueUnderPointerX <= PrDx[a]) {
-					    printf("\nData = %02x%02x", DataBytes[(a * 2)],
-						   DataBytes[(a * 2 + 1)]);
-					    fflush(stdout);
-					    ShowValueUnderPointerX = -1;
-					}
-				    }
-				    if (PrDx[a] != -1) {
-					switch (LineType) {
-					case 0:
-					    DrawLine(TB, PrDx[a], PrDy[a], vl, vl2, tx, ty,
-						     DataBytesColor[a].R, DataBytesColor[a].G,
-						     DataBytesColor[a].B);
-					    break;
-					case 1:
-					    DrawLine(TB, PrDx[a], PrDy[a], vl, PrDy[a], tx, ty,
-						     DataBytesColor[a].R, DataBytesColor[a].G,
-						     DataBytesColor[a].B);
-					    DrawLine(TB, vl, PrDy[a], vl, vl2, tx, ty,
-						     DataBytesColor[a].R, DataBytesColor[a].G,
-						     DataBytesColor[a].B);
-					    break;
-					case 2:
-					    DrawLine(TB, PrDx[a], PrDy[a], PrDx[a] + 1, PrDy[a], tx,
-						     ty, DataBytesColor[a].R, DataBytesColor[a].G,
-						     DataBytesColor[a].B);
-					    DrawLine(TB, vl + 1, vl2, vl, vl2, tx, ty,
-						     DataBytesColor[a].R, DataBytesColor[a].G,
-						     DataBytesColor[a].B);
-					    break;
-					}
-				    }
-				    PrDx[a] = vl;
-				    PrDy[a] = vl2;
-				}
-			    }
-			}
-			else {
-			    for (a = 0; a < b; a++) {
-				if (DataBytesMask[a]) {
-				    vl = (unsigned int) DataBytes[a];
-				    if (MinDataValues[a] > vl)
-					MinDataValues[a] = vl;
-				    if (MaxDataValues[a] < vl)
-					MaxDataValues[a] = vl;
-				    if (UseSigned)
-					vl2 =
-					    (ty - 1) -
-					    (int) ((float) ((char) DataBytes[a] + 127) * ZoomVal);
-				    else
-					vl2 = (ty - 1) - (int) ((float) (DataBytes[a]) * ZoomVal);
-				    if (vl2 < 0)
-					vl2 = 0;
-				    vl = (int) ((float) x / Divider);
-				    if (ShowValueUnderPointerX > 0) {
-					if (ShowValueUnderPointerX <= PrDx[a]) {
-					    printf("\nData = %02x", DataBytes[a]);
-					    fflush(stdout);
-					    ShowValueUnderPointerX = -1;
-					}
-				    }
-				    if (PrDx[a] != -1) {
-					switch (LineType) {
-					case 0:
-					    DrawLine(TB, PrDx[a], PrDy[a], vl, vl2, tx, ty,
-						     DataBytesColor[a].R, DataBytesColor[a].G,
-						     DataBytesColor[a].B);
-					    break;
-					case 1:
-					    DrawLine(TB, PrDx[a], PrDy[a], vl, PrDy[a], tx, ty,
-						     DataBytesColor[a].R, DataBytesColor[a].G,
-						     DataBytesColor[a].B);
-					    DrawLine(TB, vl, PrDy[a], vl, vl2, tx, ty,
-						     DataBytesColor[a].R, DataBytesColor[a].G,
-						     DataBytesColor[a].B);
-					    break;
-					case 2:
-					    DrawLine(TB, PrDx[a], PrDy[a], PrDx[a] + 1, PrDy[a], tx,
-						     ty, DataBytesColor[a].R, DataBytesColor[a].G,
-						     DataBytesColor[a].B);
-					    DrawLine(TB, vl + 1, vl2, vl, vl2, tx, ty,
-						     DataBytesColor[a].R, DataBytesColor[a].G,
-						     DataBytesColor[a].B);
-					    break;
-					}
-				    }
+                                    if (ShowValueUnderPointerX > 0) {
+                                        if (ShowValueUnderPointerX <= PrDx[a]) {
+                                            printf("\nData = %02x%02x", DataBytes[(a * 2)],
+                                                   DataBytes[(a * 2 + 1)]);
+                                            fflush(stdout);
+                                            ShowValueUnderPointerX = -1;
+                                        }
+                                    }
+                                    if (PrDx[a] != -1) {
+                                        switch (LineType) {
+                                        case 0:
+                                            DrawLine(TB, PrDx[a], PrDy[a], vl, vl2, tx, ty,
+                                                     DataBytesColor[a].R, DataBytesColor[a].G,
+                                                     DataBytesColor[a].B);
+                                            break;
+                                        case 1:
+                                            DrawLine(TB, PrDx[a], PrDy[a], vl, PrDy[a], tx, ty,
+                                                     DataBytesColor[a].R, DataBytesColor[a].G,
+                                                     DataBytesColor[a].B);
+                                            DrawLine(TB, vl, PrDy[a], vl, vl2, tx, ty,
+                                                     DataBytesColor[a].R, DataBytesColor[a].G,
+                                                     DataBytesColor[a].B);
+                                            break;
+                                        case 2:
+                                            DrawLine(TB, PrDx[a], PrDy[a], PrDx[a] + 1, PrDy[a], tx,
+                                                     ty, DataBytesColor[a].R, DataBytesColor[a].G,
+                                                     DataBytesColor[a].B);
+                                            DrawLine(TB, vl + 1, vl2, vl, vl2, tx, ty,
+                                                     DataBytesColor[a].R, DataBytesColor[a].G,
+                                                     DataBytesColor[a].B);
+                                            break;
+                                        }
+                                    }
+                                    PrDx[a] = vl;
+                                    PrDy[a] = vl2;
+                                }
+                            }
+                        }
+                        else {
+                            for (a = 0; a < b; a++) {
+                                if (DataBytesMask[a]) {
+                                    vl = (unsigned int) DataBytes[a];
+                                    if (MinDataValues[a] > vl)
+                                        MinDataValues[a] = vl;
+                                    if (MaxDataValues[a] < vl)
+                                        MaxDataValues[a] = vl;
+                                    if (UseSigned)
+                                        vl2 =
+                                            (ty - 1) -
+                                            (int) ((float) ((char) DataBytes[a] + 127) * ZoomVal);
+                                    else
+                                        vl2 = (ty - 1) - (int) ((float) (DataBytes[a]) * ZoomVal);
+                                    if (vl2 < 0)
+                                        vl2 = 0;
+                                    vl = (int) ((float) x / Divider);
+                                    if (ShowValueUnderPointerX > 0) {
+                                        if (ShowValueUnderPointerX <= PrDx[a]) {
+                                            printf("\nData = %02x", DataBytes[a]);
+                                            fflush(stdout);
+                                            ShowValueUnderPointerX = -1;
+                                        }
+                                    }
+                                    if (PrDx[a] != -1) {
+                                        switch (LineType) {
+                                        case 0:
+                                            DrawLine(TB, PrDx[a], PrDy[a], vl, vl2, tx, ty,
+                                                     DataBytesColor[a].R, DataBytesColor[a].G,
+                                                     DataBytesColor[a].B);
+                                            break;
+                                        case 1:
+                                            DrawLine(TB, PrDx[a], PrDy[a], vl, PrDy[a], tx, ty,
+                                                     DataBytesColor[a].R, DataBytesColor[a].G,
+                                                     DataBytesColor[a].B);
+                                            DrawLine(TB, vl, PrDy[a], vl, vl2, tx, ty,
+                                                     DataBytesColor[a].R, DataBytesColor[a].G,
+                                                     DataBytesColor[a].B);
+                                            break;
+                                        case 2:
+                                            DrawLine(TB, PrDx[a], PrDy[a], PrDx[a] + 1, PrDy[a], tx,
+                                                     ty, DataBytesColor[a].R, DataBytesColor[a].G,
+                                                     DataBytesColor[a].B);
+                                            DrawLine(TB, vl + 1, vl2, vl, vl2, tx, ty,
+                                                     DataBytesColor[a].R, DataBytesColor[a].G,
+                                                     DataBytesColor[a].B);
+                                            break;
+                                        }
+                                    }
 //                                                                              if(PrDx[a]!=-1) DrawLine(TB,PrDx[a],PrDy[a],vl,vl2,tx,ty,DataBytesColor[a].R,DataBytesColor[a].G,DataBytesColor[a].B);
-				    PrDx[a] = vl;
-				    PrDy[a] = vl2;
-				}
-			    }
-			}
-			if (!SpeedBase)
-			    ++x;
-		    }
-		}
-		break;
-	    }
-	}
-	SearchPos += 3;
+                                    PrDx[a] = vl;
+                                    PrDy[a] = vl2;
+                                }
+                            }
+                        }
+                        if (!SpeedBase)
+                            ++x;
+                    }
+                }
+                break;
+            }
+        }
+        SearchPos += 3;
     }
     if (Show0) {
-	vl = 0;
-	if (UseSigned)
-	    vl += DataOffset;
-	tv = (float) vl;
-	tv *= ZoomVal;
-	tv /= 100.0f;
-	vl2 = (ty - 1) - ((int) tv);
-	if (vl2 < 0)
-	    vl2 = 0;
-	DrawLine(TB, 0, vl2, (tx - 1), vl2, tx, ty, 10, 40, 200);
+        vl = 0;
+        if (UseSigned)
+            vl += DataOffset;
+        tv = (float) vl;
+        tv *= ZoomVal;
+        tv /= 100.0f;
+        vl2 = (ty - 1) - ((int) tv);
+        if (vl2 < 0)
+            vl2 = 0;
+        DrawLine(TB, 0, vl2, (tx - 1), vl2, tx, ty, 10, 40, 200);
     }
     if (ShowValueUnderPointerY >= 0) {
-	if (DoubleBytes) {
-	    for (tx = 0; tx < 0xFFFF; tx++) {
-		vl = tx;
-		if (UseSigned) {
-		    if (((char) ((vl >> 8) & 0xFF)) < 0) {
-			if (Use12bitSigned)
-			    vl |= 0xF000;
-		    }
-		    else {
-			if (Use12bitSigned) {
-			    if ((unsigned char) ((vl >> 8) & 0xFF) > 0x7)
-				vl |= 0xFFFFF000;
-			}
-		    }
-		    vl += DataOffset;
-		}
-		tv = (float) vl;
-		tv *= ZoomVal;
-		tv /= 100.0f;
-		vl2 = (ty - 1) - ((int) tv);
-		if (vl2 < 0)
-		    vl2 = 0;
-		if (vl2 == ShowValueUnderPointerY) {
-		    printf("\nPointer at value %04x", tx);
-		    fflush(stdout);
-		    tx = 0xFFFF;
-		}
+        if (DoubleBytes) {
+            for (tx = 0; tx < 0xFFFF; tx++) {
+                vl = tx;
+                if (UseSigned) {
+                    if (((char) ((vl >> 8) & 0xFF)) < 0) {
+                        if (Use12bitSigned)
+                            vl |= 0xF000;
+                    }
+                    else {
+                        if (Use12bitSigned) {
+                            if ((unsigned char) ((vl >> 8) & 0xFF) > 0x7)
+                                vl |= 0xFFFFF000;
+                        }
+                    }
+                    vl += DataOffset;
+                }
+                tv = (float) vl;
+                tv *= ZoomVal;
+                tv /= 100.0f;
+                vl2 = (ty - 1) - ((int) tv);
+                if (vl2 < 0)
+                    vl2 = 0;
+                if (vl2 == ShowValueUnderPointerY) {
+                    printf("\nPointer at value %04x", tx);
+                    fflush(stdout);
+                    tx = 0xFFFF;
+                }
 //printf("%04x:%d:%d ",vl,vl2,ShowValueUnderPointerY);fflush(stdout);
-	    }
-	}
+            }
+        }
     }
 }
 
@@ -970,30 +970,30 @@ ReadFile(void)
     long FileL, n;
 
     if ((fp = fopen(CommandLineBuffer, "r")) != NULL) {
-	fseek(fp, 0L, SEEK_END);
-	FileL = ftell(fp);
-	fseek(fp, 0L, SEEK_SET);
-	if ((FileBuffer = (char *) malloc((size_t) (FileL + 2))) != NULL) {
-	    if (fread(FileBuffer, (size_t) sizeof(char), (size_t) FileL, fp) != FileL) {
-		fseek(fp, 0L, SEEK_SET);
-		n = 0;
-		while (n < FileL) {
-		    FileBuffer[n] = (char) fgetc(fp);
-		    ++n;
-		}
-	    }
-	    fclose(fp);
-	    FileBuffer[FileL] = '\0';
-	}
-	else {
-	    fclose(fp);
-	    fp = NULL;
-	    return (1);
-	}
+        fseek(fp, 0L, SEEK_END);
+        FileL = ftell(fp);
+        fseek(fp, 0L, SEEK_SET);
+        if ((FileBuffer = (char *) malloc((size_t) (FileL + 2))) != NULL) {
+            if (fread(FileBuffer, (size_t) sizeof(char), (size_t) FileL, fp) != FileL) {
+                fseek(fp, 0L, SEEK_SET);
+                n = 0;
+                while (n < FileL) {
+                    FileBuffer[n] = (char) fgetc(fp);
+                    ++n;
+                }
+            }
+            fclose(fp);
+            FileBuffer[FileL] = '\0';
+        }
+        else {
+            fclose(fp);
+            fp = NULL;
+            return (1);
+        }
     }
     else {
-	fp = NULL;
-	return (1);
+        fp = NULL;
+        return (1);
     }
     BufferLength = (unsigned int) FileL;
 
@@ -1047,208 +1047,208 @@ MiscellaneousKey(int modi, unsigned char key)
 {
     int b;
 
-    if (key == 27)		// esc
+    if (key == 27)              // esc
     {
-	ActiveButton = -1;
-	DrawButtons();
-	CopyDisplayBufferToScreen(0, 0, DisplayWidth, DisplayHeight);
-	MyImages[SelectedImage].ScaleTargetWidth = -1;
-	MyImages[SelectedImage].ScaleTargetHeight = -1;
-	MyImages[SelectedImage].CropTargetStartX = -1;
-	MyImages[SelectedImage].CropTargetStartY = -1;
-	MyImages[SelectedImage].OriginalX = MyImages[SelectedImage].X;
-	MyImages[SelectedImage].OriginalY = MyImages[SelectedImage].Y;
-	MyImages[SelectedImage].ScaleX = (float) 1.0;
-	MyImages[SelectedImage].ScaleY = (float) 1.0;
-	UpdateImageToOriginal(SelectedImage);
-	ClearWorkBuffer();
-	CopyImagesToWorkBuffer();
-	CopyWorkBufferToScreen();
-	if (FileBuffer != NULL)
-	    free(FileBuffer);
-	FileBuffer = NULL;
-	if (Messages != NULL)
-	    free(Messages);
-	Messages = NULL;
-	return (1);
+        ActiveButton = -1;
+        DrawButtons();
+        CopyDisplayBufferToScreen(0, 0, DisplayWidth, DisplayHeight);
+        MyImages[SelectedImage].ScaleTargetWidth = -1;
+        MyImages[SelectedImage].ScaleTargetHeight = -1;
+        MyImages[SelectedImage].CropTargetStartX = -1;
+        MyImages[SelectedImage].CropTargetStartY = -1;
+        MyImages[SelectedImage].OriginalX = MyImages[SelectedImage].X;
+        MyImages[SelectedImage].OriginalY = MyImages[SelectedImage].Y;
+        MyImages[SelectedImage].ScaleX = (float) 1.0;
+        MyImages[SelectedImage].ScaleY = (float) 1.0;
+        UpdateImageToOriginal(SelectedImage);
+        ClearWorkBuffer();
+        CopyImagesToWorkBuffer();
+        CopyWorkBufferToScreen();
+        if (FileBuffer != NULL)
+            free(FileBuffer);
+        FileBuffer = NULL;
+        if (Messages != NULL)
+            free(Messages);
+        Messages = NULL;
+        return (1);
     }
     else {
-	b = 0;
-	switch (key) {
-	case SK_LFAR:
-	    if (MessageID > 0)
-		--MessageID;
-	    b = 1;
-	    break;
-	case SK_RIAR:
-	    ++MessageID;
-	    if (Messages[MessageID].ID == 0)
-		--MessageID;
-	    b = 1;
-	    break;
-	case SK_DNAR:
-	    switch (modi) {
-	    case KM_SHIFT:
-		SZoomVal /= 1.3f;
-		break;
-	    case KM_NONE:
-		ZoomVal /= 1.3f;
-		break;
-	    case KM_CTRL:
-		DataOffset -= 0x100;
-		break;
-	    case KM_CTRL + KM_SHIFT:
-		DataOffset -= 0x1000;
-		break;
-	    }
-	    b = 1;
-	    break;
-	case SK_UPAR:
-	    switch (modi) {
-	    case KM_SHIFT:
-		SZoomVal *= 1.3f;
-		break;
-	    case KM_NONE:
-		ZoomVal *= 1.3f;
-		break;
-	    case KM_CTRL:
-		DataOffset += 0x100;
-		break;
-	    case KM_CTRL + KM_SHIFT:
-		DataOffset += 0x1000;
-		break;
-	    }
-	    b = 1;
-	    break;
-	case SK_HOME:
-	    ZoomVal = 1.0f;
-	    SZoomVal = 1.0f;
-	    DZoomVal = 1.0f;
-	    DShiftVal = 0.0f;
-	    b = 1;
-	    break;
+        b = 0;
+        switch (key) {
+        case SK_LFAR:
+            if (MessageID > 0)
+                --MessageID;
+            b = 1;
+            break;
+        case SK_RIAR:
+            ++MessageID;
+            if (Messages[MessageID].ID == 0)
+                --MessageID;
+            b = 1;
+            break;
+        case SK_DNAR:
+            switch (modi) {
+            case KM_SHIFT:
+                SZoomVal /= 1.3f;
+                break;
+            case KM_NONE:
+                ZoomVal /= 1.3f;
+                break;
+            case KM_CTRL:
+                DataOffset -= 0x100;
+                break;
+            case KM_CTRL + KM_SHIFT:
+                DataOffset -= 0x1000;
+                break;
+            }
+            b = 1;
+            break;
+        case SK_UPAR:
+            switch (modi) {
+            case KM_SHIFT:
+                SZoomVal *= 1.3f;
+                break;
+            case KM_NONE:
+                ZoomVal *= 1.3f;
+                break;
+            case KM_CTRL:
+                DataOffset += 0x100;
+                break;
+            case KM_CTRL + KM_SHIFT:
+                DataOffset += 0x1000;
+                break;
+            }
+            b = 1;
+            break;
+        case SK_HOME:
+            ZoomVal = 1.0f;
+            SZoomVal = 1.0f;
+            DZoomVal = 1.0f;
+            DShiftVal = 0.0f;
+            b = 1;
+            break;
 
-	case '<':
-	    if ((DShiftVal -= 0.05f) < 0.001f)
-		DShiftVal = 0.0f;
-	    b = 1;
-	    break;
+        case '<':
+            if ((DShiftVal -= 0.05f) < 0.001f)
+                DShiftVal = 0.0f;
+            b = 1;
+            break;
 
-	case '>':
-	    if ((DShiftVal += 0.05f) > 0.95f)
-		DShiftVal = 0.95f;
-	    b = 1;
-	    break;
+        case '>':
+            if ((DShiftVal += 0.05f) > 0.95f)
+                DShiftVal = 0.95f;
+            b = 1;
+            break;
 
-	case ',':
-	    if ((DZoomVal *= 1.5f) > 2.0f)
-		DZoomVal = 2.0f;
-	    b = 1;
-	    break;
+        case ',':
+            if ((DZoomVal *= 1.5f) > 2.0f)
+                DZoomVal = 2.0f;
+            b = 1;
+            break;
 
-	case '.':
-	    if ((DZoomVal /= 1.5f) < 0.005f)
-		DZoomVal = 0.005f;
-	    b = 1;
-	    break;
+        case '.':
+            if ((DZoomVal /= 1.5f) < 0.005f)
+                DZoomVal = 0.005f;
+            b = 1;
+            break;
 
-	case 'h':
-	    PrintKeyUsage();
-	    break;
+        case 'h':
+            PrintKeyUsage();
+            break;
 
-	case '?':
-	    for (b = 0; Messages[b].ID != 0; b++)
-		printf("\n%3x = %d", Messages[b].ID, Messages[b].Occurance);
-	    printf("\n\n%03x ID data ranges : ", MessageID);
-	    for (b = 0; b < 8; b++) {
-		printf("\n\t#%d. : %x - %x", b, MinDataValues[b], MaxDataValues[b]);
-	    }
-	    fflush(stdout);
-	    b = 1;
-	    break;
-	case '`':
-	    if (++NoSignumDraw > 1)
-		NoSignumDraw = 0;
-	    b = 1;
-	    break;
-	case 'd':
-	    if (++DoubleBytes > 1)
-		DoubleBytes = 0;
-	    b = 1;
-	    break;
-	case 's':
-	    if (++ShowSpeed > 1)
-		ShowSpeed = 0;
-	    b = 1;
-	    break;
-	case '-':
-	    if (++UseSigned > 1)
-		UseSigned = 0;
-	    b = 1;
-	    break;
-	case '=':
-	    if (++Use12bitSigned > 1)
-		Use12bitSigned = 0;
-	    b = 1;
-	    break;
-	case 't':
-	    if (++LineType > 2)
-		LineType = 0;
-	    b = 1;
-	    break;
-	case 'k':
-	    if (++ShowKeys > 1)
-		ShowKeys = 0;
-	    b = 1;
-	    break;
-	case '0':
-	    if (++Show0 > 1)
-		Show0 = 0;
-	    b = 1;
-	    break;
-	case 'p':
-	    ShowValueUnderPointerX = MyImages[SelectedImage].HotPosX;
-	    ShowValueUnderPointerY = MyImages[SelectedImage].HotPosY;
-	    b = 1;
-	    break;
-	case '1':
-	case '2':
-	case '3':
-	case '4':
-	case '5':
-	case '6':
-	case '7':
-	case '8':
-	    if (++DataBytesMask[key - '1'] > 1)
-		DataBytesMask[key - '1'] = 0;
-	    b = 1;
-	    break;
+        case '?':
+            for (b = 0; Messages[b].ID != 0; b++)
+                printf("\n%3x = %d", Messages[b].ID, Messages[b].Occurance);
+            printf("\n\n%03x ID data ranges : ", MessageID);
+            for (b = 0; b < 8; b++) {
+                printf("\n\t#%d. : %x - %x", b, MinDataValues[b], MaxDataValues[b]);
+            }
+            fflush(stdout);
+            b = 1;
+            break;
+        case '`':
+            if (++NoSignumDraw > 1)
+                NoSignumDraw = 0;
+            b = 1;
+            break;
+        case 'd':
+            if (++DoubleBytes > 1)
+                DoubleBytes = 0;
+            b = 1;
+            break;
+        case 's':
+            if (++ShowSpeed > 1)
+                ShowSpeed = 0;
+            b = 1;
+            break;
+        case '-':
+            if (++UseSigned > 1)
+                UseSigned = 0;
+            b = 1;
+            break;
+        case '=':
+            if (++Use12bitSigned > 1)
+                Use12bitSigned = 0;
+            b = 1;
+            break;
+        case 't':
+            if (++LineType > 2)
+                LineType = 0;
+            b = 1;
+            break;
+        case 'k':
+            if (++ShowKeys > 1)
+                ShowKeys = 0;
+            b = 1;
+            break;
+        case '0':
+            if (++Show0 > 1)
+                Show0 = 0;
+            b = 1;
+            break;
+        case 'p':
+            ShowValueUnderPointerX = MyImages[SelectedImage].HotPosX;
+            ShowValueUnderPointerY = MyImages[SelectedImage].HotPosY;
+            b = 1;
+            break;
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+            if (++DataBytesMask[key - '1'] > 1)
+                DataBytesMask[key - '1'] = 0;
+            b = 1;
+            break;
 
-	case 32:		// SPACE to see
-	case 13:		// return to accept and terminate
-	    ProcessImage();
-	    MoveImageModifiedToOriginal(SelectedImage);
-	    UpdateImageToOriginal(SelectedImage);
-	    ClearWorkBuffer();
-	    CopyImagesToWorkBuffer();
-	    b = 1;
-	    break;
-	}
+        case 32:               // SPACE to see
+        case 13:               // return to accept and terminate
+            ProcessImage();
+            MoveImageModifiedToOriginal(SelectedImage);
+            UpdateImageToOriginal(SelectedImage);
+            ClearWorkBuffer();
+            CopyImagesToWorkBuffer();
+            b = 1;
+            break;
+        }
 
-	if (b) {
-	    GR_DrawFillRectangle((int) ((DisplayWidth >> 1) - 140), (WorkHeight + 10),
-				 (int) ((DisplayWidth >> 1) + 140), (WorkHeight + 26), 0, BKG_R,
-				 BKG_G, BKG_B);
-	    sprintf(TmpBuffer,
-		    "PresentID : %03x [%d] ( %d )  Z:%1.1f D:%01d %01d%01d%01d%01d%01d%01d%01d%01d",
-		    Messages[MessageID].ID, Messages[MessageID].BL, Messages[MessageID].Occurance,
-		    ZoomVal, DoubleBytes, DataBytesMask[0], DataBytesMask[1], DataBytesMask[2],
-		    DataBytesMask[3], DataBytesMask[4], DataBytesMask[5], DataBytesMask[6],
-		    DataBytesMask[7]);
-	    b = GetMyStringLength(TmpBuffer, 0, 1);
-	    PutMyString(TmpBuffer, ((int) (DisplayWidth - b) >> 1), (WorkHeight + 14), 0, 1);
-	    CopyDisplayBufferToScreen(0, 0, DisplayWidth, DisplayHeight);
-	}
+        if (b) {
+            GR_DrawFillRectangle((int) ((DisplayWidth >> 1) - 140), (WorkHeight + 10),
+                                 (int) ((DisplayWidth >> 1) + 140), (WorkHeight + 26), 0, BKG_R,
+                                 BKG_G, BKG_B);
+            sprintf(TmpBuffer,
+                    "PresentID : %03x [%d] ( %d )  Z:%1.1f D:%01d %01d%01d%01d%01d%01d%01d%01d%01d",
+                    Messages[MessageID].ID, Messages[MessageID].BL, Messages[MessageID].Occurance,
+                    ZoomVal, DoubleBytes, DataBytesMask[0], DataBytesMask[1], DataBytesMask[2],
+                    DataBytesMask[3], DataBytesMask[4], DataBytesMask[5], DataBytesMask[6],
+                    DataBytesMask[7]);
+            b = GetMyStringLength(TmpBuffer, 0, 1);
+            PutMyString(TmpBuffer, ((int) (DisplayWidth - b) >> 1), (WorkHeight + 14), 0, 1);
+            CopyDisplayBufferToScreen(0, 0, DisplayWidth, DisplayHeight);
+        }
     }
     return (b);
 }
@@ -1265,8 +1265,8 @@ MiscellaneousButton(void *Data)
     ClearWorkBuffer();
     CopyImagesToWorkBuffer();
     GR_DrawFillRectangle((int) ((DisplayWidth >> 1) - 120), (WorkHeight - 22),
-			 (int) ((DisplayWidth >> 1) + 120), (WorkHeight - 6), 0, BKG_R, BKG_G,
-			 BKG_B);
+                         (int) ((DisplayWidth >> 1) + 120), (WorkHeight - 6), 0, BKG_R, BKG_G,
+                         BKG_B);
     sprintf(TmpBuffer, "Now analysing...");
     b = GetMyStringLength(TmpBuffer, 0, 1);
     PutMyString(TmpBuffer, ((int) (DisplayWidth - b) >> 1), (WorkHeight - 18), 0, 1);
@@ -1276,32 +1276,32 @@ MiscellaneousButton(void *Data)
     printf("\n Working with file '%s'.", CommandLineBuffer);
     fflush(stdout);
     if (ReadFile()) {
-	printf("Error Reading...");
-	fflush(stdout);
-	ActiveButton = -1;
-	DrawButtons();
+        printf("Error Reading...");
+        fflush(stdout);
+        ActiveButton = -1;
+        DrawButtons();
     }
     else {
-	PrintKeyUsage();
-	MyImages[SelectedImage].X = 10;
-	MyImages[SelectedImage].Y = 10;
-	MyImages[SelectedImage].ModifiedX = MyImages[SelectedImage].X;
-	MyImages[SelectedImage].ModifiedY = MyImages[SelectedImage].Y;
-	ProcessImage();
-	UpdateImageToModified(SelectedImage);
-	ClearWorkBuffer();
-	CopyImagesToWorkBuffer();
-	CopyWorkBufferToScreen();
+        PrintKeyUsage();
+        MyImages[SelectedImage].X = 10;
+        MyImages[SelectedImage].Y = 10;
+        MyImages[SelectedImage].ModifiedX = MyImages[SelectedImage].X;
+        MyImages[SelectedImage].ModifiedY = MyImages[SelectedImage].Y;
+        ProcessImage();
+        UpdateImageToModified(SelectedImage);
+        ClearWorkBuffer();
+        CopyImagesToWorkBuffer();
+        CopyWorkBufferToScreen();
     }
 
     GR_DrawFillRectangle((int) ((DisplayWidth >> 1) - 140), (WorkHeight + 10),
-			 (int) ((DisplayWidth >> 1) + 140), (WorkHeight + 26), 0, BKG_R, BKG_G,
-			 BKG_B);
+                         (int) ((DisplayWidth >> 1) + 140), (WorkHeight + 26), 0, BKG_R, BKG_G,
+                         BKG_B);
     sprintf(TmpBuffer,
-	    "PresentID : %03x [%d] ( %d )  Z:%1.1f D:%01d %01d%01d%01d%01d%01d%01d%01d%01d",
-	    Messages[MessageID].ID, Messages[MessageID].BL, Messages[MessageID].Occurance, ZoomVal,
-	    DoubleBytes, DataBytesMask[0], DataBytesMask[1], DataBytesMask[2], DataBytesMask[3],
-	    DataBytesMask[4], DataBytesMask[5], DataBytesMask[6], DataBytesMask[7]);
+            "PresentID : %03x [%d] ( %d )  Z:%1.1f D:%01d %01d%01d%01d%01d%01d%01d%01d%01d",
+            Messages[MessageID].ID, Messages[MessageID].BL, Messages[MessageID].Occurance, ZoomVal,
+            DoubleBytes, DataBytesMask[0], DataBytesMask[1], DataBytesMask[2], DataBytesMask[3],
+            DataBytesMask[4], DataBytesMask[5], DataBytesMask[6], DataBytesMask[7]);
     b = GetMyStringLength(TmpBuffer, 0, 1);
     PutMyString(TmpBuffer, ((int) (DisplayWidth - b) >> 1), (WorkHeight + 14), 0, 1);
     CopyDisplayBufferToScreen(0, 0, DisplayWidth, DisplayHeight);
