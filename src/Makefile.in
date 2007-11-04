@@ -34,7 +34,9 @@ canvis/canvis: $(X11OBJ) $(CANVIS_OBJS)
 graphcan: graphcan/graphcan graphcan/graphcanz
 
 # graphcan, X11 version
-GRAPHCAN_OBJS = graphcan/graphcan.o graphcan/fonts.o graphcan/images.o
+GRAPHCAN_OBJS = graphcan/graphcan.o graphcan/fonts.o graphcan/images.o graphcan/xwin.o
+graphcan/xwin.o: graphcan/xwin.c
+	$(CC) $(CFLAGS) -Igraphcan -o $@ -c $<
 graphcan/images.o: graphcan/images.c
 	$(CC) $(CFLAGS) -Igraphcan -o $@ -c $<
 graphcan/fonts.o: graphcan/fonts.c graphcan/fonts.h
