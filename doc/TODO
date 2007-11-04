@@ -1,0 +1,6 @@
+
+graphcan
+========
+
+* Add support for the standard PHEV messages, as described by 
+  http://hybrids-plus.com/pmwiki/index.php?n=Ext.PHEVStandards
