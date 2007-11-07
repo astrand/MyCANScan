@@ -21,8 +21,6 @@
 
 /*
 
-MPG -> L/100km         10 mpg = 16km/3.78l  =>  1.6km/G 1.6km/3.78l => 0.42328f
-
 DEFAULT :
 Working with ACR = 07202000   AMR = 004FDFEF
 0x03B 0x120 0x348 0x34F 0x3C8 0x3C9 0x3CA 0x3CB 0x3CD 0x3CF 0x520 0x521 0x526 0x527 0x528 0x529
@@ -303,6 +301,19 @@ void ClearDisplayBuffer(void);
 unsigned char MineChar(int);
 void UpdateCatTemp(void);
 unsigned int MineUInt(int Position);
+
+// All numbers valid for US gallons
+float
+MpgToKmpl(float mpg)
+{
+    return mpg * 0.2641721 * 1.609344;
+}
+
+float
+MpgToFromLp100km(float val)
+{
+    return (3.7854118 / 1.609344 * 100) / val;
+}
 
 #define	NUM_BUTTONS	16      // 320:5   430:125   540:245   540:365   ->  300:30   400:140  500:260  500:370
 #define	BU_XST		320
@@ -938,8 +949,7 @@ SS_Stats(void)
     else
         DistanceTravelled = 0;
     if (SI_Measurements)
-        sprintf(Message, "Dist= %1.1f      Cons.= %2.1f km/l", (DistanceTravelled),
-                (MPG * 0.42328f));
+        sprintf(Message, "Dist= %1.1f      Cons.= %2.1f km/l", (DistanceTravelled), MpgToKmpl(MPG));
     else
         sprintf(Message, "Dist= %1.1f miles     MPG= %2.1f W", (DistanceTravelled * 0.625f), MPG);
     c = GetMyStringLength(Message, 1, 3);
@@ -1005,7 +1015,7 @@ SS_Stats(void)
          (MPG * DistanceTravelled)) / (MeasurementKilometers + DistanceTravelled);
     if (SI_Measurements)
         sprintf(Message, "%d km = %2.1f km/l",
-                (int) ((MeasurementKilometers + DistanceTravelled) + 0.5f), (ThrottleV * 0.42328f));
+                (int) ((MeasurementKilometers + DistanceTravelled) + 0.5f), MpgToKmpl(ThrottleV));
     else
         sprintf(Message, "%d Miles = %2.1f W",
                 (int) (((MeasurementKilometers + DistanceTravelled) * 0.625f) + 0.5f), ThrottleV);
@@ -2933,7 +2943,7 @@ UpdateSpeedComputations(void)
         MPG = (float) ((SpeedV * (float) SPDSCALER_MILE) / ThrottleV);
         if (MPG < 99.99f) {
             if (SI_Measurements)
-                sprintf(Message, "%2.1f km/l", (MPG * 0.42328f));       // Current km/l
+                sprintf(Message, "%2.1f km/l", MpgToKmpl(MPG)); // Current km/l
             else
                 sprintf(Message, "%2.1f MPG", MPG);     // Current MPG
             c = GetMyStringLength(Message, 1, 3);
@@ -2943,7 +2953,7 @@ UpdateSpeedComputations(void)
             if (MPG > 99999.9f)
                 MPG = 99999.9f;
             if (SI_Measurements)
-                sprintf(Message, "%2.1f km/l", (MPG * 0.42328f));
+                sprintf(Message, "%2.1f km/l", MpgToKmpl(MPG));
             else
                 sprintf(Message, "%2.1f MPG", MPG);
             c = GetMyStringLength(Message, 1, 2);
@@ -3001,7 +3011,7 @@ UpdateSpeedComputations(void)
     switch (ValueSwitch) {
     case 0:
         if (SI_Measurements)
-            sprintf(Message, "%2.1f km/l", (MPG * 0.42328f));   // Accumulated km/l on this trip
+            sprintf(Message, "%2.1f km/l", MpgToKmpl(MPG));     // Accumulated km/l on this trip
         else
             sprintf(Message, "%2.1f MPG", MPG); // Accumulated MPG on this trip
         break;
@@ -3034,7 +3044,7 @@ UpdateSpeedComputations(void)
          (MPG * DistanceTravelled)) / (MeasurementKilometers + DistanceTravelled);
     if (SI_Measurements)
         sprintf(Message, "%d km=%2.1f km/l",
-                (int) ((MeasurementKilometers + DistanceTravelled) + 0.5f), (ThrottleV * 0.42328f));
+                (int) ((MeasurementKilometers + DistanceTravelled) + 0.5f), MpgToKmpl(ThrottleV));
     else
         sprintf(Message, "%d M=%2.1f W",
                 (int) (((MeasurementKilometers + DistanceTravelled) * 0.625f) + 0.5f), ThrottleV);
