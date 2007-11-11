@@ -71,20 +71,10 @@ UICreateWindow()
 {
     int c;
 
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'M';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
     fbfd = open("/dev/fb0", O_RDWR);    // Open the file for reading and writing
     if (!fbfd) {
         printf("Error: cannot open framebuffer device.\n");
         close(fbfd);
-#ifdef TRACE_IT
-        TrBu[TrBuPtr] = 'm';
-        if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-            TrBuPtr = 0;
-#endif
         return (-1);
     }
 
@@ -92,11 +82,6 @@ UICreateWindow()
     if (ioctl(fbfd, FBIOGET_FSCREENINFO, &finfo))       // Get fixed screen information
     {
         printf("Error reading framebuffer fixed information.\n");
-#ifdef TRACE_IT
-        TrBu[TrBuPtr] = 'm';
-        if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-            TrBuPtr = 0;
-#endif
         close(fbfd);
         return (-2);
     }
@@ -106,11 +91,6 @@ UICreateWindow()
     {
         printf("Error reading framebuffer variable information.\n");
         close(fbfd);
-#ifdef TRACE_IT
-        TrBu[TrBuPtr] = 'm';
-        if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-            TrBuPtr = 0;
-#endif
         return (-3);
     }
 
@@ -121,11 +101,6 @@ UICreateWindow()
         printf("%dx%d, %dbpp offs:%d:%d  llng:%d\n", vinfo.xres, vinfo.yres, vinfo.bits_per_pixel,
                vinfo.xoffset, vinfo.yoffset, finfo.line_length);
         close(fbfd);
-#ifdef TRACE_IT
-        TrBu[TrBuPtr] = 'm';
-        if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-            TrBuPtr = 0;
-#endif
         return (-4);
     }
 
@@ -137,11 +112,6 @@ UICreateWindow()
     if ((int) fbp == -1) {
         printf("Error: failed to map framebuffer device to memory.\n");
         close(fbfd);
-#ifdef TRACE_IT
-        TrBu[TrBuPtr] = 'm';
-        if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-            TrBuPtr = 0;
-#endif
         return (-5);
     }
 
@@ -149,11 +119,6 @@ UICreateWindow()
         printf("Error: failed to allocate Workdata buffer.\n");
         munmap(fbp, screensize);
         close(fbfd);
-#ifdef TRACE_IT
-        TrBu[TrBuPtr] = 'm';
-        if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-            TrBuPtr = 0;
-#endif
         return (-6);
     }
 
@@ -164,19 +129,8 @@ UICreateWindow()
         free((void *) WorkData);
         munmap(fbp, screensize);
         close(fbfd);
-#ifdef TRACE_IT
-        TrBu[TrBuPtr] = 'm';
-        if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-            TrBuPtr = 0;
-#endif
         return (-7);
     }
-
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'm';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
 
 // NOW SET UP TOUCHSCREEN               45:45  560:45  45:445   560:445
 
@@ -215,12 +169,6 @@ UICopyDisplayBufferToScreen(int x, int y, int w, int h)
     register unsigned short int *TmpWrk = (unsigned short *) WorkData;
     register int a, b, c, d, wx = x, wy = y, wh = (h + y), ww = (x + w);
 
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'D';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
-
     for (b = wy; b < wh; b++) {
         c = wx + b * WIDTH;
         for (a = wx; a < ww; a++) {
@@ -245,12 +193,6 @@ UICopyDisplayBufferToScreen(int x, int y, int w, int h)
             ++d;
         }
     }
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'd';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
-
 }
 
 
@@ -259,11 +201,6 @@ UICleanUp(int vis)
 {
     if (fbfd != -1) {
         munmap(fbp, screensize);
-#ifdef TRACE_IT
-        TrBu[TrBuPtr] = '6';
-        if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-            TrBuPtr = 0;
-#endif
         close(fbfd);
         fbfd = -1;
     }

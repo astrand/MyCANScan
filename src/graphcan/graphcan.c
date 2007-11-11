@@ -63,7 +63,6 @@
 #endif // NON_ZAURUS
 
 //#define       COMM_DEBUG              1
-//#define       TRACE_IT                1
 //#define       TRAFFIC_PROFILE         1
 //#define       MORE_DATA               1
 
@@ -193,48 +192,10 @@ struct termios oldT, newT;
 int touch_screen_fd = -1;
 #endif
 
-#ifdef TRACE_IT
-
-#define	TRACE_BUFFER_LENGTH	1024
-char TrBu[TRACE_BUFFER_LENGTH];
-unsigned int TrBuPtr = 0;
-
-#endif
-
 #include "fonts.h"
 extern char Font_Map[FONTMAP_HEIGHT][FONTMAP_WIDTH];
 extern fontmetrics bignumbers[];
 extern fontmetrics fonts[];
-
-/*
-SetUpCAN			A
-UpdateSOC			B
-CleanUp				C
-UICopyDisplayBufferToScreen	D
-UpdateCurrent			E
-TransferFont			F
-UpdateGG			G
-UpdateSpeedComputations		H
-SetUpMySignals			I
-UpdateTemp			J
-UpdateCatTemp			K
-Poll				L
-CreateMainWindow		M
-GetMyStringLength		N
-OpenAndConfigurePort		O
-ProcessSigIo			P
-MineChar			Q
-UpdateRpm			R
-PutMyString			S
-ClearDisplayBuffer		T
-MineUInt			U
-UpdateDriveMode			V
-WriteToPort			W
-IntReXSigCatch			X
-SetUpPicture			Y
-FastPoll			<>
-AnalyseHighCANMessages		-+
-*/
 
 unsigned char MaxCurrentValues[50][9];  // for every 2 km/h value record max generated current in Amps, also 40/45/50/55/60/65/70/75/80%
 
@@ -548,32 +509,10 @@ Poll(void)
 {
     register int a, b, c, d, ret, go = 1;
 
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'L';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
-
     if (IBCP >= IBS) {
-#ifdef TRACE_IT
-        TrBu[TrBuPtr] = 'l';
-        if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-            TrBuPtr = 0;
-        TrBu[TrBuPtr] = '1';
-        if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-            TrBuPtr = 0;
-#endif
         return (0);
     }
     if ((ret = read(Port, IB + IBCP, (IBS - IBCP))) < 1) {
-#ifdef TRACE_IT
-        TrBu[TrBuPtr] = 'l';
-        if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-            TrBuPtr = 0;
-        TrBu[TrBuPtr] = '2';
-        if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-            TrBuPtr = 0;
-#endif
         return (0);
     }
     IBCP += ret;
@@ -724,11 +663,6 @@ Poll(void)
     fflush(stdout);
 #endif
 
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'l';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
     return (ret);
 }
 
@@ -1408,12 +1342,6 @@ WriteToPort(char *ZTV)
     register int nofbytes, written, startpoz, looping;
     int reva = 0;
 
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'W';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
-
     if (Simulation) {
         return 1;
     }
@@ -1442,12 +1370,6 @@ WriteToPort(char *ZTV)
 
 //      tcflush(Port,TCOFLUSH);
 
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'w';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
-
     return (reva);
 }
 
@@ -1457,11 +1379,6 @@ OpenAndConfigurePort(void)
 {
 
     struct termios newio;
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'O';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
 
 #ifdef COMM_DEBUG
     printf("\nOpening port on %s.", DEVICE);
@@ -1471,11 +1388,6 @@ OpenAndConfigurePort(void)
         if ((Port = open(DEVICE, O_RDWR | O_NOCTTY)) < 0) {
             printf("\nError Opening Serialport ( %s ) : '%s'", DEVICE, strerror(errno));
             fflush(stdout);
-#ifdef TRACE_IT
-            TrBu[TrBuPtr] = 'o';
-            if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-                TrBuPtr = 0;
-#endif
             return (1);
         }
     }
@@ -1490,22 +1402,12 @@ OpenAndConfigurePort(void)
         printf("Error setting serial input baud rate\n");
         close(Port);
         Port = -1;
-#ifdef TRACE_IT
-        TrBu[TrBuPtr] = 'o';
-        if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-            TrBuPtr = 0;
-#endif
         return (1);
     }
     if (cfsetospeed(&newio, BAUD) == -1) {
         printf("Error setting serial output baud rate\n");
         close(Port);
         Port = -1;
-#ifdef TRACE_IT
-        TrBu[TrBuPtr] = 'o';
-        if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-            TrBuPtr = 0;
-#endif
         return (1);
     }
     tcflush(Port, TCIFLUSH);
@@ -1513,19 +1415,9 @@ OpenAndConfigurePort(void)
         printf("Error setting terminal attributes\n");
         close(Port);
         Port = -1;
-#ifdef TRACE_IT
-        TrBu[TrBuPtr] = 'o';
-        if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-            TrBuPtr = 0;
-#endif
         return (1);
     }
 
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'o';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
     return (0);
 }
 
@@ -1535,22 +1427,11 @@ SetUpCAN(void)
 {
     int to;
 
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'A';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
-
     if (IB == NULL) {
         IBS = 16 * 1024;
         if ((IB = (char *) malloc((size_t) IBS)) == NULL) {
             printf("\n\nCan not allocate buffer with %d size...", IBS);
             fflush(stdout);
-#ifdef TRACE_IT
-            TrBu[TrBuPtr] = 'a';
-            if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-                TrBuPtr = 0;
-#endif
             return (0);
         }
     }
@@ -1567,11 +1448,6 @@ SetUpCAN(void)
 
 //printf("\nCalling OACPort");fflush(stdout);
     if (OpenAndConfigurePort()) {
-#ifdef TRACE_IT
-        TrBu[TrBuPtr] = 'a';
-        if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-            TrBuPtr = 0;
-#endif
         printf(" -> Zero");
         fflush(stdout);
         return (0);
@@ -1747,66 +1623,14 @@ SetUpCAN(void)
 
 //printf("\nChannel opened.");fflush(stdout);
 
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'a';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
     return (1);
 }
 
-
-#ifdef TRACE_IT
-
-int NoTD = 0;
-
-void
-DumpTraceBuffer(void)
-{
-    FILE *fp;
-    int a;
-
-    if (NoTD > 10)
-        return;                 // No more dumping
-    ++NoTD;
-//      if((fp=fopen("Trace.txt","a"))==NULL)
-    if (1) {
-        printf("\nTB : ");
-        for (a = (TrBuPtr + 1); a < TRACE_BUFFER_LENGTH; a++)
-            printf("%c", TrBu[a]);
-        for (a = 0; a < TrBuPtr; a++)
-            printf("%c", TrBu[a]);
-        fflush(stdout);
-    }
-    else {
-        fprintf(fp, "\nTB : ");
-        for (a = (TrBuPtr + 1); a < TRACE_BUFFER_LENGTH; a++)
-            fprintf(fp, "%c", TrBu[a]);
-        for (a = 0; a < TrBuPtr; a++)
-            fprintf(fp, "%c", TrBu[a]);
-        fflush(fp);
-        fclose(fp);
-    }
-}
-#endif
 
 void
 CleanUp(int vis)
 {
     UICleanUp(vis);
-
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'C';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-    DumpTraceBuffer();
-#endif
-
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = '1';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
 
     if (!Simulation && Port >= 0) {
         sprintf(Message, "C\015");      // Close the CAN channel
@@ -1818,66 +1642,30 @@ CleanUp(int vis)
         Port = -1;
     }
 
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = '2';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
     if (IB != NULL) {
         free((void *) IB);
         IB = NULL;
     }
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = '3';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
+
     if (ImageBuffer != NULL) {
         free((void *) ImageBuffer);
         ImageBuffer = NULL;
     }
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = '4';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
+
     if (WorkData != NULL) {
         free((void *) WorkData);
         WorkData = NULL;
     }
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = '5';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
 
 #ifdef USE_TOUCHSCREEN
     if (touch_screen_fd >= 0)
         close(touch_screen_fd);
 #endif
 
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = '7';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
-
 #ifdef USE_KEYBOARD
     ioctl(0, TCSETS, &oldT);
 #endif
 
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = '8';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
-
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'c';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-    DumpTraceBuffer();
-#endif
 }
 
 
@@ -2130,13 +1918,6 @@ TransferFont(int fsx, int fsy, int tx, int ty, int fw, int fh, int zoom)
     register int WBPtr, WBpy = ty;      // Pointer to workbuffer
     register unsigned char Rv, Gv, Bv;
 
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'F';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
-
-
 #if 0
     if (WBpy < 0)               // don't copy if out of screen (y<0)
     {
@@ -2176,12 +1957,6 @@ TransferFont(int fsx, int fsy, int tx, int ty, int fw, int fh, int zoom)
             ch = (int) (FRPtr[cc]);     // This now contains the intensity value
             for (sz2 = 0; sz2 < zoom; sz2++) {
                 WBPtr = (tx + ((cc - sc) * zoom) + (WBpy + sz2) * WIDTH);
-#ifdef TRACE_IT
-                if (((tx + ((cc - sc) * zoom)) > 639) || (WBpy + sz2) > 479) {
-                    printf("\nError in PutFont : %d:%d", (tx + ((cc - sc) * zoom)), (WBpy + sz2));
-                    fflush(stdout);
-                }
-#endif
                 for (sz1 = 0; sz1 < zoom; sz1++) {
                     if (WBPtr >= 0) {
 #ifdef FIXED_FONT_COLOR
@@ -2218,24 +1993,12 @@ TransferFont(int fsx, int fsy, int tx, int ty, int fw, int fh, int zoom)
         WBpy += zoom;
         cr++;
     }
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'f';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
-
 }
 
 void
 PutMyString(char *Text, int x, int y, int usebignums, int zoom)
 {
     int a = 0, b, px = x, notfound;
-
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'S';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
 
 //printf("\nPutString : '%s' to %dx%d ( %d %d)",Text,x,y,usebignums,zoom);fflush(stdout);
 
@@ -2282,11 +2045,6 @@ PutMyString(char *Text, int x, int y, int usebignums, int zoom)
         }
         ++a;
     }
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 's';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
 }
 
 int
@@ -2294,11 +2052,6 @@ GetMyStringLength(char *Text, int usebignums, int zoom)
 {
     int a = 0, b, px = 0, notfound;
 
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'N';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
     while (Text[a] != '\0') {
         notfound = 1;
         if (usebignums) {
@@ -2319,12 +2072,6 @@ GetMyStringLength(char *Text, int usebignums, int zoom)
         }
         ++a;
     }
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'n';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
-
     return (px);
 }
 
@@ -2480,12 +2227,6 @@ ClearDisplayBuffer(void)
 {
     register int a, b, c;
 
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'T';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
-
     for (b = 0; b < HEIGHT; b++) {
         c = b * WIDTH;
         for (a = 0; a < WIDTH; a++) {
@@ -2495,42 +2236,18 @@ ClearDisplayBuffer(void)
             ++c;
         }
     }
-
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 't';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
-
 }
 
 void
 SetUpPicture(void)
 {
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'Y';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
     ClearDisplayBuffer();
     UICopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'y';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
-
 }
 
 void
 SetUpMySignals()
 {
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'I';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
-
 /*
 int	a;
 	for(a=1;a<31;a++) signal(a,IntReXSigCatch);
@@ -2552,13 +2269,6 @@ return;
     signal(SIGTTIN, IntReXSigCatch);
     signal(SIGIO, IntReXSigCatch);
     signal(SIGALRM, IntReXSigCatch);
-
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'i';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
-
 }
 
 
@@ -2569,12 +2279,6 @@ ProcessSigIo()
     fd_set fdset;
     int c, x, y;
     char BUFF[8];
-
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'P';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
 
 #ifdef USE_KEYBOARD
     FD_ZERO(&fdset);
@@ -2708,23 +2412,11 @@ ProcessSigIo()
     }
 #endif
 
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'p';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
-
 }
 
 void
 IntReXSigCatch(int sig)
 {
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'X';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
-
 //printf("\nSig:%d\n",sig);fflush(stdout);
 
 
@@ -2761,19 +2453,8 @@ IntReXSigCatch(int sig)
         printf("\nMisc Signal Cought, exiting (%d)", sig);
         fflush(stdout);
         CleanUp(0);
-#ifdef TRACE_IT
-        TrBu[TrBuPtr] = 'x';
-        if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-            TrBuPtr = 0;
-#endif
         exit(-1);
     }
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'x';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
-
 }
 
 #define	BAR_WIDTH	180
@@ -2812,12 +2493,6 @@ AnalyseHighCANMessages(int mid, int Position)
     register unsigned char CV;
     register unsigned int B;
 
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = '-';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
-
     CV = MineChar(Position + 0);
     if (CV != 0x04)
         return;
@@ -2835,14 +2510,6 @@ AnalyseHighCANMessages(int mid, int Position)
             Cat2Temp = (int) B - 40;
         UpdateCatTemp();
     }
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = '+';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-    TrBu[TrBuPtr] = '1';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
 }
 
 void
@@ -2850,12 +2517,6 @@ UpdateSpeedComputations(void)
 {
     register int a, b, c;
     float MPG, ThrottleV, SpeedV;
-
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'H';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
 
     if (ContSignal)
         return;                 // time has no meaning...
@@ -3074,12 +2735,6 @@ UpdateSpeedComputations(void)
 
     if (ProcessGo > 1)
         ProcessGo = 0;          // To guarantee accurate distance readings...
-
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'h';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
 }
 
 void
@@ -3156,12 +2811,6 @@ UpdateCurrent(void)             // 31/s
     unsigned char cq;
 
 //printf("\nUC : %x",V);fflush(stdout);
-
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'E';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
 
     Value = (int) ((float) AccumulatedCurrent * ONE_PER_QFU);
     HB_Level = (float) AccumulatedHB_Level *ONE_PER_QFU;
@@ -3323,12 +2972,6 @@ UpdateCurrent(void)             // 31/s
     }
 
     UICopyDisplayBufferToScreen(CURRENT_XS, CURRENT_YS, BAR_WIDTH, (CURRENT_YE - CURRENT_YS + 1));
-
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'e';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
 }
 
 
@@ -3369,12 +3012,6 @@ UpdateSOC(void)                 //   150-128-110-104-98-90   95-103-109-115-133
 {
     register int x, y, ty, c, ty1, Value;
     unsigned char Rv, Gv;
-
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'B';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
 
 //printf("\n%d",Value);fflush(stdout);          140 - 80%   90 - 45%   ->  60 = 35%  (SOC-90)*0.7f + 45
 
@@ -3453,11 +3090,6 @@ UpdateSOC(void)                 //   150-128-110-104-98-90   95-103-109-115-133
                 (((SOC_YE - SOC_YS) >> 1) + SOC_YS + 60), 0, 2);
 
     UICopyDisplayBufferToScreen(SOC_XS, SOC_YS, BAR_WIDTH, (SOC_YE - SOC_YS + 1));
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'b';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
 }
 
 
@@ -3517,12 +3149,6 @@ UpdateGG(void)                  // 11.9 Gal / 45 Liter ( 11.904762 Gal )
     register int x, y, ty, c, ty1;
     unsigned char PGG;
     float Value, MPG, Galls;
-
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'G';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
 
     PGG = GasGauge;
     if (GasGauge > GG_UPPER_LIMIT)
@@ -3623,12 +3249,6 @@ UpdateGG(void)                  // 11.9 Gal / 45 Liter ( 11.904762 Gal )
     PutMyString(Message, ((GG_XS + ((BAR_WIDTH - c) >> 1)) + 2), (GG_TINFO + 2), 0, 1);
 
     UICopyDisplayBufferToScreen(GG_XS, GG_YS, BAR_WIDTH, (GG_YE - GG_YS + 1));
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'g';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
-
 }
 
 
@@ -3651,14 +3271,6 @@ UpdateRpm(void)
 
 //printf("\nRPM : %x",V);fflush(stdout);
 
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'R';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
-
-
-
     Value = (int) ((float) AccumulatedRPM * ONE_PER_RPM_FREQ_UPDATE);
     ShowValue = Value;
     if (Value > RPM_UPPER_LIMIT)
@@ -3667,14 +3279,6 @@ UpdateRpm(void)
     AccumulatedRPM = 0;
 
     if (PreviousRPMValue == Value) {
-#ifdef TRACE_IT
-        TrBu[TrBuPtr] = 'r';
-        if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-            TrBuPtr = 0;
-        TrBu[TrBuPtr] = '1';
-        if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-            TrBuPtr = 0;
-#endif
         return;
     }
     PreviousRPMValue = Value;
@@ -3727,11 +3331,6 @@ UpdateRpm(void)
     PutMyString(Message, (RPM_XS + ((BAR_WIDTH - c) >> 1)), (((RPM_YE - RPM_YS) >> 1) + RPM_YS), 0,
                 3);
     UICopyDisplayBufferToScreen(RPM_XS, RPM_YS, BAR_WIDTH, (RPM_YE - RPM_YS + 1));
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'r';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
 }
 
 
@@ -3793,12 +3392,6 @@ UpdateTemp(void)
 {
     register int x, y, ty, c, ty1, Value;
     unsigned char Rv, Gv, Bv;
-
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'J';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
 
     Value = (int) TempValue;
 
@@ -3885,11 +3478,6 @@ UpdateTemp(void)
     PutMyString(Message, (TEMP_XS + ((BAR_WIDTH - c) >> 1)),
                 (((TEMP_YE - TEMP_YS_1) >> 1) + TEMP_YS_1 + 10), 0, 3);
     UICopyDisplayBufferToScreen(TEMP_XS, TEMP_YS_1, BAR_WIDTH, (TEMP_YE - TEMP_YS_1 + 1));
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'j';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
 }
 
 #define	TEMP_UPPER_LIMIT_CAT1		800
@@ -3909,12 +3497,6 @@ UpdateCatTemp(void)
 {
     register int x, y, ty, c, ty1, Value;
     unsigned char Rv, Gv, Bv;
-
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'K';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
 
     Value = (int) Cat1Temp;
 
@@ -4051,11 +3633,6 @@ UpdateCatTemp(void)
     PutMyString(Message, (TEMP_XS + ((BAR_WIDTH - c) >> 1)),
                 (((TEMP_YE_1 - TEMP_YS) >> 1) + TEMP_YS), 0, 3);
     UICopyDisplayBufferToScreen(TEMP_XS, TEMP_YS, BAR_WIDTH, (TEMP_YE_1 - TEMP_YS + 1));
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'k';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
 }
 
 
@@ -4071,12 +3648,6 @@ UpdateDriveMode(void)
     register int sr, c, x, y, d;
     struct ImageBufferStructure *ColorInfo = NULL;
     unsigned char *PictureInfo = NULL;
-
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'V';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
 
 // Mode_EngineRed   Mode_EngineGreen   Mode_Electric   Mode_ElectricCanc
 
@@ -4157,11 +3728,6 @@ UpdateDriveMode(void)
     }
     UICopyDisplayBufferToScreen(EV_XS, EV_YS, EV_WIDTH, (EV_YE - EV_YS + 1));
 
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'v';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
 }
 
 #define	EI_XS		RPM_XS
@@ -4210,11 +3776,6 @@ MineChar(int Position)
     register int a = Position;
     unsigned char c;
 
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'Q';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
     if (IB[a] >= 'A')
         c = (IB[a] - 'A') + 10;
     else
@@ -4225,11 +3786,7 @@ MineChar(int Position)
         c += (IB[a] - 'A') + 10;
     else
         c += (IB[a] - '0');
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'q';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
+
     return (c);
 }
 
@@ -4239,11 +3796,6 @@ MineUInt(int Position)
     register int a = Position;
     unsigned char c, d;
 
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'U';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
     if (IB[a] >= 'A')
         c = (IB[a] - 'A') + 10;
     else
@@ -4265,12 +3817,6 @@ MineUInt(int Position)
         d += (IB[a] - 'A') + 10;
     else
         d += (IB[a] - '0');
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = 'u';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
-
     return ((unsigned int) ((((int) c << 8) + (int) d)));
 }
 
@@ -4594,12 +4140,6 @@ FastPoll(void)
         return;
     }
 
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = '<';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
-
 //      if(Port<0) return;              // This should never happen...
 
     if (IBCP >= IBS)
@@ -4620,14 +4160,6 @@ FastPoll(void)
 
 
     if (cp <= 0) {
-#ifdef TRACE_IT
-        TrBu[TrBuPtr] = '>';
-        if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-            TrBuPtr = 0;
-        TrBu[TrBuPtr] = '1';
-        if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-            TrBuPtr = 0;
-#endif
         return;
     }
 
@@ -4832,14 +4364,6 @@ FastPoll(void)
 
     if (pp == 0) {
         IBCP = 0;
-#ifdef TRACE_IT
-        TrBu[TrBuPtr] = '>';
-        if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-            TrBuPtr = 0;
-        TrBu[TrBuPtr] = '2';
-        if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-            TrBuPtr = 0;
-#endif
         return;
     }
     memcpy((void *) (&IB[0]), (void *) (&IB[pp]), (size_t) (IBCP - pp));
@@ -4847,12 +4371,6 @@ FastPoll(void)
     {
         IBCP = 0;
     }
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = '>';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
-#endif
-
     return;
 }
 
@@ -4863,12 +4381,6 @@ main(int argc, char **argv)
     unsigned char FVoiceMode = 0;
 #ifdef TRAFFIC_PROFILE
     float fv;
-#endif
-
-#ifdef TRACE_IT
-    TrBu[TrBuPtr] = '.';
-    if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-        TrBuPtr = 0;
 #endif
 
     b = 1;
@@ -5024,12 +4536,6 @@ main(int argc, char **argv)
                 if (MinMaxCurrentDisplay > 0)
                     --MinMaxCurrentDisplay;
 
-#ifdef TRACE_IT
-                TrBu[TrBuPtr] = '!';
-                if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-                    TrBuPtr = 0;
-#endif
-
 #ifdef TRAFFIC_PROFILE
 
                 NofInv = 0;
@@ -5086,29 +4592,12 @@ main(int argc, char **argv)
                         PriusIsPowered = 1;
                 }
 
-#ifdef TRACE_IT
-                TrBu[TrBuPtr] = '@';
-                if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-                    TrBuPtr = 0;
-#endif
             }
-#ifdef TRACE_IT
-            TrBu[TrBuPtr] = ',';
-            if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-                TrBuPtr = 0;
-#endif
-
 #ifdef NON_ZAURUS
             UIMainLoop();
 #endif
 
         }
-#ifdef TRACE_IT
-        TrBu[TrBuPtr] = ':';
-        if (++TrBuPtr >= TRACE_BUFFER_LENGTH)
-            TrBuPtr = 0;
-#endif
-
         if (RealQuit == 0)      // just temporary pause...
         {
             ContSignal = 0;
