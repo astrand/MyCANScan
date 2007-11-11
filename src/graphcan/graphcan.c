@@ -27,13 +27,10 @@
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <time.h>
 #include <signal.h>
 #include <termios.h>
-#include <stdarg.h>
 #include <string.h>
 #include <errno.h>
-#include <math.h>
 #include <fcntl.h>
 #include <pthread.h>
 #include "ui.h"
