@@ -14,8 +14,8 @@ LDFLAGS     = @LDFLAGS@ @LIBS@ @X_LIBS@ @X_EXTRA_LIBS@
 STRIP       = @STRIP@
 
 
-BINS = acramr_calc acramr_calc_simple acramr_rev_calc canpoll canterminal \
-    cantest cleanfile csv2txt canvis/canvis graphcan/graphcan graphcan/graphcanz
+BINS = src/acramr_calc src/acramr_calc_simple src/acramr_rev_calc src/canpoll src/canterminal \
+    src/cantest src/cleanfile src/csv2txt canvis/canvis graphcan/graphcan graphcan/graphcanz
 
 
 .PHONY: all
@@ -94,17 +94,17 @@ mycanscan-$(VERSION).tar.gz:
     mycanscan-$(VERSION)/COPYING \
     mycanscan-$(VERSION)/Makefile.in \
     mycanscan-$(VERSION)/mycanscan.spec \
-    mycanscan-$(VERSION)/acramr_calc.c \
-    mycanscan-$(VERSION)/acramr_calc_simple.c \
-    mycanscan-$(VERSION)/acramr_rev_calc.c \
+    mycanscan-$(VERSION)/src/acramr_calc.c \
+    mycanscan-$(VERSION)/src/acramr_calc_simple.c \
+    mycanscan-$(VERSION)/src/acramr_rev_calc.c \
     mycanscan-$(VERSION)/bootstrap \
-    mycanscan-$(VERSION)/canpoll.c \
-    mycanscan-$(VERSION)/canterminal.c \
-    mycanscan-$(VERSION)/cantest.c \
-    mycanscan-$(VERSION)/cleanfile.c \
+    mycanscan-$(VERSION)/src/canpoll.c \
+    mycanscan-$(VERSION)/src/canterminal.c \
+    mycanscan-$(VERSION)/src/cantest.c \
+    mycanscan-$(VERSION)/src/cleanfile.c \
     mycanscan-$(VERSION)/configure \
     mycanscan-$(VERSION)/configure.ac \
-    mycanscan-$(VERSION)/csv2txt.c \
+    mycanscan-$(VERSION)/src/csv2txt.c \
     mycanscan-$(VERSION)/indent-all \
     mycanscan-$(VERSION)/install-sh \
     mycanscan-$(VERSION)/canvis/fileio.c \
