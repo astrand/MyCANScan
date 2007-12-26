@@ -17,9 +17,10 @@ STRIP       = @STRIP@
 BINS = tools/acramr_calc tools/acramr_calc_simple tools/acramr_rev_calc tools/canpoll tools/canterminal \
     tools/cantest tools/cleanfile tools/csv2txt canvis/canvis graphcan/graphcan graphcan/graphcanz
 
+DOCS = doc/canusb-device.txt
 
 .PHONY: all
-all: $(BINS)
+all: $(BINS) $(DOCS)
 
 
 CANVIS_OBJS = canvis/fileio.o canvis/functions.o canvis/graphics.o canvis/main.o
@@ -60,13 +61,17 @@ graphcan/graphcanz: $(GRAPHCANZ_OBJS)
 	$(CC) $(GRAPHCANZ_OBJS) $(CFLAGS) -o $@ $(LDFLAGS) -lpthread
 
 
-install: installbin 
+install: installbin installdocs
 
 .PHONY: installbin
 installbin: $(BINS)
 	mkdir -p $(DESTDIR)$(bindir)
 	$(INSTALL) $^ $(DESTDIR)$(bindir)
 
+.PHONY: installdocs
+installdocs: $(DOCS)
+	mkdir -p $(DESTDIR)$(datadir)/doc/mycanscan-$(VERSION)
+	cp $^ $(DESTDIR)$(datadir)/doc/mycanscan-$(VERSION)
 
 .PHONY: clean
 clean:
@@ -94,6 +99,7 @@ mycanscan-$(VERSION).tar.gz:
     mycanscan-$(VERSION)/COPYING \
     mycanscan-$(VERSION)/Makefile.in \
     mycanscan-$(VERSION)/mycanscan.spec \
+    mycanscan-$(VERSION)/doc/canusb-device.txt \
     mycanscan-$(VERSION)/tools/acramr_calc.c \
     mycanscan-$(VERSION)/tools/acramr_calc_simple.c \
     mycanscan-$(VERSION)/tools/acramr_rev_calc.c \

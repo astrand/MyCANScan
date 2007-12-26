@@ -42,4 +42,4 @@ rm -rf $RPM_BUILD_ROOT
 %{_bindir}/csv2txt
 %{_bindir}/graphcan
 %{_bindir}/graphcanz
-%doc
+%doc doc/canusb-device.txt
