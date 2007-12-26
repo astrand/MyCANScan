@@ -93,6 +93,7 @@ mycanscan-$(VERSION).tar.gz:
 	tar zcvf mycanscan-$(VERSION)/mycanscan-$(VERSION).tar.gz \
     mycanscan-$(VERSION)/COPYING \
     mycanscan-$(VERSION)/Makefile.in \
+    mycanscan-$(VERSION)/mycanscan.spec \
     mycanscan-$(VERSION)/acramr_calc.c \
     mycanscan-$(VERSION)/acramr_calc_simple.c \
     mycanscan-$(VERSION)/acramr_rev_calc.c \
@@ -109,7 +110,6 @@ mycanscan-$(VERSION).tar.gz:
     mycanscan-$(VERSION)/canvis/fileio.c \
     mycanscan-$(VERSION)/canvis/functions.c \
     mycanscan-$(VERSION)/canvis/graphics.c \
-    mycanscan-$(VERSION)/canvis/indent-all \
     mycanscan-$(VERSION)/canvis/main.c \
     mycanscan-$(VERSION)/canvis/main.h \
     mycanscan-$(VERSION)/graphcan/graphcan.c \
@@ -117,7 +117,9 @@ mycanscan-$(VERSION).tar.gz:
     mycanscan-$(VERSION)/graphcan/fonts.h \
     mycanscan-$(VERSION)/graphcan/images.c \
     mycanscan-$(VERSION)/graphcan/images.h \
-    mycanscan-$(VERSION)/graphcan/indent-all \
+    mycanscan-$(VERSION)/graphcan/ui.h \
+    mycanscan-$(VERSION)/graphcan/xwin.c \
+    mycanscan-$(VERSION)/graphcan/zaurus.c \
     mycanscan-$(VERSION)/graphcan/readme.txt \
     mycanscan-$(VERSION)/graphcan/voice/*.mp3)
 	rm -rf /tmp/mycanscan-make-dist-dir
@@ -129,6 +131,12 @@ Makefile: Makefile.in configure
 
 configure: configure.ac
 	./bootstrap
+
+.PHONY: rpm
+rpm: mycanscan-$(VERSION)-1.i386.rpm
+
+mycanscan-$(VERSION)-1.i386.rpm: mycanscan-$(VERSION).tar.gz
+	rpmbuild -ta $^
 
 
 .SUFFIXES:
