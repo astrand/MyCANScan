@@ -90,7 +90,6 @@ distclean: clean
 dist: mycanscan-$(VERSION).tar.gz
 
 
-.PHONY: mycanscan-$(VERSION).tar.gz
 mycanscan-$(VERSION).tar.gz: 
 	mkdir -p /tmp/mycanscan-make-dist-dir
 	ln -sf `pwd` /tmp/mycanscan-make-dist-dir/mycanscan-$(VERSION)
@@ -141,8 +140,19 @@ configure: configure.ac
 .PHONY: rpm
 rpm: mycanscan-$(VERSION)-1.i386.rpm
 
+RPMDIR = $(shell rpm --eval '%{_rpmdir}')
 mycanscan-$(VERSION)-1.i386.rpm: mycanscan-$(VERSION).tar.gz
 	rpmbuild -ta $^
+	cp $(RPMDIR)/i386/mycanscan-$(VERSION)-1.i386.rpm $@
+
+.PHONY: bindist
+bindist: mycanscan-$(VERSION).i386.tgz
+
+mycanscan-$(VERSION).i386.tgz: mycanscan-$(VERSION)-1.i386.rpm
+	rm -rf /tmp/mycanscan-make-dist-dir
+	mkdir -p /tmp/mycanscan-make-dist-dir
+	cd /tmp/mycanscan-make-dist-dir && rpm2cpio $(CURDIR)/$^ | cpio -id 
+	tar zcvf $@ -C /tmp/mycanscan-make-dist-dir usr
 
 
 .SUFFIXES:
