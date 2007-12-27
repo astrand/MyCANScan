@@ -74,7 +74,7 @@
 #define	SPDSCALER			((double)(16000.0))
 #define	SPDSCALER_MILE			((double)(10000.0))
 
-#define	VERSION_STRING	"v" PACKAGE_VERSION " by Attila Vass & Peter Astrand"
+#define	VERSION_STRING	"v" PACKAGE_VERSION " by Attila Vass / Peter Astrand"
 
 #define DEVICE "/dev/ttyCAN"
 
@@ -949,8 +949,8 @@ ScreenSaver(void)
     if (--ScrSv_NumberOfTimes < 1) {
         SS_Stats();
         ScrSv_NumberOfTimes = 300;
-        c = GetMyStringLength(VERSION_STRING, 0, 2);
-        PutMyString(VERSION_STRING, ((WIDTH >> 1) - c), 450, 0, 2);
+        c = GetMyStringLength(VERSION_STRING, 0, 2) + 10;
+        PutMyString(VERSION_STRING, (WIDTH - c), 450, 0, 2);
         UICopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
     }
     if (TouchedX != -1) {
