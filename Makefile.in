@@ -78,7 +78,8 @@ clean:
 	rm -f *.o *~ \
           canvis/*.o canvis/*~ \
           graphcan/*.o graphcan/*~ \
-          $(BINS) mycanscan-$(VERSION).tar.gz
+          $(BINS) mycanscan-$(VERSION).tgz \
+	  mycanscan-$(VERSION)-1.i386.rpm
 
 
 .PHONY: distclean
@@ -87,14 +88,14 @@ distclean: clean
 
 
 .PHONY: dist
-dist: mycanscan-$(VERSION).tar.gz
+dist: mycanscan-$(VERSION).tgz
 
 
-mycanscan-$(VERSION).tar.gz: 
+mycanscan-$(VERSION).tgz: 
 	mkdir -p /tmp/mycanscan-make-dist-dir
 	ln -sf `pwd` /tmp/mycanscan-make-dist-dir/mycanscan-$(VERSION)
 	(cd /tmp/mycanscan-make-dist-dir; \
-	tar zcvf mycanscan-$(VERSION)/mycanscan-$(VERSION).tar.gz \
+	tar zcvf mycanscan-$(VERSION)/mycanscan-$(VERSION).tgz \
     mycanscan-$(VERSION)/COPYING \
     mycanscan-$(VERSION)/Makefile.in \
     mycanscan-$(VERSION)/mycanscan.spec \
@@ -141,7 +142,7 @@ configure: configure.ac
 rpm: mycanscan-$(VERSION)-1.i386.rpm
 
 RPMDIR = $(shell rpm --eval '%{_rpmdir}')
-mycanscan-$(VERSION)-1.i386.rpm: mycanscan-$(VERSION).tar.gz
+mycanscan-$(VERSION)-1.i386.rpm: mycanscan-$(VERSION).tgz
 	rpmbuild -ta $^
 	cp $(RPMDIR)/i386/mycanscan-$(VERSION)-1.i386.rpm $@
 
