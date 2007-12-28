@@ -78,7 +78,7 @@ installdocs: $(DOCS)
 .PHONY: installscripts
 installscripts: $(SCRIPTS)
 	mkdir -p $(DESTDIR)$(prefix)/lib/mycanscan
-	cp $ ^$(DESTDIR)$(prefix)/lib/mycanscan
+	cp $^ $(DESTDIR)$(prefix)/lib/mycanscan
 
 .PHONY: clean
 clean:
