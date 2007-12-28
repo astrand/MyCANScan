@@ -43,7 +43,11 @@ char NextStep = 2;
 
 extern char *WorkData;
 extern struct ImageBufferStructure *ImageBuffer;
+extern unsigned char FullScreenMode;
 
+/* X11 window size, possibly larger than UI size */
+static int width = WIDTH;
+static int height = HEIGHT;
 
 static int
 GetHighestVisualPixmapCombination(void)
@@ -197,7 +201,7 @@ UICopyDisplayBufferToScreen(int x, int y, int w, int h)
         return;
 
     wx = 0, wy = 0;
-    ww = WIDTH - 1;
+    ww = WIDTH;
     wh = HEIGHT;
 
     if (wx < 0) {
@@ -213,10 +217,10 @@ UICopyDisplayBufferToScreen(int x, int y, int w, int h)
         wy = 0;
     }
 
-    if (wh >= HEIGHT)
-        wh = HEIGHT - 1;
-    if (ww >= WIDTH)
-        ww = WIDTH - 1;
+    if (wh > HEIGHT)
+        wh = HEIGHT;
+    if (ww > WIDTH)
+        ww = WIDTH;
 
     switch (WorkBitsPerRGB) {
     case 16:
@@ -245,6 +249,13 @@ UICopyDisplayBufferToScreen(int x, int y, int w, int h)
     }
     XPutImage(WorkDisplay, WorkPixmap, WorkPixmapGC, WorkImage, wx, wy, wx, wy, ww, wh);
     XCopyArea(WorkDisplay, WorkPixmap, WorkWindow, WorkWindowGC, wx, wy, ww, wh, wx, wy);
+
+    /* clear unused area */
+    XSetForeground(WorkDisplay, WorkWindowGC,
+                   BlackPixelOfScreen(DefaultScreenOfDisplay(WorkDisplay)));
+    XFillRectangle(WorkDisplay, WorkWindow, WorkWindowGC, WIDTH, 0, width - WIDTH, height);
+    XFillRectangle(WorkDisplay, WorkWindow, WorkWindowGC, 0, HEIGHT, width, height - HEIGHT);
+
     XFlush(WorkDisplay);
 }
 
@@ -294,6 +305,9 @@ UICreateWindow()
     XTextProperty winname, iconame;
     char TmpBuffer[64];
     char *TmpChrPtrBuffer[2];
+    XSetWindowAttributes attribs;
+
+    attribs.override_redirect = FullScreenMode;
 
     if ((WorkDisplay = XOpenDisplay(NULL)) == NULL) {
         if ((WorkDisplay = XOpenDisplay(":0")) == NULL) {
@@ -306,6 +320,11 @@ UICreateWindow()
     }
     WorkScreen = DefaultScreen(WorkDisplay);
 
+    if (FullScreenMode) {
+        width = WidthOfScreen(DefaultScreenOfDisplay(WorkDisplay));
+        height = HeightOfScreen(DefaultScreenOfDisplay(WorkDisplay));
+    }
+
     if (GetHighestVisualPixmapCombination() < 0) {
         printf("\nError for getting Visual Information...");
         fflush(stdout);
@@ -317,8 +336,8 @@ UICreateWindow()
     fflush(stdout);
 
     if ((WorkWindow =
-         XCreateWindow(WorkDisplay, RootWindow(WorkDisplay, WorkScreen), 0, 0, WIDTH, HEIGHT, 2,
-                       WorkDepth, InputOutput, WorkVisual, 0, NULL)) == 0) {
+         XCreateWindow(WorkDisplay, RootWindow(WorkDisplay, WorkScreen), 0, 0, width, height, 2,
+                       WorkDepth, InputOutput, WorkVisual, CWOverrideRedirect, &attribs)) == 0) {
         printf("\nError Creatig Window...");
         fflush(stdout);
         XCloseDisplay(WorkDisplay);
@@ -340,14 +359,14 @@ UICreateWindow()
             else {
                 s_h->flags = PPosition | PSize | PMinSize | PMaxSize;
                 s_h->min_width = WIDTH;
-                s_h->max_width = WIDTH;
-                s_h->width = WIDTH;
+                s_h->max_width = width;
+                s_h->width = width;
                 s_h->min_height = HEIGHT;
-                s_h->max_height = HEIGHT;
-                s_h->height = HEIGHT;
+                s_h->max_height = height;
+                s_h->height = height;
                 XSetWMProperties(WorkDisplay, WorkWindow, &winname, &iconame, NULL, 0, s_h, NULL,
                                  NULL);
-                XResizeWindow(WorkDisplay, WorkWindow, WIDTH, HEIGHT);
+                XResizeWindow(WorkDisplay, WorkWindow, width, height);
             }
         }
     }

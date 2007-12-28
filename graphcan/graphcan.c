@@ -175,6 +175,10 @@ unsigned char NofTrafficBytesZero = 0;
 unsigned int NofInv = 0, NofNInv = 0;
 #endif
 
+#ifdef NON_ZAURUS
+unsigned char FullScreenMode = 0;
+#endif
+
 char Version[4];
 char Serial[5];
 char Message[64];
@@ -4394,6 +4398,11 @@ main(int argc, char **argv)
             case 's':
                 SI_Measurements = 1;
                 break;
+#ifdef NON_ZAURUS
+            case 'F':
+                FullScreenMode = 1;
+                break;
+#endif
             case 'o':
                 Simulation = 1;
                 stat_file_name = STAT_FILE_NAME_SIM;
@@ -4408,6 +4417,9 @@ main(int argc, char **argv)
                 printf("\n\tf - Take sound samples and player from %s directory", FORCE_PATH);
                 printf("\n\ts - Use SI measurements ( km/h etc.)");
                 printf("\n\to - Offline Simulation mode");
+#ifdef NON_ZAURUS
+                printf("\n\tF - Fullscreen mode mode");
+#endif
                 printf("\n\nTouching the 1st vertical quarter of the screen :");
                 printf("\n    Switch Voice On/Off.");
                 printf("\n 2nd and 3rd quarter of the screen :");
