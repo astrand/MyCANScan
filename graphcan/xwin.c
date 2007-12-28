@@ -27,19 +27,17 @@
 #include "images.h"
 #include "ui.h"
 
-// FIXME: eliminate/move as many as possible
-Window WorkWindow = 0;
-Display *WorkDisplay;
-int WorkScreen, WorkDepth, WorkBitsPerRGB, WorkScanLinePad;
-unsigned long WorkRedMask, WorkGreenMask, WorkBlueMask;
-unsigned int WorkRedNumberOfShifts, WorkGreenNumberOfShifts, WorkBlueNumberOfShifts;
-unsigned int WorkRedNumberOfUpShifts, WorkGreenNumberOfUpShifts, WorkBlueNumberOfUpShifts;
-Visual *WorkVisual = NULL;
-XImage *WorkImage = NULL;
-char WorkWindowInitialized = 0;
-GC WorkWindowGC = 0, WorkPixmapGC = 0;
-Pixmap WorkPixmap = 0;
-char NextStep = 2;
+static Window WorkWindow = 0;
+static Display *WorkDisplay;
+static int WorkScreen, WorkDepth, WorkBitsPerRGB, WorkScanLinePad;
+static unsigned long WorkRedMask, WorkGreenMask, WorkBlueMask;
+static unsigned int WorkRedNumberOfShifts, WorkGreenNumberOfShifts, WorkBlueNumberOfShifts;
+static unsigned int WorkRedNumberOfUpShifts, WorkGreenNumberOfUpShifts, WorkBlueNumberOfUpShifts;
+static Visual *WorkVisual = NULL;
+static XImage *WorkImage = NULL;
+static char WorkWindowInitialized = 0;
+static GC WorkWindowGC = 0, WorkPixmapGC = 0;
+static Pixmap WorkPixmap = 0;
 
 extern char *WorkData;
 extern struct ImageBufferStructure *ImageBuffer;
