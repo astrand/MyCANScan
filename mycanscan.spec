@@ -5,7 +5,7 @@ Release: 1
 License: GPL
 Group: Applications/Communications
 URL: http://mycanscan.sourceforge.net
-Source0: %{name}-%{version}.tar.gz
+Source0: %{name}-%{version}.tgz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 
 %description
