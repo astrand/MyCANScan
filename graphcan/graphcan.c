@@ -735,7 +735,7 @@ RunTaskInfoMain(void)
         case 8:
         case 9:
         case 10:
-            ValueChars[ppos] = KP[TouchedButton];       // 1234567890.C
+            ValueChars[ppos] = KP[(unsigned) TouchedButton];    // 1234567890.C
             if (++ppos > 7)
                 ppos = 7;
             break;
@@ -1952,7 +1952,7 @@ TransferFont(int fsx, int fsy, int tx, int ty, int fw, int fh, int zoom)
 
     while (cr < tr)             // raw...
     {
-        FRPtr = Font_Map[cr];   // ptr to string within font map...
+        FRPtr = (unsigned char *) Font_Map[cr]; // ptr to string within font map...
         for (cc = sc; cc < tc; cc++)    // column
         {
             ch = (int) (FRPtr[cc]);     // This now contains the intensity value
