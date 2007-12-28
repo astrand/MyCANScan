@@ -79,7 +79,8 @@ clean:
           canvis/*.o canvis/*~ \
           graphcan/*.o graphcan/*~ \
           $(BINS) mycanscan-$(VERSION).tgz \
-	  mycanscan-$(VERSION)-1.i386.rpm
+	  mycanscan-$(VERSION)-1.i386.rpm \
+	  mycanscan-$(VERSION).i386.tgz
 
 
 .PHONY: distclean
