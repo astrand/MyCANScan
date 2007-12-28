@@ -1,0 +1,11 @@
+#!/bin/bash
+#
+# Run postinstall actions
+#
+
+if grep -q "Version: Eee PC" /etc/os-version 2>/dev/null; then
+    echo "Creating /etc/X11/Xsession.d/98-graphcan"
+    cp /usr/lib/mycanscan/graphcan-xsession.d /etc/X11/Xsession.d/98-graphcan
+    echo "Creating /etc/udev/rules.d/90-canusb.rules"
+    cp /usr/lib/mycanscan/udev-canusb.rules /etc/udev/rules.d/90-canusb.rules
+fi

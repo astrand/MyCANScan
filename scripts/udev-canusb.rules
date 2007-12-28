@@ -1,0 +1,2 @@
+# Lawicel CANUSB but also MANY OTHER DEVICES
+SYSFS{idVendor}=="0403", SYSFS{idProduct}=="6001", KERNEL=="ttyUSB*", SYMLINK+="ttyCAN", OWNER="user"

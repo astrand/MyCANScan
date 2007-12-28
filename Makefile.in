@@ -19,6 +19,8 @@ BINS = tools/acramr_calc tools/acramr_calc_simple tools/acramr_rev_calc tools/ca
 
 DOCS = doc/canusb-device.txt
 
+SCRIPTS = scripts/postinstall scripts/udev-canusb.rules scripts/graphcan-xsession.d
+
 .PHONY: all
 all: $(BINS) $(DOCS)
 
@@ -61,7 +63,7 @@ graphcan/graphcanz: $(GRAPHCANZ_OBJS)
 	$(CC) $(GRAPHCANZ_OBJS) $(CFLAGS) -o $@ $(LDFLAGS) -lpthread
 
 
-install: installbin installdocs
+install: installbin installdocs installscripts
 
 .PHONY: installbin
 installbin: $(BINS)
@@ -72,6 +74,11 @@ installbin: $(BINS)
 installdocs: $(DOCS)
 	mkdir -p $(DESTDIR)$(datadir)/doc/mycanscan-$(VERSION)
 	cp $^ $(DESTDIR)$(datadir)/doc/mycanscan-$(VERSION)
+
+.PHONY: installscripts
+installscripts: $(SCRIPTS)
+	mkdir -p $(DESTDIR)$(prefix)/lib/mycanscan
+	cp $ ^$(DESTDIR)$(prefix)/lib/mycanscan
 
 .PHONY: clean
 clean:
@@ -111,6 +118,9 @@ mycanscan-$(VERSION).tgz:
     mycanscan-$(VERSION)/tools/cleanfile.c \
     mycanscan-$(VERSION)/configure \
     mycanscan-$(VERSION)/configure.ac \
+    mycanscan-$(VERSION)/scripts/postinstall \
+    mycanscan-$(VERSION)/scripts/udev-canusb.rules \
+    mycanscan-$(VERSION)/scripts/graphcan-xsession.d \
     mycanscan-$(VERSION)/tools/csv2txt.c \
     mycanscan-$(VERSION)/indent-all \
     mycanscan-$(VERSION)/install-sh \
