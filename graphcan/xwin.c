@@ -308,13 +308,9 @@ UICreateWindow()
     attribs.override_redirect = FullScreenMode;
 
     if ((WorkDisplay = XOpenDisplay(NULL)) == NULL) {
-        if ((WorkDisplay = XOpenDisplay(":0")) == NULL) {
-            if ((WorkDisplay = XOpenDisplay(":0.0")) == NULL) {
-                printf("\nError opening display...");
-                fflush(stdout);
-                return (-1);
-            }
-        }
+      printf("\nError opening display...");
+      fflush(stdout);
+      return (-1);
     }
     WorkScreen = DefaultScreen(WorkDisplay);
 
