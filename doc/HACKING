@@ -2,3 +2,8 @@
 Compiler support
 ----------------
 The source code should be compatible with ANSI C99.
+
+
+Output messages
+---------------
+...such as error and debug messages, should go to stderr.
