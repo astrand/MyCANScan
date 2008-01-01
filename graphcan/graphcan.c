@@ -91,17 +91,17 @@ enum
 
 
 #include "images.h"
-extern unsigned char *PriusPicture[];
+extern unsigned char PriusPicture[][439];
 extern unsigned char SideFrontDoor[];
 extern unsigned char RearDoors[];
 extern struct ImageBufferStructure Mode_EngineGreen_Color[];
-extern unsigned char *Mode_EngineGreen_Picture[];
+extern unsigned char Mode_EngineGreen_Picture[][140];
 extern struct ImageBufferStructure Mode_EngineRed_Color[];
-extern unsigned char *Mode_EngineRed_Picture[];
+extern unsigned char Mode_EngineRed_Picture[][140];
 extern struct ImageBufferStructure Mode_Electric_Color[];
-extern unsigned char *Mode_Electric_Picture[];
+extern unsigned char Mode_Electric_Picture[][140];
 extern struct ImageBufferStructure Mode_ElectricCanc_Color[];
-extern unsigned char *Mode_ElectricCanc_Picture[];
+extern unsigned char Mode_ElectricCanc_Picture[][140];
 
 char *stat_file_name = STAT_FILE_NAME;
 char *fuel_file_name = FUEL_FILE_NAME;
