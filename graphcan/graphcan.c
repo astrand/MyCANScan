@@ -4360,6 +4360,34 @@ FastPoll(void)
     return;
 }
 
+void
+usage(char *program)
+{
+    fprintf(stderr, "GraphCan %s\n", VERSION_STRING);
+    fprintf(stderr, "Usage : %s [vfs]\n", program);
+    fprintf(stderr, "\t-v - Turn OFF voice mode\n");
+    fprintf(stderr, "\t-f - Take sound samples and player from %s directory\n", FORCE_PATH);
+    fprintf(stderr, "\t-s - Use SI measurements ( km/h etc.)\n");
+    fprintf(stderr, "\t-o - Offline Simulation mode\n");
+    fprintf(stderr, "\t-d - Print debug messages\n");
+#ifdef NON_ZAURUS
+    fprintf(stderr, "\t-F - Fullscreen mode mode\n");
+#endif
+    fprintf(stderr, "\n");
+    fprintf(stderr, "Touching the 1st vertical quarter of the screen :\n");
+    fprintf(stderr, "    Switch Voice On/Off.\n");
+    fprintf(stderr, " 2nd and 3rd quarter of the screen :\n");
+    fprintf(stderr, "    While Initializing CAN : Go to Info / Setting mode.\n");
+    fprintf(stderr, "    While in ScreenSaver : Save data to card.\n");
+    fprintf(stderr, "    While in Running mode : Switch between SI and imperial.\n");
+    fprintf(stderr, " 4th quarter :\n");
+    fprintf(stderr, "    Quit.\n");
+    fprintf(stderr,
+            "Type 'su' and 'chmod a+w /dev/fl' for backlight control from GraphCan after reboot...\n");
+    fprintf(stderr, "\n");
+    exit(0);
+}
+
 int
 main(int argc, char **argv)
 {
@@ -4396,31 +4424,13 @@ main(int argc, char **argv)
         case '-':
         case 'h':
         case '?':
-            fprintf(stderr, "GraphCan %s\n", VERSION_STRING);
-            fprintf(stderr, "Usage : %s [vfs]\n", argv[0]);
-            fprintf(stderr, "\t-v - Turn OFF voice mode\n");
-            fprintf(stderr, "\t-f - Take sound samples and player from %s directory\n", FORCE_PATH);
-            fprintf(stderr, "\t-s - Use SI measurements ( km/h etc.)\n");
-            fprintf(stderr, "\t-o - Offline Simulation mode\n");
-            fprintf(stderr, "\t-d - Print debug messages\n");
-#ifdef NON_ZAURUS
-            fprintf(stderr, "\t-F - Fullscreen mode mode\n");
-#endif
-            fprintf(stderr, "\n");
-            fprintf(stderr, "Touching the 1st vertical quarter of the screen :\n");
-            fprintf(stderr, "    Switch Voice On/Off.\n");
-            fprintf(stderr, " 2nd and 3rd quarter of the screen :\n");
-            fprintf(stderr, "    While Initializing CAN : Go to Info / Setting mode.\n");
-            fprintf(stderr, "    While in ScreenSaver : Save data to card.\n");
-            fprintf(stderr, "    While in Running mode : Switch between SI and imperial.\n");
-            fprintf(stderr, " 4th quarter :\n");
-            fprintf(stderr, "    Quit.\n");
-            fprintf(stderr,
-                    "Type 'su' and 'chmod a+w /dev/fl' for backlight control from GraphCan after reboot...\n");
-            fprintf(stderr, "\n");
-            exit(0);
+            usage(argv[0]);
             break;
         }
+    }
+
+    if (argc - optind != 0) {
+        usage(argv[0]);
     }
 
     SetUpMySignals();
