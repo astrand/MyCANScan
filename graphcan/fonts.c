@@ -291,22 +291,18 @@ ConvertFontMap(void)
         fp = Font_Map[a];
         b = 0;
         printf("\n%c", '"');
-        fflush(stdout);
         while (fp[b] != '\0') {
             for (cp = 0; cp < FONTMAP_COLORS; cp++) {
                 if (Font_Color[cp].letter == fp[b]) {
                     printf("\\x%02x", Font_Color[cp].Color);
-                    fflush(stdout);
                     cp = FONTMAP_COLORS;
                 }
             }
             ++b;
         }
         printf("%c,", '"');
-        fflush(stdout);
     }
     printf("\n");
-    fflush(stdout);
     exit(0);
 }
 #endif

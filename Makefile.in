@@ -130,6 +130,7 @@ mycanscan-$(VERSION).tgz:
     mycanscan-$(VERSION)/canvis/main.c \
     mycanscan-$(VERSION)/canvis/main.h \
     mycanscan-$(VERSION)/graphcan/graphcan.c \
+    mycanscan-$(VERSION)/graphcan/graphcan.h \
     mycanscan-$(VERSION)/graphcan/fonts.c \
     mycanscan-$(VERSION)/graphcan/fonts.h \
     mycanscan-$(VERSION)/graphcan/images.c \

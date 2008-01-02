@@ -26,6 +26,7 @@
 #include <X11/Xutil.h>
 #include "images.h"
 #include "ui.h"
+#include "graphcan.h"
 
 static Window WorkWindow = 0;
 static Display *WorkDisplay;
@@ -60,8 +61,7 @@ GetHighestVisualPixmapCombination(void)
     maxdpt = -1;
     MyVisInfo = XGetVisualInfo(WorkDisplay, VisualNoMask, NULL, &NumVis);
     if ((NumVis < 1) || (MyVisInfo == NULL)) {
-        printf("\nXGetVisualInfo returned NO availability.");
-        fflush(stdout);
+        fprintf(stderr, "XGetVisualInfo returned NO availability.\n");
         return (-3);
     }
 
@@ -72,8 +72,6 @@ GetHighestVisualPixmapCombination(void)
             for (b = 0; b < NumVis; b++) {
                 if ((WorkWithThisVisInfo->depth == WorkWithThisPFV->depth)
                     && (WorkWithThisVisInfo->screen == WorkScreen)) {
-                    printf(" -> MATCH!");
-                    fflush(stdout);
                     maxdpt = WorkWithThisPFV->depth;
                     WorkScanLinePad = WorkWithThisPFV->scanline_pad;
                     WorkVisual = WorkWithThisVisInfo->visual;
@@ -89,13 +87,11 @@ GetHighestVisualPixmapCombination(void)
         }
     }
     else {
-        printf("\nXListPixmapFormats returned NULL.");
-        fflush(stdout);
+        fprintf(stderr, "XListPixmapFormats returned NULL.\n");
         return (-1);
     }
     if (selected == -1) {
-        printf("\nDid not find suitable depth from XListPixmapFormats.");
-        fflush(stdout);
+        fprintf(stderr, "Did not find suitable depth from XListPixmapFormats.\n");
         return (-2);
     }
     XFree(MyPFVInfo);
@@ -145,45 +141,39 @@ GetHighestVisualPixmapCombination(void)
     if ((wd = WorkDepth) == 24)
         wd = 32;
     if ((WorkData = (char *) malloc((wd >> 3) * WIDTH * HEIGHT)) == NULL) {
-        printf("\nCan not allocate %d bytes for WorkData.", ((WorkDepth >> 3) * WIDTH * HEIGHT));
-        fflush(stdout);
+        fprintf(stderr, "Can not allocate %d bytes for WorkData.\n",
+                ((WorkDepth >> 3) * WIDTH * HEIGHT));
         return (-4);
     }
 
     if ((ImageBuffer =
          (struct ImageBufferStructure *) malloc(sizeof(struct ImageBufferStructure) * WIDTH *
                                                 HEIGHT)) == NULL) {
-        printf("\nCan not allocate %d bytes for ImageBuffer.", (3 * WIDTH * HEIGHT));
-        fflush(stdout);
+        fprintf(stderr, "Can not allocate %d bytes for ImageBuffer.\n", (3 * WIDTH * HEIGHT));
         return (-4);
     }
 
-    printf("\nXCreateImage");
-    fflush(stdout);
+    DEBUG("XCreateImage");
 
     if ((WorkImage =
          XCreateImage(WorkDisplay, WorkVisual, WorkDepth, ZPixmap, 0, WorkData, WIDTH, HEIGHT,
                       BitmapPad(WorkDisplay), 0)) == NULL)
 //      if((WorkImage=XCreateImage(WorkDisplay,WorkVisual,WorkDepth,ZPixmap,0,WorkData,WIDTH,HEIGHT,BitmapPad(WorkDisplay),0))==NULL)
     {
-        printf("\nXCreateImage returned NULL.");
-        fflush(stdout);
+        fprintf(stderr, "XCreateImage returned NULL.\n");
         return (-5);
     }
 
-    printf("->Ok.\nXInitImage");
-    fflush(stdout);
+    DEBUG("->Ok.\nXInitImage");
 
     if (XInitImage(WorkImage) == 0) {
-        printf("\nError with XInitImage");
-        fflush(stdout);
+        fprintf(stderr, "Error with XInitImage\n");
         return (-6);
     }
 
     WorkBitsPerRGB = WorkImage->bits_per_pixel;
 
-    printf("->Ok. (%d)", WorkBitsPerRGB);
-    fflush(stdout);
+    DEBUG("->Ok. (%d)\n", WorkBitsPerRGB);
 
     return (0);
 }
@@ -308,9 +298,8 @@ UICreateWindow()
     attribs.override_redirect = FullScreenMode;
 
     if ((WorkDisplay = XOpenDisplay(NULL)) == NULL) {
-      printf("\nError opening display...");
-      fflush(stdout);
-      return (-1);
+        fprintf(stderr, "Error opening display.\n");
+        return (-1);
     }
     WorkScreen = DefaultScreen(WorkDisplay);
 
@@ -320,26 +309,22 @@ UICreateWindow()
     }
 
     if (GetHighestVisualPixmapCombination() < 0) {
-        printf("\nError for getting Visual Information...");
-        fflush(stdout);
+        fprintf(stderr, "Error for getting Visual Information.\n");
         XCloseDisplay(WorkDisplay);
         return (-1);
     }
 
-    printf("\nXCreateWindow");
-    fflush(stdout);
+    DEBUG("XCreateWindow");
 
     if ((WorkWindow =
          XCreateWindow(WorkDisplay, RootWindow(WorkDisplay, WorkScreen), 0, 0, width, height, 2,
                        WorkDepth, InputOutput, WorkVisual, CWOverrideRedirect, &attribs)) == 0) {
-        printf("\nError Creatig Window...");
-        fflush(stdout);
+        fprintf(stderr, "Error Creating Window.\n");
         XCloseDisplay(WorkDisplay);
         return (-1);
     }
 
-    printf("->Ok.");
-    fflush(stdout);
+    DEBUG("->Ok.\n");
 
     TmpChrPtrBuffer[0] = &TmpBuffer[0];
     TmpChrPtrBuffer[1] = NULL;

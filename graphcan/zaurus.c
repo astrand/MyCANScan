@@ -57,8 +57,7 @@ UIAdjustBacklight(unsigned char dimmed)
         bl = 1;
 
     if ((fd = open("/dev/fl", O_WRONLY)) <= 0) {
-        printf("\nError opening '/dev/fl'...");
-        fflush(stdout);
+        fprintf(stderr, "Error opening '/dev/fl'\n");
         return;
     }
     ioctl(fd, FL_IOCTL_STEP_CONTRAST, bl);
@@ -73,7 +72,7 @@ UICreateWindow()
 
     fbfd = open("/dev/fb0", O_RDWR);    // Open the file for reading and writing
     if (!fbfd) {
-        printf("Error: cannot open framebuffer device.\n");
+        fprintf(stderr, "Error: cannot open framebuffer device.\n");
         close(fbfd);
         return (-1);
     }
@@ -81,7 +80,7 @@ UICreateWindow()
 
     if (ioctl(fbfd, FBIOGET_FSCREENINFO, &finfo))       // Get fixed screen information
     {
-        printf("Error reading framebuffer fixed information.\n");
+        fprintf(stderr, "Error reading framebuffer fixed information.\n");
         close(fbfd);
         return (-2);
     }
@@ -89,7 +88,7 @@ UICreateWindow()
 
     if (ioctl(fbfd, FBIOGET_VSCREENINFO, &vinfo))       // Get variable screen information
     {
-        printf("Error reading framebuffer variable information.\n");
+        fprintf(stderr, "Error reading framebuffer variable information.\n");
         close(fbfd);
         return (-3);
     }
@@ -97,9 +96,9 @@ UICreateWindow()
 //      if((vinfo.xres!=WIDTH)||(vinfo.yres!=HEIGHT)||(vinfo.bits_per_pixel!=BBPX)||(vinfo.xoffset!=XOFFS)||(vinfo.yoffset!=YOFFS)||(finfo.line_length!=LLENGTH))
     if ((vinfo.xres != HEIGHT) || (vinfo.yres != WIDTH) || (vinfo.bits_per_pixel != BBPX)
         || (vinfo.xoffset != XOFFS) || (vinfo.yoffset != YOFFS) || (finfo.line_length != LLENGTH)) {
-        printf("\nError, screen does not match optimized parameters :");
-        printf("%dx%d, %dbpp offs:%d:%d  llng:%d\n", vinfo.xres, vinfo.yres, vinfo.bits_per_pixel,
-               vinfo.xoffset, vinfo.yoffset, finfo.line_length);
+        fprintf(stderr, "Error, screen does not match optimized parameters :");
+        fprintf(stderr, "%dx%d, %dbpp offs:%d:%d  llng:%d\n", vinfo.xres, vinfo.yres,
+                vinfo.bits_per_pixel, vinfo.xoffset, vinfo.yoffset, finfo.line_length);
         close(fbfd);
         return (-4);
     }
@@ -110,13 +109,13 @@ UICreateWindow()
     // Map the device to memory
     fbp = (char *) mmap(0, screensize, PROT_READ | PROT_WRITE, MAP_SHARED, fbfd, 0);
     if ((int) fbp == -1) {
-        printf("Error: failed to map framebuffer device to memory.\n");
+        fprintf(stderr, "Error: failed to map framebuffer device to memory.\n");
         close(fbfd);
         return (-5);
     }
 
     if ((WorkData = (char *) malloc(BBPXSH * WIDTH * HEIGHT)) == NULL) {
-        printf("Error: failed to allocate Workdata buffer.\n");
+        fprintf(stderr, "Error: failed to allocate Workdata buffer.\n");
         munmap(fbp, screensize);
         close(fbfd);
         return (-6);
@@ -125,7 +124,7 @@ UICreateWindow()
     if ((ImageBuffer =
          (struct ImageBufferStructure *) malloc(sizeof(struct ImageBufferStructure) * WIDTH *
                                                 HEIGHT)) == NULL) {
-        printf("Error: failed to allocate ImageBuffer..\n");
+        fprintf(stderr, "Error: failed to allocate ImageBuffer..\n");
         free((void *) WorkData);
         munmap(fbp, screensize);
         close(fbfd);
@@ -137,8 +136,7 @@ UICreateWindow()
 #ifdef USE_TOUCHSCREEN
     if ((touch_screen_fd = open("/dev/sharp_ts", O_RDONLY | O_NONBLOCK)) == -1) // |O_NONBLOCK
     {
-        printf("Can not open Touchscreen Device...\n\n");
-        fflush(stdout);
+        fprintf(stderr, "Can not open Touchscreen Device...\n\n");
         return (-1);
     }
 
@@ -147,13 +145,11 @@ UICreateWindow()
     if (fcntl(touch_screen_fd, F_SETOWN, getpid()) >= 0) {
 #if 0
         if (fcntl(touch_screen_fd, F_SETFL, O_NONBLOCK) < 0) {
-            printf("\nError with O_NONBLOCK SIGIO for TouchScreen...");
-            fflush(stdout);
+            fprintf(stderr, "Error with O_NONBLOCK SIGIO for TouchScreen.\n");
         }
 #endif
         if (fcntl(touch_screen_fd, F_SETFL, FASYNC) < 0) {
-            printf("\nError with FASYNC SIGIO for TouchScreen...");
-            fflush(stdout);
+            fprintf(stderr, "Error with FASYNC SIGIO for TouchScreen.\n");
         }
     }
 

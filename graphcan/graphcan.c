@@ -34,6 +34,7 @@
 #include <fcntl.h>
 #include <pthread.h>
 #include "ui.h"
+#include "graphcan.h"
 
 
 /**********************************/
@@ -178,6 +179,7 @@ unsigned int NofInv = 0, NofNInv = 0;
 #ifdef NON_ZAURUS
 unsigned char FullScreenMode = 0;
 #endif
+unsigned char Debug = 0;
 
 char Version[4];
 char Serial[5];
@@ -1197,8 +1199,7 @@ SaveStat(void)
     }
 
     if ((fp = fopen(stat_file_name, "w")) == NULL) {
-        printf("\n\nERROR : Can not open file '%s' for writing...", stat_file_name);
-        fflush(stdout);
+        fprintf(stderr, "ERROR : Can not open file '%s' for writing.\n", stat_file_name);
         for (b = 0; b < 46; b++) {
             c = b * WIDTH;
             for (a = 0; a < (WIDTH - 10); a++) {
@@ -1268,11 +1269,10 @@ SaveStat(void)
     if (((float) MinCurrent * 0.1f) > 500.0f)   // Error!
     {
 
-        printf("\nERROR in MinCurrent !");
-        printf("\nMinCurrent = %d ( %f )", MinCurrent, ((float) MinCurrent * 0.1f));
-        printf("\nMinCurrentVoltage = %d ( %f )", MinCurrentVoltage,
-               ((float) MinCurrentVoltage * 0.001f));
-        fflush(stdout);
+        fprintf(stderr, "ERROR in MinCurrent!\n");
+        fprintf(stderr, "MinCurrent = %d ( %f )\n", MinCurrent, ((float) MinCurrent * 0.1f));
+        fprintf(stderr, "MinCurrentVoltage = %d ( %f )\n", MinCurrentVoltage,
+                ((float) MinCurrentVoltage * 0.001f));
 
     }
     else {
@@ -1387,8 +1387,7 @@ OpenAndConfigurePort(void)
 #endif
     if (Port == -1) {
         if ((Port = open(DEVICE, O_RDWR | O_NOCTTY)) < 0) {
-            printf("\nError Opening Serialport ( %s ) : '%s'", DEVICE, strerror(errno));
-            fflush(stdout);
+            fprintf(stderr, "Error Opening Serialport ( %s ) : '%s'\n", DEVICE, strerror(errno));
             return (1);
         }
     }
@@ -1400,20 +1399,20 @@ OpenAndConfigurePort(void)
     newio.c_cc[VTIME] = 0;
     newio.c_cc[VMIN] = 0;       /* read min. one char at a time  */
     if (cfsetispeed(&newio, BAUD) == -1) {
-        printf("Error setting serial input baud rate\n");
+        fprintf(stderr, "Error setting serial input baud rate\n");
         close(Port);
         Port = -1;
         return (1);
     }
     if (cfsetospeed(&newio, BAUD) == -1) {
-        printf("Error setting serial output baud rate\n");
+        fprintf(stderr, "Error setting serial output baud rate\n");
         close(Port);
         Port = -1;
         return (1);
     }
     tcflush(Port, TCIFLUSH);
     if (tcsetattr(Port, TCSANOW, &newio) == -1) {
-        printf("Error setting terminal attributes\n");
+        fprintf(stderr, "Error setting terminal attributes\n");
         close(Port);
         Port = -1;
         return (1);
@@ -1431,8 +1430,7 @@ SetUpCAN(void)
     if (IB == NULL) {
         IBS = 16 * 1024;
         if ((IB = (char *) malloc((size_t) IBS)) == NULL) {
-            printf("\n\nCan not allocate buffer with %d size...", IBS);
-            fflush(stdout);
+            fprintf(stderr, "Can not allocate buffer with %d size...\n", IBS);
             return (0);
         }
     }
@@ -1449,8 +1447,7 @@ SetUpCAN(void)
 
 //printf("\nCalling OACPort");fflush(stdout);
     if (OpenAndConfigurePort()) {
-        printf(" -> Zero");
-        fflush(stdout);
+        DEBUG(" -> Zero");
         return (0);
     }
 
@@ -1459,16 +1456,14 @@ SetUpCAN(void)
 
     sprintf(Message, "\015\015\015");
     if (WriteToPort(Message)) {
-        printf("\nError writing to port : Clearing Buffer");
-        fflush(stdout);
+        fprintf(stderr, "Error writing to port : Clearing Buffer\n");
     }
 
 //printf("\n... Sending Version Request");fflush(stdout);
 
     sprintf(Message, "V\015");  // get version
     if (WriteToPort(Message)) {
-        printf("\nError writing to port : Get Version");
-        fflush(stdout);
+        fprintf(stderr, "Error writing to port : Get Version\n");
     }
 
     to = 1000000;
@@ -1489,8 +1484,7 @@ SetUpCAN(void)
 
     sprintf(Message, "N\015");  // get Serial
     if (WriteToPort(Message)) {
-        printf("\nError writing to port : Get Serial");
-        fflush(stdout);
+        fprintf(stderr, "Error writing to port : Get Serial\n");
     }
 
     to = 1000000;
@@ -1507,8 +1501,7 @@ SetUpCAN(void)
     CRSignal = 0;
     sprintf(Message, "S6\015"); // CAN with 500Kbps S0-10 S1-20 S2-50 S3-100 S4-125 S5-250 S7-800  S8-1M
     if (WriteToPort(Message)) {
-        printf("\nError writing to port : Setting CAN speed");
-        fflush(stdout);
+        fprintf(stderr, "Error writing to port : Setting CAN speed\n");
     }
 
     to = 1000000;
@@ -1535,8 +1528,7 @@ SetUpCAN(void)
 #endif
 
     if (WriteToPort(Message)) {
-        printf("\nError writing to port : M register");
-        fflush(stdout);
+        fprintf(stderr, "Error writing to port : M register\n");
     }
     to = 1000000;
     while (to) {
@@ -1557,8 +1549,7 @@ SetUpCAN(void)
 #endif
 
     if (WriteToPort(Message)) {
-        printf("\nError writing to port : m register");
-        fflush(stdout);
+        fprintf(stderr, "Error writing to port : m register\n");
     }
     to = 1000000;
     while (to) {
@@ -1573,8 +1564,7 @@ SetUpCAN(void)
     CRSignal = 0;
     sprintf(Message, "X1\015"); // Turn on out poll
     if (WriteToPort(Message)) {
-        printf("\nError writing to port : Turn on poll");
-        fflush(stdout);
+        fprintf(stderr, "Error writing to port : Turn on poll\n");
     }
     to = 1000000;
     while (to) {
@@ -1590,8 +1580,7 @@ SetUpCAN(void)
     CRSignal = 0;
     sprintf(Message, "Z0\015"); // Turn off timestamp
     if (WriteToPort(Message)) {
-        printf("\nError writing to port : Turn off timestamp");
-        fflush(stdout);
+        fprintf(stderr, "Error writing to port : Turn off timestamp\n");
     }
     to = 1000000;
     while (to) {
@@ -1610,8 +1599,7 @@ SetUpCAN(void)
     CRSignal = 0;
     sprintf(Message, "O\015");  // Open the CAN channel
     if (WriteToPort(Message)) {
-        printf("\nError writing to port : Open CAN channel");
-        fflush(stdout);
+        fprintf(stderr, "Error writing to port : Open CAN channel\n");
     }
     to = 1000000;
     while (to) {
@@ -1636,8 +1624,7 @@ CleanUp(int vis)
     if (!Simulation && Port >= 0) {
         sprintf(Message, "C\015");      // Close the CAN channel
         if (WriteToPort(Message)) {
-            printf("\nError writing to port : Close CAN channel");
-            fflush(stdout);
+            fprintf(stderr, "Error writing to port : Close CAN channel\n");
         }
         close(Port);
         Port = -1;
@@ -2304,8 +2291,7 @@ ProcessSigIo()
                     if (Port >= 0) {
                         sprintf(Message, "C\015");      // Close the CAN channel
                         if (WriteToPort(Message)) {
-                            printf("\nError writing to port : Close CAN Channel");
-                            fflush(stdout);
+                            fprintf(stderr, "Error writing to port : Close CAN Channel\n");
                         }
                         close(Port);
                         Port = -1;
@@ -2451,8 +2437,7 @@ IntReXSigCatch(int sig)
     case SIGINT:
     case SIGHUP:
     case SIGTERM:
-        printf("\nMisc Signal Cought, exiting (%d)", sig);
-        fflush(stdout);
+        fprintf(stderr, "Misc Signal Cought, exiting (%d)\n", sig);
         CleanUp(0);
         exit(-1);
     }
@@ -4408,31 +4393,35 @@ main(int argc, char **argv)
                 stat_file_name = STAT_FILE_NAME_SIM;
                 fuel_file_name = FUEL_FILE_NAME_SIM;
                 break;
+            case 'd':
+                Debug = 1;
+                break;
             case '-':
             case 'h':
             case '?':
-                printf("\n\nGraphCan %s", VERSION_STRING);
-                printf("\n\nUsage : %s [vfs]", argv[0]);
-                printf("\n\tv - Turn OFF voice mode");
-                printf("\n\tf - Take sound samples and player from %s directory", FORCE_PATH);
-                printf("\n\ts - Use SI measurements ( km/h etc.)");
-                printf("\n\to - Offline Simulation mode");
+                fprintf(stderr, "GraphCan %s\n", VERSION_STRING);
+                fprintf(stderr, "Usage : %s [vfs]\n", argv[0]);
+                fprintf(stderr, "\tv - Turn OFF voice mode\n");
+                fprintf(stderr, "\tf - Take sound samples and player from %s directory\n",
+                        FORCE_PATH);
+                fprintf(stderr, "\ts - Use SI measurements ( km/h etc.)\n");
+                fprintf(stderr, "\to - Offline Simulation mode\n");
+                fprintf(stderr, "\td - Print debug messages\n");
 #ifdef NON_ZAURUS
-                printf("\n\tF - Fullscreen mode mode");
+                fprintf(stderr, "\tF - Fullscreen mode mode\n");
 #endif
-                printf("\n\nTouching the 1st vertical quarter of the screen :");
-                printf("\n    Switch Voice On/Off.");
-                printf("\n 2nd and 3rd quarter of the screen :");
-                printf("\n    While Initializing CAN : Go to Info / Setting mode.");
-                printf("\n    While in ScreenSaver : Save data to card.");
-                printf("\n    While in Running mode : Switch between SI and imperial.");
-                printf("\n 4th quarter :");
-                printf("\n    Quit.");
-                printf
-                    ("\n\nType 'su' and 'chmod a+w /dev/fl' for backlight control from GraphCan after reboot...");
-                fflush(stdout);
-                printf("\n\n");
-                fflush(stdout);
+                fprintf(stderr, "\n");
+                fprintf(stderr, "Touching the 1st vertical quarter of the screen :\n");
+                fprintf(stderr, "    Switch Voice On/Off.\n");
+                fprintf(stderr, " 2nd and 3rd quarter of the screen :\n");
+                fprintf(stderr, "    While Initializing CAN : Go to Info / Setting mode.\n");
+                fprintf(stderr, "    While in ScreenSaver : Save data to card.\n");
+                fprintf(stderr, "    While in Running mode : Switch between SI and imperial.\n");
+                fprintf(stderr, " 4th quarter :\n");
+                fprintf(stderr, "    Quit.\n");
+                fprintf(stderr,
+                        "Type 'su' and 'chmod a+w /dev/fl' for backlight control from GraphCan after reboot...\n");
+                fprintf(stderr, "\n");
                 exit(0);
                 break;
             }
@@ -4459,8 +4448,7 @@ main(int argc, char **argv)
     if (fcntl(0, F_SETOWN, getpid()) >= 0) {
         c |= FASYNC;
         if (fcntl(0, F_SETFL, c) < 0) {
-            printf("\nError with SIGIO for terminal...");
-            fflush(stdout);
+            fprintf(stderr, "Error with SIGIO for terminal.\n");
         }
     }
 #endif
@@ -4499,8 +4487,7 @@ main(int argc, char **argv)
                     PutMyString(Message, 20, 20, 0, 6);
                     UICopyDisplayBufferToScreen(0, 0, WIDTH, HEIGHT);
                     CleanUp(0);
-                    printf("\nExited...\n");
-                    fflush(stdout);
+                    fprintf(stderr, "Exited.\n");
                     return (1);
                 }
                 if (RunningTask == TASK_INFO)
@@ -4590,8 +4577,7 @@ main(int argc, char **argv)
                         if (Port >= 0) {
                             sprintf(Message, "C\015");  // Close the CAN channel
                             if (WriteToPort(Message)) {
-                                printf("\nError writing to port : Close CAN Channel");
-                                fflush(stdout);
+                                fprintf(stderr, "Error writing to port : Close CAN Channel\n");
                             }
                             close(Port);
                             Port = -1;
