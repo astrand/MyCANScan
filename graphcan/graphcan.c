@@ -4365,14 +4365,16 @@ usage(char *program)
 {
     fprintf(stderr, "GraphCan %s\n", VERSION_STRING);
     fprintf(stderr, "Usage : %s [vfs]\n", program);
-    fprintf(stderr, "\t-v: Turn OFF voice mode\n");
-    fprintf(stderr, "\t-f: Take sound samples and player from %s directory\n", FORCE_PATH);
-    fprintf(stderr, "\t-s: Use SI measurements ( km/h etc.)\n");
-    fprintf(stderr, "\t-o: Offline Simulation mode\n");
+    /* Alphabetical order, please */
     fprintf(stderr, "\t-d: Print debug messages\n");
+    fprintf(stderr, "\t-f: Take sound samples and player from %s directory\n", FORCE_PATH);
 #ifdef NON_ZAURUS
     fprintf(stderr, "\t-F: Fullscreen mode mode\n");
-#else
+#endif
+    fprintf(stderr, "\t-s: Use SI measurements ( km/h etc.)\n");
+    fprintf(stderr, "\t-o: Offline Simulation mode\n");
+    fprintf(stderr, "\t-v: Turn OFF voice mode\n");
+#ifndef NON_ZAURUS
     fprintf(stderr, "\n");
     fprintf(stderr, "Touching the 1st vertical quarter of the screen :\n");
     fprintf(stderr, "    Switch Voice On/Off.\n");
@@ -4398,34 +4400,34 @@ main(int argc, char **argv)
     float fv;
 #endif
 
-    while ((c = getopt(argc, argv, "dfFhosv?")) != -1) {
+    /* Alphabetical order, please */
+    while ((c = getopt(argc, argv, "dfFhsov?")) != -1) {
         switch (c) {
-        case 'v':
-            FVoiceMode = 1;
+        case 'd':
+            Debug = 1;
             break;
         case 'f':
             ForcePath = 1;
-            break;
-        case 's':
-            SI_Measurements = 1;
             break;
 #ifdef NON_ZAURUS
         case 'F':
             FullScreenMode = 1;
             break;
 #endif
+        case 'h':
+        case '?':
+            usage(argv[0]);
+            break;
+        case 's':
+            SI_Measurements = 1;
+            break;
         case 'o':
             Simulation = 1;
             stat_file_name = STAT_FILE_NAME_SIM;
             fuel_file_name = FUEL_FILE_NAME_SIM;
             break;
-        case 'd':
-            Debug = 1;
-            break;
-        case '-':
-        case 'h':
-        case '?':
-            usage(argv[0]);
+        case 'v':
+            FVoiceMode = 1;
             break;
         }
     }
