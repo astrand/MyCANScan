@@ -4363,71 +4363,64 @@ FastPoll(void)
 int
 main(int argc, char **argv)
 {
-    int a, b, c;
+    int c;
     unsigned char FVoiceMode = 0;
 #ifdef TRAFFIC_PROFILE
     float fv;
 #endif
 
-    b = 1;
-    while (argc > b) {
-        a = 0;
-        while (argv[b][a] != '\0') {
-            switch (argv[b][a]) {
-            case 'v':
-                FVoiceMode = 1;
-                break;
-            case 'f':
-                ForcePath = 1;
-                break;
-            case 's':
-                SI_Measurements = 1;
-                break;
+    while ((c = getopt(argc, argv, "dfFhosv?")) != -1) {
+        switch (c) {
+        case 'v':
+            FVoiceMode = 1;
+            break;
+        case 'f':
+            ForcePath = 1;
+            break;
+        case 's':
+            SI_Measurements = 1;
+            break;
 #ifdef NON_ZAURUS
-            case 'F':
-                FullScreenMode = 1;
-                break;
+        case 'F':
+            FullScreenMode = 1;
+            break;
 #endif
-            case 'o':
-                Simulation = 1;
-                stat_file_name = STAT_FILE_NAME_SIM;
-                fuel_file_name = FUEL_FILE_NAME_SIM;
-                break;
-            case 'd':
-                Debug = 1;
-                break;
-            case '-':
-            case 'h':
-            case '?':
-                fprintf(stderr, "GraphCan %s\n", VERSION_STRING);
-                fprintf(stderr, "Usage : %s [vfs]\n", argv[0]);
-                fprintf(stderr, "\tv - Turn OFF voice mode\n");
-                fprintf(stderr, "\tf - Take sound samples and player from %s directory\n",
-                        FORCE_PATH);
-                fprintf(stderr, "\ts - Use SI measurements ( km/h etc.)\n");
-                fprintf(stderr, "\to - Offline Simulation mode\n");
-                fprintf(stderr, "\td - Print debug messages\n");
+        case 'o':
+            Simulation = 1;
+            stat_file_name = STAT_FILE_NAME_SIM;
+            fuel_file_name = FUEL_FILE_NAME_SIM;
+            break;
+        case 'd':
+            Debug = 1;
+            break;
+        case '-':
+        case 'h':
+        case '?':
+            fprintf(stderr, "GraphCan %s\n", VERSION_STRING);
+            fprintf(stderr, "Usage : %s [vfs]\n", argv[0]);
+            fprintf(stderr, "\t-v - Turn OFF voice mode\n");
+            fprintf(stderr, "\t-f - Take sound samples and player from %s directory\n", FORCE_PATH);
+            fprintf(stderr, "\t-s - Use SI measurements ( km/h etc.)\n");
+            fprintf(stderr, "\t-o - Offline Simulation mode\n");
+            fprintf(stderr, "\t-d - Print debug messages\n");
 #ifdef NON_ZAURUS
-                fprintf(stderr, "\tF - Fullscreen mode mode\n");
+            fprintf(stderr, "\t-F - Fullscreen mode mode\n");
 #endif
-                fprintf(stderr, "\n");
-                fprintf(stderr, "Touching the 1st vertical quarter of the screen :\n");
-                fprintf(stderr, "    Switch Voice On/Off.\n");
-                fprintf(stderr, " 2nd and 3rd quarter of the screen :\n");
-                fprintf(stderr, "    While Initializing CAN : Go to Info / Setting mode.\n");
-                fprintf(stderr, "    While in ScreenSaver : Save data to card.\n");
-                fprintf(stderr, "    While in Running mode : Switch between SI and imperial.\n");
-                fprintf(stderr, " 4th quarter :\n");
-                fprintf(stderr, "    Quit.\n");
-                fprintf(stderr,
-                        "Type 'su' and 'chmod a+w /dev/fl' for backlight control from GraphCan after reboot...\n");
-                fprintf(stderr, "\n");
-                exit(0);
-                break;
-            }
-            ++a;
+            fprintf(stderr, "\n");
+            fprintf(stderr, "Touching the 1st vertical quarter of the screen :\n");
+            fprintf(stderr, "    Switch Voice On/Off.\n");
+            fprintf(stderr, " 2nd and 3rd quarter of the screen :\n");
+            fprintf(stderr, "    While Initializing CAN : Go to Info / Setting mode.\n");
+            fprintf(stderr, "    While in ScreenSaver : Save data to card.\n");
+            fprintf(stderr, "    While in Running mode : Switch between SI and imperial.\n");
+            fprintf(stderr, " 4th quarter :\n");
+            fprintf(stderr, "    Quit.\n");
+            fprintf(stderr,
+                    "Type 'su' and 'chmod a+w /dev/fl' for backlight control from GraphCan after reboot...\n");
+            fprintf(stderr, "\n");
+            exit(0);
+            break;
         }
-        ++b;
     }
 
     SetUpMySignals();
