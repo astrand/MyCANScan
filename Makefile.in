@@ -28,7 +28,7 @@ all: $(BINS) $(DOCS)
 CANVIS_OBJS = canvis/fileio.o canvis/functions.o canvis/graphics.o canvis/main.o
 
 canvis/canvis: $(X11OBJ) $(CANVIS_OBJS)
-	$(CC) $(CANVIS_OBJS) $(CFLAGS) -o $@ $(X11OBJ) $(LDFLAGS) -lX11 -lpng
+	$(CC) $(CANVIS_OBJS) $(CFLAGS) -o $@ $(X11OBJ) $(LDFLAGS) -lX11 -lpng -lz -lm
 
 
 # Graphcan. Note: The default is to build both the X11 and Zaurus
